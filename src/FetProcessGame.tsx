@@ -4,24 +4,48 @@ import './fet-game.css';
 
 export function MosfetSection({step,on=false,animate=false}:{step:number;on?:boolean;animate?:boolean}){
  const active=step>=4,finished=step===5;
- return <svg viewBox="0 0 360 210" role="img" aria-label={finished?`완성된 nMOS 단면 · ${on?'ON · 채널 형성':'OFF'}`:processSteps[step].title}>
-  <rect width="360" height="210" rx="12" fill="#102c36"/>
-  <rect x="24" y="112" width="312" height="76" fill="#af7891"/>
-  <text x="180" y="178" textAnchor="middle" fill="#fff" fontSize="16">p형 Si 기판 {finished?'· B = 0 V':''}</text>
-  <path d="M24 96H57V143H24ZM303 96H336V143H303Z" fill="#b7d6db"/>
-  {step>=1&&<rect x="57" y="104" width="246" height="8" fill="#f3d57b"/>}
-  {step>=2&&<><rect x="132" y="72" width="96" height="32" fill="#5bb49c"/><text x="180" y="94" textAnchor="middle" fill="#092d29" fontSize="15">poly-Si</text></>}
-  {step>=3&&<>{[57,228].map(x=><g key={x}><rect x={x} y="113" width="75" height="34" rx="7" fill={active?'#61c4ef':'#799eb0'} stroke="#c9f5ff" strokeDasharray={active?undefined:'3 3'}/><text x={x+37} y="138" textAnchor="middle" fill="#102d3c" fontSize="15">{active?'n⁺':'P'}</text></g>)}</>}
-  {step===0&&<text x="180" y="70" textAnchor="middle" fill="#c4e3df" fontSize="16">활성 영역 준비</text>}
-  {step===1&&<text x="180" y="72" textAnchor="middle" fill="#f3d57b" fontSize="16">얇은 게이트 산화막</text>}
-  {step===3&&<>{[80,106,254,280].map(x=><g key={x} stroke="#8cdfff" strokeWidth="2"><path d={`M${x} 44v45m-5-7 5 7 5-7`}/><text x={x} y="34" textAnchor="middle" fill="#8cdfff" stroke="none" fontSize="14">P⁺</text></g>)}</>}
-  {step===4&&<><path d="M80 83q-12-10 0-20t0-20 M280 83q-12-10 0-20t0-20" stroke="#ffad6f" fill="none" strokeWidth="4"/><text x="180" y="42" textAnchor="middle" fill="#ffad6f" fontSize="16">열처리 · 활성화</text></>}
-  {finished&&<>
-   <path d="M57 102V60H128V70H132V102ZM228 102V70H232V60H303V102Z" fill="#b7d6db" opacity=".7"/>
-   {[94,180,266].map((x,i)=><g key={x}><rect x={x-5} y="40" width="10" height={i===1?32:73} fill="#dbe8ee" stroke="#6e929e"/><text x={x} y="26" textAnchor="middle" fill="#eefbff" fontSize="15">{i===0?'S · 0 V':i===1?`G · ${on?'3':'0'} V`:'D · 1 V'}</text></g>)}
-   {on&&<><rect x="132" y="113" width="96" height="7" fill="#6effd9"/>{[0,1,2,3].map(i=><circle key={i} cx={100+i*45} cy="117" r="3" fill="#fff8bc">{animate&&<animate attributeName="cx" from="94" to="266" dur="1.6s" begin={`${-i*.4}s`} repeatCount="indefinite"/>}</circle>)}</>}
-  </>}
-  <text x="180" y="204" textAnchor="middle" fill="#bbd6db" fontSize="14">{finished?(on?'전자 이동 S → D · 관습적 전류 D → S':'반전 채널 없음 · 거의 흐르지 않는 전류'):'단면 개념도 · 축척과 세부 공정은 단순화'}</text>
+ return <svg viewBox={finished?"0 0 600 530":"0 160 600 310"} role="img" fontFamily="Arial, sans-serif" aria-label={finished?`완성된 nMOS 단면 · ${on?'ON · 채널 형성':'OFF'}`:processSteps[step].title}>
+  <rect width="600" height="530" rx="10" fill="white"/>
+  <g stroke="#151515" strokeWidth="3" strokeLinejoin="round">
+   <rect x="55" y="280" width="490" height="170" fill="#ffb600"/>
+   <path d="M55 260h40v20H55zM505 260h40v20h-40z" fill="#fff"/>
+   {step>=1&&<rect x="175" y="258" width="250" height="22" fill="#fff"/>}
+   {step>=2&&<path d="M205 258v-32q0-10 10-10h170q10 0 10 10v32z" fill="#383838"/>}
+   {step>=3&&[95,390].map(x=><path key={x} d={`M${x} 280h115v48q0 12-12 12h-91q-12 0-12-12z`} fill={active?'#009ff0':'#9bcee8'} strokeDasharray={active?undefined:'5 4'}/>)}
+   {finished&&<>
+    {on&&<rect x="210" y="281" width="180" height="15" fill="#ffeb44" strokeWidth="1.5"/>}
+    <path d="M130 280v-8h45v8M425 280v-8h45v8" fill="#383838"/>
+    <rect x="245" y="442" width="110" height="25" rx="8" fill="#383838"/>
+    <path d="M150 272V45h120m60 0h120v227M150 125h80m60 0h10v91M150 245H30v245h270v-23" fill="none"/>
+    <path d="M270 28v34m12-48v62m18-48v34m12-48v62M230 112v26m12-42v58m18-42v26m12-42v58" fill="none"/>
+    <path d="M312 45h18M272 125h18" fill="none"/>
+    {[{x:150,y:195},{x:300,y:183},{x:450,y:195},{x:300,y:490}].map(p=><circle key={p.x+','+p.y} cx={p.x} cy={p.y} r="7" fill="white"/>)}
+   </>}
+  </g>
+  <g textAnchor="middle" fill="#111">
+   <text x="300" y="407" fontSize="25" fontWeight="700">P-Type Si Substrate</text>
+   {step>=1&&<text x="300" y="274" fontSize="14" fontWeight="700">SiO₂ Gate Oxide</text>}
+   {step>=2&&<text x="300" y="243" fontSize="18" fill="white">Poly-Si Gate</text>}
+   {step>=3&&[152,448].map(x=><text key={x} x={x} y="321" fontSize="30" fontWeight="700">{active?'N⁺':'P ions'}</text>)}
+   {!finished&&<text x="300" y="188" fontSize="20" fill={step===4?'#b93818':'#333'}>{['Active Area','Gate Oxidation','Gate Patterning','Donor Implantation','Anneal / Activation'][step]}</text>}
+   {step===3&&[120,150,450,480].map(x=><g key={x}><text x={x} y="218" fontSize="17" fill="#006eac">P⁺</text><path d={`M${x} 226v33m-5-7 5 7 5-7`} fill="none" stroke="#006eac" strokeWidth="2"/></g>)}
+   {step===4&&[145,455].map(x=><path key={x} d={`M${x} 250q-12-10 0-20t0-20`} stroke="#d63b1d" strokeWidth="4" fill="none"/>)}
+   {finished&&<>
+    <text x="370" y="27" fontSize="16">VDS = 1 V</text>
+    <text x="354" y="113" fontSize="16">VGS = {on?'3':'0'} V</text>
+    <text x="255" y="22" fontSize="22">−</text><text x="327" y="22" fontSize="22">+</text>
+    <text x="217" y="101" fontSize="22">−</text><text x="285" y="101" fontSize="22">+</text>
+    <text x="125" y="183" fontSize="22">S</text><text x="280" y="174" fontSize="22">G</text><text x="475" y="183" fontSize="22">D</text>
+    <text x="300" y="520" fontSize="18">Substrate / Body · 0 V</text>
+    <text x="300" y="369" fontSize="18" fontWeight="700">{on?'N-Channel · ON':'No Channel · OFF'}</text>
+    {on&&<>
+     {[225,255,285,315,345,375].map(x=><text key={x} x={x} y="212" fontSize="22">+</text>)}
+     {[228,260,292,324,356,380].map(x=><text key={x} x={x} y="324" fontSize="18" fill="#544600">−</text>)}
+     <text x="300" y="344" fontSize="12">Depletion: fixed acceptor ions (−)</text>
+     {[0,1,2,3,4,5].map(i=><text key={i} x={218+i*32} y="294" fontSize="20" fontWeight="700">−{animate&&<animate attributeName="x" from="212" to="382" dur="1.6s" begin={`${-i*1.6/6}s`} repeatCount="indefinite"/>}</text>)}
+    </>}
+   </>}
+  </g>
  </svg>;
 }
 

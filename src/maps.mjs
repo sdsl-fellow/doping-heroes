@@ -10,5 +10,4 @@ export function mapInfo(area){const stage=stageDefinitions[stageIndex(area)];ret
 /** @param {string} area @param {number|null} arrival */
 export function arrivalPoint(area,arrival=null){if(area==='adventure'&&Number.isInteger(arrival)&&gatewayLocations[arrival]){const p=gatewayLocations[arrival];return {x:p.x,y:p.y+65};}return mapInfo(area).spawn;}
 
-export const stageUnlocked=(completed,index)=>Number.isInteger(index)&&index>=0&&index<12&&[0,1,2,...stageDefinitions.slice(0,index).map(s=>s.questId)].every(id=>completed.includes(id));
-
+export const stageUnlocked=(completed,index,root=false)=>Number.isInteger(index)&&index>=0&&index<12&&(root||[0,1,2,...stageDefinitions.slice(0,index).map(s=>s.questId)].every(id=>completed.includes(id)));

@@ -1,3 +1,4 @@
+import {validStudentId} from './access.mjs';
 import {useState} from 'react';
 import {Avatar} from './Avatar';
 import {Character,defaultCharacter,hairStyles,hairColors,skinColors,outfitColors} from './character';
@@ -5,7 +6,7 @@ import {equipment,availableCharacter} from './equipment';
 export function Creator({initial,name,studentId='',completed=[],purchased=[],onSave,onClose}:{initial?:Character;name:string;studentId?:string;completed?:number[];purchased?:string[];onSave:(name:string,c:Character,studentId:string)=>void;onClose?:()=>void}){
  const [c,setC]=useState<Character>(availableCharacter(initial??defaultCharacter,completed,purchased)),[n,setN]=useState(name),[id,setId]=useState(studentId),[direction,setDirection]=useState(2),[walk,setWalk]=useState(true);
  const update=(patch:Partial<Character>)=>setC(old=>({...old,...patch}));
- const validId=/^[0-9]{8}$/.test(id.trim());
+ const validId=validStudentId(n.trim(),id.trim());
  function swatches(label:string,values:string[],field:'skin'|'hairColor'|'outfitColor'){return <fieldset><legend>{label}</legend><div className="swatches">{values.map((v,i)=><button type="button" aria-label={`${label} ${i+1}`} aria-pressed={c[field]===v} style={{background:v}} key={v} onClick={()=>update({[field]:v})}>{c[field]===v?'✓':''}</button>)}</div></fieldset>;}
  return <form className="creator" onSubmit={e=>{e.preventDefault();if(n.trim()&&validId)onSave(n.trim(),availableCharacter(c,completed,purchased),id.trim());}}>
  <div className="dialog-heading"><div><small>YOUR JOURNEY STARTS HERE</small><h1>{initial?'나의 모험가':'나만의 모험가 만들기'}</h1></div>{onClose&&<button type="button" onClick={onClose}>닫기 ×</button>}</div>
@@ -13,7 +14,7 @@ export function Creator({initial,name,studentId='',completed=[],purchased=[],onS
  <fieldset className="rotation"><legend className="sr-only">미리보기 방향</legend>{([{label:'앞',value:2},{label:'뒤',value:0},{label:'왼쪽',value:1},{label:'오른쪽',value:3}]).map(({label:v,value:i})=><label key={v}><input type="radio" name="preview-direction" checked={direction===i} onChange={()=>setDirection(i)}/><span>{v}</span></label>)}</fieldset>
  <button type="button" onClick={()=>setWalk(!walk)}>{walk?'걷기 미리보기 일시정지':'걷기 미리보기'}</button><p>퀘스트를 완료해 장비를 모으고<br/>나만의 모습으로 모험하세요.</p></div>
  <div className="character-options"><label className="name-label">캐릭터 이름<input autoFocus value={n} maxLength={20} required placeholder="이름을 입력하세요" onChange={e=>setN(e.target.value)}/></label>
- <label className="name-label">학번<input value={id} maxLength={8} minLength={8} inputMode="numeric" required pattern="[0-9]{8}" autoComplete="off" spellCheck={false} placeholder="학번을 입력하세요" onChange={e=>setId(e.target.value.replace(/[^0-9]/g,'').slice(0,8))}/><small>숫자 8자리만 입력하세요. 학번은 게임 화면에 공개되지 않습니다.</small></label>
+ <label className="name-label">학번<input value={id} maxLength={8} minLength={6} inputMode="numeric" required pattern={validId?id.trim():"[0-9]{8}"} autoComplete="off" spellCheck={false} placeholder="학번을 입력하세요" onChange={e=>setId(e.target.value.replace(/[^0-9]/g,'').slice(0,8))}/><small>일반 학번은 숫자 8자리, 개발 계정은 지정된 학번을 입력하세요. 학번은 게임 화면에 공개되지 않습니다.</small></label>
  <fieldset><legend>성별</legend><div className="choices">{[['male','남성'],['female','여성'],['neutral','선택 안 함']].map(([v,l])=><button type="button" key={v} aria-pressed={c.gender===v} onClick={()=>update({gender:v as Character['gender'],...(v==='neutral'?{hairColor:c.species==='dog'?'#dae0e5':'#f1d37e'}:{})})}>{l}</button>)}</div></fieldset>
  {c.gender==='neutral'?<fieldset><legend>동물 모험가</legend><div className="choices">{[['dog','강아지'],['cat','고양이']].map(([v,l])=><button type="button" key={v} aria-pressed={c.species===v} onClick={()=>update({species:v as Character['species'],hairColor:v==='dog'?'#dae0e5':'#f1d37e'})}>{l}</button>)}</div></fieldset>:<fieldset><legend>체형</legend><div className="choices">{[['sturdy','건장한 체형'],['agile','날렵한 체형']].map(([v,l])=><button key={v} type="button" aria-pressed={c.body===v} onClick={()=>update({body:v as Character['body']})}>{l}</button>)}</div></fieldset>}
  {c.gender!=='neutral'&&swatches('피부색',skinColors,'skin')}{c.gender!=='neutral'&&<fieldset><legend>헤어스타일</legend><div className="choices hair-choices">{hairStyles.map(([v,l])=><button type="button" key={v} aria-pressed={c.hair===v} onClick={()=>update({hair:v})}>{l}</button>)}</div></fieldset>}{!(c.gender==='neutral'&&c.species==='dog')&&swatches(c.gender==='neutral'?'털색':'머리색',hairColors,'hairColor')}
