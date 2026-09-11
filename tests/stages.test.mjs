@@ -1,6 +1,6 @@
 import {test} from 'node:test';import fs from 'node:fs';import assert from 'node:assert/strict';
 import {stageDefinitions,mapInfo,arrivalPoint,gatewayLocations} from '../src/maps.mjs';
-import {walkable,route} from '../src/navigation.mjs';
+import {walkable,route,routeToGateway} from '../src/navigation.mjs';
 test('twelve unique stage scenes preserve quest IDs and connect to safe return positions',()=>{
  assert.equal(stageDefinitions.length,12);assert.equal(new Set(stageDefinitions.map(s=>s.questId)).size,12);assert.equal(new Set(stageDefinitions.map(s=>mapInfo(s.area).image)).size,12);
  for(const s of stageDefinitions){const info=mapInfo(s.area);assert.ok(walkable(info.spawn.x,info.spawn.y,s.area));for(const target of [{x:info.npc.x,y:info.npc.y+20},info.exit]){const path=route(info.spawn.x,info.spawn.y,target.x,target.y,s.area);assert.ok(path.length);assert.ok(path.every(p=>walkable(p.x,p.y,s.area)));assert.ok(Math.hypot(path.at(-1).x-target.x,path.at(-1).y-target.y)<20);}
@@ -22,4 +22,11 @@ test('stage artwork water and chasm remain blocked',()=>{assert.equal(walkable(7
 
 test('all stage backgrounds exist as nonempty WebP assets',()=>{
  for(const s of stageDefinitions){const file=fs.readFileSync(new URL('../public/'+mapInfo(s.area).image.slice(2),import.meta.url));assert.ok(file.length>10000);assert.equal(file.toString('ascii',0,4),'RIFF');assert.equal(file.toString('ascii',8,12),'WEBP');}
+});
+
+test('next-stage routes pass through the middle road',()=>{
+ for(let i=0;i<11;i++){
+ const from=arrivalPoint('adventure',i),to=gatewayLocations[i+1];const path=routeToGateway(from.x,from.y,i+1);
+ assert.ok(path.length);assert.ok(path.every(p=>walkable(p.x,p.y,'adventure')));assert.ok(path.some(p=>p.x>730&&p.x<835));assert.ok(Math.hypot(path.at(-1).x-to.x,path.at(-1).y-to.y)<20);
+ }
 });

@@ -1,11 +1,12 @@
 import {useEffect,useRef,useState} from 'react';
 import {characterSheet,type Character} from './character';
 import {conductivity,scientific,sigmaLabel,progress,levelLabel} from './progression.mjs';
-export function ImplantAnimation({character,before,after,type}:{character:Character;before:number;after:number;type:'n'|'p'}){
+export function ImplantAnimation({character,before,after,type,onComplete}:{onComplete?:()=>void;character:Character;before:number;after:number;type:'n'|'p'}){
  const ref=useRef<HTMLCanvasElement>(null),[phase,setPhase]=useState(0),[error,setError]=useState('');
+ const finish=useRef(onComplete);finish.current=onComplete;
  const raised=progress(after).stage>progress(before).stage;
  useEffect(()=>{let stopped=false,frame=0,start=0,lastPhase=-1;const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
- characterSheet(character).then(sheet=>{if(stopped)return;ref.current?.scrollIntoView({block:"center",behavior:reduced?"instant":"smooth"});const draw=(time:number)=>{if(stopped)return;start ||= time;const t=reduced?1:Math.min(1,(time-start)/3400),p=Math.min(3,Math.floor(t*4));if(p!==lastPhase){setPhase(p);lastPhase=p;}const ctx=ref.current?.getContext('2d');if(!ctx)return;
+ characterSheet(character).then(sheet=>{if(stopped)return;ref.current?.scrollIntoView({block:"center",behavior:reduced?"instant":"smooth"});const draw=(time:number)=>{if(stopped)return;start ||= time;const t=reduced?1:Math.min(1,(time-start)/3400),p=Math.min(3,Math.floor(t*4));if(p!==lastPhase){setPhase(p);lastPhase=p;if(p===3)finish.current?.();}const ctx=ref.current?.getContext('2d');if(!ctx)return;
  ctx.clearRect(0,0,360,250);ctx.imageSmoothingEnabled=false;const hot=p===2,hue=hot?'#ff7438':type==='n'?'#72d9ff':'#ffce77';
  ctx.fillStyle=hot?'#521d16':'#102936';ctx.fillRect(0,0,360,250);
  const glow=ctx.createRadialGradient(180,166,10,180,166,125);glow.addColorStop(0,hot?'#ff632edc':t>.4?'#3b848a88':'#29465766');glow.addColorStop(1,'#10293600');ctx.fillStyle=glow;ctx.fillRect(0,0,360,250);
@@ -15,7 +16,7 @@ export function ImplantAnimation({character,before,after,type}:{character:Charac
  if(t>.5){ctx.strokeStyle=hue;ctx.lineWidth=2;ctx.globalAlpha=Math.min(1,(t-.5)*3);for(let i=0;i<3;i++){const y=145+i*16;ctx.beginPath();ctx.moveTo(130,y);ctx.lineTo(149,y-6);ctx.lineTo(165,y+5);ctx.lineTo(184,y-5);ctx.lineTo(203,y+4);ctx.lineTo(227,y);ctx.stroke();}ctx.globalAlpha=1;}
  if(raised&&t>.72&&!reduced){ctx.strokeStyle='#ffe8a0';ctx.globalAlpha=(1-t)*3;ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(180,168,40+(t-.72)*200,20+(t-.72)*100,0,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;}
  if(t<1)frame=requestAnimationFrame(draw);
- };frame=requestAnimationFrame(draw);}).catch(()=>{if(!stopped){setError('캐릭터 연출을 불러오지 못했습니다. 보상은 정상 저장되었습니다.');setPhase(3);}});
+ };frame=requestAnimationFrame(draw);}).catch(()=>{if(!stopped){setError('캐릭터 연출을 불러오지 못했습니다. 보상은 정상 저장되었습니다.');setPhase(3);finish.current?.();}});
  return()=>{stopped=true;cancelAnimationFrame(frame);};},[character,before,after,type,raised]);
- return <section className="implant-animation" aria-label="불순물 주입과 전도도 상승"><div className="implant-phase">{['불순물 이온 가속','캐릭터에 불순물 주입','열처리 · 도펀트 활성화','주입 완료'][phase]}{phase===3&&raised?' · LEVEL UP!':''}</div><canvas ref={ref} width={360} height={250} aria-label="선택한 캐릭터로 이온 빔이 들어오고 전하가 흐르는 게임 애니메이션"/><div className="implant-stats"><p>도핑 농도 <strong>{scientific(before)} → {scientific(after)} cm⁻³</strong></p><p>캐릭터 전도도 레벨 <strong>{sigmaLabel(conductivity(before,type))} → {sigmaLabel(conductivity(after,type))} S/cm</strong></p></div>{error&&<p role="status">{error}</p>}<p className="reward-level" aria-live="polite">{phase===3&&raised?'LEVEL UP! · ':''}캐릭터 {levelLabel(phase===3?after:before,type)}{phase===3&&progress(after).max?' · MAX':''}</p></section>;
+ return <section className="implant-animation" aria-label="불순물 주입과 전도도 상승"><div className="implant-phase">{['불순물 이온 가속','캐릭터에 불순물 주입','열처리 · 도펀트 활성화','주입 완료'][phase]}{phase===3&&raised?' · LEVEL UP!':''}</div><canvas ref={ref} width={360} height={250} aria-label="선택한 캐릭터로 이온 빔이 들어오고 전하가 흐르는 게임 애니메이션"/><div className="implant-stats"><p>도핑 농도 <strong>{scientific(before)} → {scientific(after)} cm⁻³</strong></p><p>캐릭터 전도도 레벨 <strong>{sigmaLabel(conductivity(before,type))} → {sigmaLabel(conductivity(after,type))} S/cm</strong></p></div>{error&&<p role="status">{error}</p>}</section>;
 }

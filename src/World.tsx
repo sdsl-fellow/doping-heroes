@@ -2,9 +2,9 @@ import {useEffect,useRef} from 'react';
 import Phaser from 'phaser';
 import {Character,characterSheet,defaultCharacter} from './character';
 import {weeklyQuests} from './adventure';
-import {mapInfo,stageIndex,stageDefinitions,gatewayLocations,arrivalPoint} from './maps.mjs';
+import {mapInfo,stageIndex,stageDefinitions,gatewayLocations,arrivalPoint,stageUnlocked} from './maps.mjs';
 import type {Save} from './save';
-import {npcLocations,adventureLocations,route,walkable} from './navigation.mjs';
+import {npcLocations,adventureLocations,route,walkable,routeToGateway} from './navigation.mjs';
 export function World({character,name,completed,area,arrival,destination,active,onTalk,onTravel,onEnterStage,onPosition,onError}:{character:Character;name:string;completed:number[];area:Save['area'];arrival:number|null;destination:number|null;active:boolean;onTravel:()=>void;onEnterStage:(index:number)=>void;onTalk:(i:number)=>void;onPosition:(x:number,y:number)=>void;onError:(text:string)=>void}){
  const root=useRef<HTMLDivElement>(null),live=useRef({character,name,completed,area,arrival,destination,active,onTalk,onTravel,onEnterStage,onPosition,onError});live.current={character,name,completed,area,arrival,destination,active,onTalk,onTravel,onEnterStage,onPosition,onError};
  useEffect(()=>{
@@ -27,11 +27,11 @@ export function World({character,name,completed,area,arrival,destination,active,
    this.game.events.on('talk',()=>{if(!this.player||!live.current.active)return;const i=places.findIndex(p=>Math.hypot(this.player!.x-p.x,this.player!.y-p.y)<110);if(i>=0)interact(i);else live.current.onError('NPC를 터치하면 길을 따라 다가갑니다.');});
    this.game.events.on('navigate',(id:number)=>{const local=area==='adventure'?stageDefinitions.findIndex(s=>s.questId===id):stage?0:id;const p=places[local];if(p&&live.current.active)this.go(p.x,p.y+(area==='adventure'?0:20),local);});this.game.events.on('direction',(v:{x:number;y:number})=>{this.touch=v;});this.game.events.on('map-target',(p:{x:number;y:number})=>{if(live.current.active)this.go(p.x,p.y,null);});
   }
-  go(x:number,y:number,npc:number|null){if(!this.player)return;this.path=route(this.player.x,this.player.y,x,y,area);this.pending=npc;const end=this.path.at(-1);if(end)this.destination?.setPosition(end.x,end.y).setVisible(true);}
+  go(x:number,y:number,npc:number|null){if(!this.player)return;this.path=area==='adventure'&&npc!==null?routeToGateway(this.player.x,this.player.y,npc):route(this.player.x,this.player.y,x,y,area);this.pending=npc;const end=this.path.at(-1);if(end)this.destination?.setPosition(end.x,end.y).setVisible(true);}
   update(time:number,delta:number){
    const props=live.current,next=JSON.stringify(props.character);
-   if(next!==this.skinKey){this.skinKey=next;const token=++this.generation;this.sprite(props.character,'player-'+token,this.player?.x??spawn.x,this.player?.y??spawn.y).then(sprite=>{if(!sprite)return;if(token!==this.generation){sprite.destroy();return;}const entering=!this.player;this.player?.destroy();this.player=sprite;if(entering&&area==='adventure'&&arrival===null){if(destination!==null){const p=gatewayLocations[destination];this.go(p.x,p.y,destination);}else this.go(768,330,null);}this.cameras.main.startFollow(sprite,true,.12,.12);if(!this.label)this.label=this.add.text(0,0,'',{fontSize:'17px',color:'#fff9e4',backgroundColor:'#223644bb',padding:{x:7,y:3}}).setOrigin(.5);}).catch(e=>props.onError(e.message));}
-   if(!this.player)return;this.markers.forEach((m,i)=>m.setText(area==='adventure'?(props.completed.includes(stageDefinitions[i].questId)?'✓ ':'')+stageDefinitions[i].title:stage?(props.completed.includes(stage.questId)?'✓':'!'):i===0?([0,1,2].every(q=>props.completed.includes(q))?'✓':'!'):i===1?'$':'◈'));
+   if(next!==this.skinKey){this.skinKey=next;const token=++this.generation;this.sprite(props.character,'player-'+token,this.player?.x??spawn.x,this.player?.y??spawn.y).then(sprite=>{if(!sprite)return;if(token!==this.generation){sprite.destroy();return;}const entering=!this.player;this.player?.destroy();this.player=sprite;if(entering&&area==='adventure'){if(destination!==null){const p=gatewayLocations[destination];this.go(p.x,p.y,destination);}else if(arrival===null)this.go(768,330,null);}this.cameras.main.startFollow(sprite,true,.12,.12);if(!this.label)this.label=this.add.text(0,0,'',{fontSize:'17px',color:'#fff9e4',backgroundColor:'#223644bb',padding:{x:7,y:3}}).setOrigin(.5);}).catch(e=>props.onError(e.message));}
+   if(!this.player)return;this.markers.forEach((m,i)=>m.setText(area==='adventure'?(props.completed.includes(stageDefinitions[i].questId)?'✓ ':stageUnlocked(props.completed,i)?'':'🔒 ')+stageDefinitions[i].title:stage?(props.completed.includes(stage.questId)?'✓':'!'):i===0?([0,1,2].every(q=>props.completed.includes(q))?'✓':'!'):i===1?'$':'◈'));
    this.label?.setPosition(this.player.x,this.player.y-108).setText(props.name).setDepth(1600);
    if(!props.active){this.path=[];this.pending=null;this.touch={x:0,y:0};this.keys&&Object.values(this.keys).forEach(k=>k.reset());this.player.setFrame(this.dir*9);this.destination?.setVisible(false);return;}
    const k=this.keys;if(!k)return;let dx=Number(k.D.isDown||k.RIGHT.isDown)-Number(k.A.isDown||k.LEFT.isDown)+this.touch.x,dy=Number(k.S.isDown||k.DOWN.isDown)-Number(k.W.isDown||k.UP.isDown)+this.touch.y;

@@ -1,3 +1,4 @@
+import {lootItems} from './loot.mjs';
 import type {Character} from './character';
 export const equipment = [
  {slot:'outfit',id:'tshirt',name:'세미 마을 티셔츠',quest:-1},
@@ -11,7 +12,7 @@ export const equipment = [
  {slot:'weapon',id:'sword',name:'새벽의 검',quest:2},
  {slot:'hat',id:'trailcap',name:'푸른 탐험 모자',quest:-2},
  {slot:'shoes',id:'snowboots',name:'설산 부츠',quest:-2},
-] as const;
+...lootItems] as const;
 export const slotNames={outfit:'복장',shoes:'신발',hat:'모자',weapon:'무기'};
 export const unlocked=(item:typeof equipment[number],completed:number[],purchased:string[]=[])=>item.quest===-1||completed.includes(item.quest)||purchased.includes(item.id);
 export const rewardNames=(quest:number)=>equipment.filter(i=>i.quest===quest).map(i=>i.name).join(' · ');
@@ -23,3 +24,5 @@ export function availableCharacter(c:Character,completed:number[],purchased:stri
  }
  return result;
 }
+
+export function equipmentIcon(id:string){const special=lootItems.find(i=>i.id===id);return special?.icon??['tshirt','longsleeve','cardigan','basic','boots','cap','sword','trailcap','snowboots'].indexOf(id);}

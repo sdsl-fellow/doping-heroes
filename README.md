@@ -166,3 +166,10 @@ v0.3의 컨덕턴스(S) 표시는 대체되었습니다. 현재 화면은 첨부
 - Winding continent roads use matching walkable centerlines; the silicon crystal is inset into the Stage 1 gateway.
 - Rewards rise by visible Stage order. Tutorial + twelve quests total 9.5e20 cm⁻³ without shop purchases; completion order remains unrestricted. Existing earned progress is preserved.
 - Annealing uses orange/red heat effects. Conductivity labels consistently reflect the current concentration; decade thresholds still trigger the level-up animation. The reward character label updates when implantation completes.
+
+### v0.8.0
+- Each crossed concentration level grants one random unowned equipment variant, including level-ups from store dopant packs. Sixteen outfit/shoe/weapon/hat variants reuse existing layered art with distinct colors; ownership persists in the existing save.
+- Tutorial and level-up equipment rewards show an animated item reveal and remain equippable from inventory. Removed the redundant bottom character-level line in implantation.
+- Stage access and reward grants enforce visible Stage order across portals and menu shortcuts. Gateway auto-travel follows the middle continent road. Small 1–12 markers appear on the continent maps.
+- Completed stages offer repeat practice without duplicate rewards. Lecture-based practiceBank entries are intentionally empty until teaching materials are supplied.
+- Dr. Silicon offers searchable Korean(English) terms and FAQ. Browser storage behavior remains unchanged.

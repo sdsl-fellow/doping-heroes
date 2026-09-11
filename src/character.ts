@@ -1,4 +1,5 @@
-export type Character={gender:'male'|'female'|'neutral';species:'dog'|'cat';body:'sturdy'|'agile';shoes:'basic'|'boots'|'snowboots';hat:'none'|'cap'|'trailcap';weapon:'none'|'sword';hair:string;hairColor:string;skin:string;outfit:string;outfitColor:string;accessory:'none'|'glasses'|'headband'};
+import {lootVariant} from './loot.mjs';
+export type Character={gender:'male'|'female'|'neutral';species:'dog'|'cat';body:'sturdy'|'agile';shoes:string;hat:string;weapon:string;hair:string;hairColor:string;skin:string;outfit:string;outfitColor:string;accessory:'none'|'glasses'|'headband'};
 export const hairStyles=[['bedhead','내추럴 쇼트'],['bangs','앞머리'],['bob','단발'],['bangslong','롱 헤어'],['curly_long','웨이브'],['afro','컬리 볼륨']];
 export const hairColors=['#392b36','#77452f','#bf803e','#f1d37e','#df839c','#679abc','#b298d1','#dae0e5'];
 export const skinColors=['#ffe1be','#eaba90','#c58f64','#976647','#6b4736'];
@@ -7,20 +8,20 @@ export const outfits=[['tshirt','세미 마을 티셔츠'],['longsleeve','긴팔
 export const defaultCharacter:Character={gender:'male',species:'dog',body:'sturdy',shoes:'basic',hat:'none',weapon:'none',hair:'bedhead',hairColor:hairColors[1],skin:skinColors[0],outfit:'tshirt',outfitColor:outfitColors[0],accessory:'none'};
 export function validCharacter(raw:unknown):Character{
  const r=(raw&&typeof raw==='object'?raw:{}) as Partial<Character>;
- return {gender:['male','female','neutral'].includes(r.gender??'')?r.gender!:defaultCharacter.gender,species:r.species==='cat'?'cat':'dog',body:r.body==='agile'||String(r.body)==='female'?'agile':'sturdy',shoes:r.shoes==='snowboots'?'snowboots':r.shoes==='boots'?'boots':'basic',hat:r.hat==='trailcap'?'trailcap':r.hat==='cap'?'cap':'none',weapon:r.weapon==='sword'?'sword':'none',hair:hairStyles.some(s=>s[0]===r.hair)?r.hair!:defaultCharacter.hair,hairColor:hairColors.includes(r.hairColor??'')?r.hairColor!:defaultCharacter.hairColor,skin:skinColors.includes(r.skin??'')?r.skin!:defaultCharacter.skin,outfit:outfits.some(s=>s[0]===r.outfit)?r.outfit!:defaultCharacter.outfit,outfitColor:outfitColors.includes(r.outfitColor??'')?r.outfitColor!:defaultCharacter.outfitColor,accessory:r.accessory==='glasses'?'glasses':r.accessory==='headband'?'headband':'none'};
+ return {gender:['male','female','neutral'].includes(r.gender??'')?r.gender!:defaultCharacter.gender,species:r.species==='cat'?'cat':'dog',body:r.body==='agile'||String(r.body)==='female'?'agile':'sturdy',shoes:lootVariant(r.shoes)?.slot==='shoes'?r.shoes!:r.shoes==='snowboots'?'snowboots':r.shoes==='boots'?'boots':'basic',hat:lootVariant(r.hat)?.slot==='hat'?r.hat!:r.hat==='trailcap'?'trailcap':r.hat==='cap'?'cap':'none',weapon:lootVariant(r.weapon)?.slot==='weapon'?r.weapon!:r.weapon==='sword'?'sword':'none',hair:hairStyles.some(s=>s[0]===r.hair)?r.hair!:defaultCharacter.hair,hairColor:hairColors.includes(r.hairColor??'')?r.hairColor!:defaultCharacter.hairColor,skin:skinColors.includes(r.skin??'')?r.skin!:defaultCharacter.skin,outfit:lootVariant(r.outfit)?.slot==='outfit'?r.outfit!:outfits.some(s=>s[0]===r.outfit)?r.outfit!:defaultCharacter.outfit,outfitColor:outfitColors.includes(r.outfitColor??'')?r.outfitColor!:defaultCharacter.outfitColor,accessory:r.accessory==='glasses'?'glasses':r.accessory==='headband'?'headband':'none'};
 }
 const base='./lpc/';
-export function layers(c:Character){if(c.gender==='neutral')return [{path:`animals/${c.species}/walk.png`,color:c.species==='dog'?'#dae0e5':c.hairColor},...(c.accessory==='headband'?[{path:'hat/headband/thick/adult/walk.png',color:'#d87569'}]:[]),...(c.hat!=='none'?[{path:'hat/cloth/leather_cap/adult/walk.png',color:c.hat==='trailcap'?'#b9dbe4':'#6b8c56'}]:[])];const clothes=c.outfit==='cardigan'?'longsleeve/longsleeve2_cardigan':c.outfit==='longsleeve'?'longsleeve/formal':'shortsleeve/tshirt';return [
- ...(c.weapon==='sword'?[{path:'weapon/sword/arming/universal/bg/walk/steel.png',color:'#e1e8ee'}]:[]),
+export function layers(c:Character){const outfit=lootVariant(c.outfit),shoes=lootVariant(c.shoes),hat=lootVariant(c.hat),weapon=lootVariant(c.weapon);const clothesId=outfit?.base??c.outfit;if(c.gender==='neutral')return [{path:`animals/${c.species}/walk.png`,color:c.species==='dog'?'#dae0e5':c.hairColor},...(c.accessory==='headband'?[{path:'hat/headband/thick/adult/walk.png',color:'#d87569'}]:[]),...(c.hat!=='none'?[{path:'hat/cloth/leather_cap/adult/walk.png',color:hat?.color??(c.hat==='trailcap'?'#b9dbe4':'#6b8c56')}]:[])];const clothes=clothesId==='cardigan'?'longsleeve/longsleeve2_cardigan':clothesId==='longsleeve'?'longsleeve/formal':'shortsleeve/tshirt';return [
+ ...((weapon?.base??c.weapon)==='sword'?[{path:'weapon/sword/arming/universal/bg/walk/steel.png',color:weapon?.color??'#e1e8ee'}]:[]),
  {path:'body/bodies/male/walk.png',color:c.skin},
  {path:`head/heads/human/${c.gender}/walk.png`,color:c.skin},
  {path:'legs/pants/male/walk.png',color:'#38455c'},
- {path:`feet/${c.shoes!=='basic'?'boots':'shoes'}/basic/male/walk.png`,color:c.shoes==='snowboots'?'#d6dfe3':c.shoes==='boots'?'#b88450':'#564433'},
- {path:`torso/clothes/${clothes}/male/walk.png`,color:c.outfitColor},
+ {path:`feet/${c.shoes!=='basic'?'boots':'shoes'}/basic/male/walk.png`,color:shoes?.color??(c.shoes==='snowboots'?'#d6dfe3':c.shoes==='boots'?'#b88450':'#564433')},
+ {path:`torso/clothes/${clothes}/male/walk.png`,color:outfit?.color??c.outfitColor},
  {path:`hair/${c.hair}/adult/walk.png`,color:c.hairColor},
  ...(c.accessory==='headband'?[{path:'hat/headband/thick/adult/walk.png',color:'#d87569'}]:[]),
- ...(c.hat!=='none'?[{path:'hat/cloth/leather_cap/adult/walk.png',color:c.hat==='trailcap'?'#b9dbe4':'#6b8c56'}]:[]),
- ...(c.weapon==='sword'?[{path:'weapon/sword/arming/universal/fg/walk/steel.png',color:'#e1e8ee'}]:[])
+ ...(c.hat!=='none'?[{path:'hat/cloth/leather_cap/adult/walk.png',color:hat?.color??(c.hat==='trailcap'?'#b9dbe4':'#6b8c56')}]:[]),
+ ...((weapon?.base??c.weapon)==='sword'?[{path:'weapon/sword/arming/universal/fg/walk/steel.png',color:weapon?.color??'#e1e8ee'}]:[])
  ];}
 const cached=new Map<string,Promise<HTMLCanvasElement>>();
 const images=new Map<string,Promise<HTMLImageElement>>();

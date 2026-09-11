@@ -22,3 +22,12 @@ for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
  for(const [area,cells] of cellsForStage)if(walkable(x*cell+8,y*cell+8,area))cells.push(y*cols+x);
 }
 export const adventureLocations=gatewayLocations;
+
+// Gateway auto-travel joins the middle road before heading to the next row.
+export function routeToGateway(x,y,index){
+ const gate=gatewayLocations[index];if(!gate)return [];
+ const spine=hubRoads[0],near=target=>spine.reduce((a,b)=>Math.abs(b[1]-target)<Math.abs(a[1]-target)?b:a);
+ const points=[near(y),near(gate.y+30),[gate.x,gate.y]],path=[];
+ for(const [tx,ty] of points){const segment=route(x,y,tx,ty,'adventure');path.push(...segment);const end=segment.at(-1);if(end){x=end.x;y=end.y;}}
+ return path;
+}

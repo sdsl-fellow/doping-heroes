@@ -31,3 +31,10 @@ for(const gender of ['male','female','neutral'])for(const accessory of ['none','
   const b=fs.readFileSync('public/lpc/'+path);assert.equal(b.readUInt32BE(16),576,path);assert.equal(b.readUInt32BE(20),256,path);
  }
 }
+
+const {lootItems}=await import('../src/loot.mjs');
+for(const item of lootItems){
+ const c={...defaultCharacter,[item.slot]:item.id};assert.equal(validCharacter(c)[item.slot],item.id);assert.equal(availableCharacter(c,[],[item.id])[item.slot],item.id);
+ for(const part of layers(c))assert.ok(fs.existsSync('public/lpc/'+part.path));
+}
+console.log(`${lootItems.length} random equipment variants validated for save/restore, ownership and sprite layers.`);
