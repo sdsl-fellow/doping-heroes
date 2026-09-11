@@ -34,7 +34,7 @@ Original v0.1 learning features retained:
 - 연구 노트에서 퀘스트를 바로 열 수 있는 접근성 보조 경로
 - 순차적 NPC 퀘스트 3개, 오답 힌트, 해설, 중복 보상 방지
 - P/B 치환 개념 애니메이션 및 독립 n/p 시료
-- 캐리어 농도와 전도도, 최고 전도도 기반 레벨
+- 캐리어 농도와 전도도, 최고 컨덕턴스(S = 1/Ω) 기반 성장
 - 브라우저 localStorage 자동 저장 (다른 기기와 공유되지 않음)
 - 모바일 반응형 UI 및 reduced-motion 지원
 
@@ -62,7 +62,7 @@ main push 또는 Actions → Build and deploy GitHub Pages → Run workflow로 �
 300 K, 완전 이온화, 비축퇴, 고정 이동도 근사. ni = 1e10 cm^-3,
 electron mobility = 1350, hole mobility = 480 cm^2/(V s).
 전하 중성 및 np=ni²를 사용하고 σ=q(nμn+pμp), 단위 S/cm.
-레벨은 보유 시료 최고 전도도의 초기값 대비 10배 증가마다 +1 (상한 Lv.6).
+성장은 보유 시료의 최고 컨덕턴스 G로 표시합니다(S = 1/Ω). 고정 시료 단면적 1 cm², 길이 10 μm에서 G = σA/L로 계산합니다. 독립 p형 시료 획득 시에도 최고 G는 감소하지 않습니다.
 n형과 p형은 별도 시료입니다. 보상 도핑, 농도 의존 이동도, 온도 변화,
 실제 결정구조/원자 비율/축척은 구현하지 않았습니다.
 
@@ -83,7 +83,7 @@ Google 계정 배포/승인 및 엔드포인트 선택 후 연동을 구현합�
 - src/navigation.mjs: 보행 구역과 길찾기
 - src/main.tsx: 캐릭터, 퀘스트, 시료 관찰 및 로컬 저장
 - src/quests.ts: 학습 콘텐츠
-- src/physics.mjs: 캐리어/전도도/레벨 계산
+- src/physics.mjs: 캐리어/전도도/컨덕턴스 성장 계산
 - tests/physics.test.mjs: 물리 계산 회귀 검증
 - .github/workflows/pages.yml: 테스트, 빌드, Pages 배포
 
@@ -107,3 +107,11 @@ the minimap and quest tracker can navigate to offscreen NPCs.
 Validation: TypeScript/build, carrier/level tests, navigation tests and every
 body/hair/outfit asset combination. Physical mobile devices and browser-based
 end-to-end playthrough have not been tested in this revision.
+
+## v0.3.0 캐릭터와 보상
+
+- 성별: 남성/여성/선택 안 함. 인간은 성별과 독립적인 건장한/날렵한 체형; 선택 안 함은 강아지/고양이.
+- 액세서리: 없음/안경/머리띠. 최초 걷기 미리보기 방향은 앞 하나만 선택.
+- 기본 티셔츠/신발로 시작. 퀘스트 1: 셔츠·부츠, 2: 모자, 3: 가디건·검. 캐릭터 메뉴에서 획득 장비 착용; 기존 완료 기록에도 소급 해금. 무기는 외형 장비이며 전투는 미구현.
+- 이름 아래 학번 입력(문자열, 선행 0 유지). 이전 저장에 학번이 없으면 진행을 보존한 채 입력 요청. 학번은 HUD 및 WebMCP에 노출하지 않음.
+- 학번 및 진행은 브라우저 로컬 저장이며 로그인/본인 인증 또는 Google Sheets 동기화가 아님.

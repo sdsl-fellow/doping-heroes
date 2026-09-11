@@ -3,3 +3,16 @@
 .swatches button{width:44px;height:44px;min-height:44px}
 .dpad button{min-width:44px;min-height:44px}
 @media(max-width:700px){.dpad{grid-template-columns:repeat(3,44px);grid-template-rows:repeat(2,44px)}.rotation button{min-height:44px}}
+/* Direction radios use exactly one checked state; keyboard focus is a thin outline. */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.character-stage .rotation{display:flex;gap:6px;border:0;padding:0;margin:14px 0;justify-content:center}
+.rotation label{position:relative;cursor:pointer}
+.rotation input{position:absolute;opacity:0;width:1px;height:1px}
+.rotation span{display:grid;place-items:center;min-height:44px;min-width:44px;padding:0 8px;background:#193e47;color:#e9f3e9;border:1px solid #719190;border-radius:8px;font-size:14px}
+.rotation input:checked+span{background:#ffe092;color:#283b39;border-color:#ffe092;font-weight:700}
+.rotation input:focus-visible+span{outline:2px solid #fff;outline-offset:3px}
+.name-label small{font-size:14px;line-height:1.5;font-weight:400}
+.equipment-heading{margin:24px 0 8px;font-size:20px}.equipment-note{font-size:14px;line-height:1.6}
+.equipment-choices button{display:flex;flex-direction:column;gap:5px;min-height:60px}.equipment-choices small{font-size:14px}.equipment-choices button:disabled{opacity:.6}
+.player-status>div{flex-wrap:wrap}.player-status b{white-space:nowrap}.sigma strong{overflow-wrap:anywhere}
+@media(max-width:600px){.creator-footer{flex-wrap:wrap}.creator-footer .primary{width:100%}.character-stage .rotation{gap:4px}.player-status b{font-size:14px}}
