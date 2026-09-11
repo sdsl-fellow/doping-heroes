@@ -17,7 +17,7 @@ export function World({character,name,completed,active,onTalk,onPosition,onError
    this.destination=this.add.ellipse(768,550,24,12,0xffedb0,.35).setStrokeStyle(2,0xffedb0).setVisible(false).setDepth(900);
    this.keys=this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,E,SPACE',false) as Record<string,Phaser.Input.Keyboard.Key>;
    npcLocations.forEach((p,i)=>{const c={...defaultCharacter,body:i===2?'female':'male',hair:i===0?'bangs':i===1?'bedhead':'bob',hairColor:i===0?'#dae0e5':i===1?'#77452f':'#b298d1',outfitColor:i===0?'#e6e9e5':i===1?'#438674':'#695c98'} as Character;this.sprite(c,'npc-'+i,p.x,p.y).catch(e=>live.current.onError(e.message));this.markers.push(this.add.text(p.x,p.y-109,'!',{fontFamily:'sans-serif',fontStyle:'bold',fontSize:'32px',color:'#ffe895',stroke:'#263145',strokeThickness:6}).setOrigin(.5).setDepth(1500));this.add.text(p.x,p.y+5,quests[i].name,{fontSize:'16px',color:'#fff8dd',backgroundColor:'#152c36cc',padding:{x:8,y:4}}).setOrigin(.5,0).setDepth(1500);this.add.zone(p.x,p.y-40,100,120).setInteractive({useHandCursor:true}).setDepth(1600).on('pointerdown',()=>{if(live.current.active)this.go(p.x,p.y+20,i);});});
-   for(const t of [{x:768,y:325,text:'반도체 연구 아카데미'},{x:230,y:420,text:'도너 실험 상점'},{x:1330,y:485,text:'실리콘 결정 동굴'}])this.add.text(t.x,t.y,t.text,{fontSize:'20px',color:'#fff4d4',stroke:'#1a3547',strokeThickness:6,fontStyle:'bold'}).setOrigin(.5).setDepth(1500);
+   for(const t of [{x:768,y:325,text:'세미 어드벤처'},{x:230,y:420,text:'도너 상점'},{x:1330,y:485,text:'실리콘 결정 동굴'}])this.add.text(t.x,t.y,t.text,{fontSize:'20px',color:'#fff4d4',stroke:'#1a3547',strokeThickness:6,fontStyle:'bold'}).setOrigin(.5).setDepth(1500);
    this.input.on('pointerdown',(p:Phaser.Input.Pointer,objects:unknown[])=>{if(!objects.length&&live.current.active){const point=this.cameras.main.getWorldPoint(p.x,p.y);this.go(point.x,point.y,null);}});
    this.game.events.on('talk',()=>{if(!this.player||!live.current.active)return;const i=npcLocations.findIndex(p=>Math.hypot(this.player!.x-p.x,this.player!.y-p.y)<110);if(i>=0)live.current.onTalk(i);else live.current.onError('NPC를 터치하면 길을 따라 다가갑니다.');});
    this.game.events.on('navigate',(i:number)=>{const p=npcLocations[i];if(p&&live.current.active)this.go(p.x,p.y+20,i);});this.game.events.on('direction',(v:{x:number;y:number})=>{this.touch=v;});this.game.events.on('map-target',(p:{x:number;y:number})=>{if(live.current.active)this.go(p.x,p.y,null);});
@@ -43,5 +43,5 @@ export function World({character,name,completed,active,onTalk,onPosition,onError
  const listeners=[['lab-talk','talk'],['lab-navigate','navigate'],['lab-direction','direction'],['lab-map-target','map-target']].map(([dom,event])=>{const fn=(e:Event)=>game.events.emit(event,(e as CustomEvent).detail);window.addEventListener(dom,fn);return {dom,fn};});
  return()=>{disposed=true;listeners.forEach(({dom,fn})=>window.removeEventListener(dom,fn));game.destroy(true);};
  },[]);
- return <div ref={root} className="world" role="application" aria-label="아카데미 캠퍼스. 맵 터치로 이동하고 NPC 터치로 대화합니다."/>;
+ return <div ref={root} className="world" role="application" aria-label="세미 마을. 맵 터치로 이동하고 NPC 터치로 대화합니다."/>;
 }

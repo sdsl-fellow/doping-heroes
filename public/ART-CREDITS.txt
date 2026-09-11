@@ -1,5 +1,16 @@
 Doping Heroes — Character Art Credits
 
+Additional animal heads (2026-09-11), original PNGs under public/lpc/head/heads:
+- wolf/male/walk.png and wolf/female/walk.png: bluecarrot16, Sander Frenken (castelonia), Benjamin K. Smith (BenCreating), William.Thompsonj, Stephen Challener (Redshrike). CC-BY-SA 3.0 selected.
+  https://opengameart.org/content/lpc-wolf-animation
+  https://opengameart.org/content/lpc-wolfman
+  https://opengameart.org/content/lpc-character-bases
+  https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles
+- rabbit/adult/walk.png: bluecarrot16, Stephen Challener (Redshrike), Napsio (Vitruvian Studio), JaidynReiman. OGA-BY 3.0 selected.
+  https://opengameart.org/content/bunny-rabbit-lpc-style-for-pixelfarm
+  http://opengameart.org/content/lpc-folk
+Runtime changes: recoloring/composition; glasses alignment corrected against eye pixels and walking head offsets.
+
 Sources: Liberated Pixel Cup / Universal LPC Spritesheet Character Generator
 https://github.com/LiberatedPixelCup/Universal-LPC-Spritesheet-Character-Generator
 
@@ -39,4 +50,3 @@ Per-file attribution from upstream CREDITS.csv (filename, notes, authors, licens
 "legs/pants/thin/walk.png","original male pants by wulax, edited for female by Joe White, recolors and edits to v3 base by bluecarrot16, teen legs by ElizaWy derived from base, climb/jump/run/sit/emotes/revised combat by JaidynReiman based on ElizaWy's LPC Revised" ,"bluecarrot16,JaidynReiman,ElizaWy,Joe White,Matthew Krohn (makrohn),Johannes Sjölund (wulax),Stephen Challener (Redshrike)" ,"OGA-BY 3.0,GPL 3.0,CC-BY-SA 3.0" ,"https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles,https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,http://opengameart.org/content/lpc-clothing-updates,https://opengameart.org/content/lpc-expanded-pants" 
 "feet/shoes/basic/male/walk.png","original by wulax, edited for v3 base by bluecarrot16, Jump/Sit/Emote/Run/Revised Combat by JaidynReiman" ,"JaidynReiman,bluecarrot16,Johannes Sjölund (wulax)" ,"OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0" ,"https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,http://opengameart.org/content/lpc-clothing-updates,https://opengameart.org/content/lpc-expanded-socks-shoes" 
 "feet/shoes/basic/thin/walk.png","original by wulax, edited for female base by Joe White, edited for v3 base by bluecarrot16, Jump/Sit/Emote/Run/Revised Combat by JaidynReiman" ,"JaidynReiman,Joe White,Johannes Sjölund (wulax)" ,"OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0" ,"https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,http://opengameart.org/content/lpc-clothing-updates,https://opengameart.org/content/lpc-expanded-socks-shoes" 
-

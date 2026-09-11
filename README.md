@@ -1,5 +1,17 @@
 # Doping Heroes
 
+## v0.2.1 — 세미 어드벤처
+
+Player-facing branding now uses 세미 어드벤처, 모험가 and 세미 마을.
+Gender unspecified selects an animal adventurer, with rabbit/wolf species and
+fur colors. Human hairstyles and glasses are hidden for animal faces; clothing
+and body choices remain available. Existing v2 saves receive a default species.
+Glasses follow the actual human eye coordinates and walking head offsets.
+
+Equipment progression is not implemented: three outfits are freely selectable,
+shoes are fixed, and hats are not available. Quest rewards still grant only
+semiconductor samples and conductivity-based levels.
+
 대학생용 반도체 학습 2D 웹 RPG. React + TypeScript + Vite + Phaser 3.
 
 ## v0.2.0 — Full-screen pixel-art RPG
