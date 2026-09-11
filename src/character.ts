@@ -11,7 +11,7 @@ export function validCharacter(raw:unknown):Character{
  return {gender:['male','female','neutral'].includes(r.gender??'')?r.gender!:defaultCharacter.gender,species:r.species==='cat'?'cat':'dog',body:r.body==='agile'||String(r.body)==='female'?'agile':'sturdy',shoes:lootVariant(r.shoes)?.slot==='shoes'?r.shoes!:r.shoes==='snowboots'?'snowboots':r.shoes==='boots'?'boots':'basic',hat:lootVariant(r.hat)?.slot==='hat'?r.hat!:r.hat==='trailcap'?'trailcap':r.hat==='cap'?'cap':'none',weapon:lootVariant(r.weapon)?.slot==='weapon'?r.weapon!:r.weapon==='sword'?'sword':'none',hair:hairStyles.some(s=>s[0]===r.hair)?r.hair!:defaultCharacter.hair,hairColor:hairColors.includes(r.hairColor??'')?r.hairColor!:defaultCharacter.hairColor,skin:skinColors.includes(r.skin??'')?r.skin!:defaultCharacter.skin,outfit:lootVariant(r.outfit)?.slot==='outfit'?r.outfit!:outfits.some(s=>s[0]===r.outfit)?r.outfit!:defaultCharacter.outfit,outfitColor:outfitColors.includes(r.outfitColor??'')?r.outfitColor!:defaultCharacter.outfitColor,accessory:r.accessory==='glasses'?'glasses':r.accessory==='headband'?'headband':'none'};
 }
 const base='./lpc/';
-export function layers(c:Character){const outfit=lootVariant(c.outfit),shoes=lootVariant(c.shoes),hat=lootVariant(c.hat),weapon=lootVariant(c.weapon);const clothesId=outfit?.base??c.outfit;if(c.gender==='neutral')return [{path:`animals/${c.species}/walk.png`,color:c.species==='dog'?'#dae0e5':c.hairColor},...(c.accessory==='headband'?[{path:'hat/headband/thick/adult/walk.png',color:'#d87569'}]:[]),...(c.hat!=='none'?[{path:'hat/cloth/leather_cap/adult/walk.png',color:hat?.color??(c.hat==='trailcap'?'#b9dbe4':'#6b8c56')}]:[])];const clothes=clothesId==='cardigan'?'longsleeve/longsleeve2_cardigan':clothesId==='longsleeve'?'longsleeve/formal':'shortsleeve/tshirt';return [
+export function layers(c:Character){const outfit=lootVariant(c.outfit),shoes=lootVariant(c.shoes),hat=lootVariant(c.hat),weapon=lootVariant(c.weapon);const clothesId=outfit?.base??c.outfit;if(c.gender==='neutral')return [{path:`animals/${c.species}/walk.png`,color:c.species==='dog'?'#dae0e5':c.hairColor},...(c.hat!=='none'?[{path:'hat/cloth/leather_cap/adult/walk.png',color:hat?.color??(c.hat==='trailcap'?'#b9dbe4':'#6b8c56')}]:[])];const clothes=clothesId==='cardigan'?'longsleeve/longsleeve2_cardigan':clothesId==='longsleeve'?'longsleeve/formal':'shortsleeve/tshirt';return [
  ...((weapon?.base??c.weapon)==='sword'?[{path:'weapon/sword/arming/universal/bg/walk/steel.png',color:weapon?.color??'#e1e8ee'}]:[]),
  {path:'body/bodies/male/walk.png',color:c.skin},
  {path:`head/heads/human/${c.gender}/walk.png`,color:c.skin},
@@ -37,14 +37,30 @@ export function characterSheet(c:Character):Promise<HTMLCanvasElement>{
    for(let f=0;f<9;f++){
     const x=f*64,animal=c.gender==='neutral',frontBob=f===3||f===7?1:0,sideBob=f===1||f===5?1:0;
     if(animal){
-     ctx.strokeRect(x+26.5,128+40.5,4,4);ctx.strokeRect(x+32.5,128+40.5,4,4);ctx.fillRect(x+31,170,1,1);
-     for(const row of [1,3])ctx.strokeRect(x+(row===1?17.5:42.5),row*64+34.5,4,4);
+     const dog=c.species==='dog',bob=f===1||f===5?-1:0,frontY=dog?39:40-bob;
+     const left=dog?27:29,right=dog?36:35,lens=dog?5:4;
+     ctx.strokeRect(x+left-lens/2,128+frontY-lens/2,lens,lens);ctx.strokeRect(x+right-lens/2,128+frontY-lens/2,lens,lens);ctx.fillRect(x+left+Math.ceil(lens/2),128+frontY,right-left-lens,1);
+     for(const row of [1,3]){const ex=dog?(row===1?17:46):(row===1?18:44),ey=34+bob;ctx.strokeRect(x+ex-lens/2,row*64+ey-lens/2,lens,lens);ctx.fillRect(x+(row===1?ex+3:ex-6),row*64+ey-1,3,1);}
     }else{
      const y=128+28+frontBob;ctx.strokeRect(x+25.5,y+.5,5,5);ctx.strokeRect(x+33.5,y+.5,5,5);ctx.fillRect(x+31,y+2,2,1);
      for(const row of [1,3]){const sy=row*64+28+sideBob;ctx.strokeRect(x+(row===1?26.5:32.5),sy+.5,5,5);ctx.fillRect(x+(row===1?32:28),sy+2,4,1);}
     }
    }
   }
+  // Animal bands follow the brow rather than scaling the human forehead layer.
+  if(c.gender==='neutral'&&c.accessory==='headband'){
+   const dog=c.species==='dog';
+   for(let row=0;row<4;row++)for(let f=0;f<9;f++){
+    const bob=f===1||f===5?(row===2?1:-1):0;
+    const cx=row===1?(dog?21:21):row===3?(dog?42:41):32;
+    const y=(row===0?(dog?20:25):row===2?(dog?33:35):(dog?28:28))+bob;
+    const width=row===0||row===2?(dog?18:12):(dog?13:10);
+    ctx.fillStyle='#79394a';ctx.fillRect(f*64+cx-width/2,row*64+y,width,3);
+    ctx.fillStyle='#efac9f';ctx.fillRect(f*64+cx-width/2+1,row*64+y,width-2,1);
+    ctx.fillStyle='#d87569';ctx.fillRect(f*64+cx-width/2,row*64+y+1,width,1);
+   }
+  }
   return out;
  });cached.set(key,result);result.catch(()=>cached.delete(key));if(cached.size>40)cached.delete(cached.keys().next().value!);return result;
 }
+

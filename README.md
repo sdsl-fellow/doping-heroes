@@ -183,3 +183,11 @@ v0.3의 컨덕턴스(S) 표시는 대체되었습니다. 현재 화면은 첨부
 - Each stage has a book table on the left branch, with three placeholder pages in src/StageBook.tsx. Replace lecturePages when the real lecture materials arrive.
 - Storage is unchanged: one browser-local save, not separate name/student-ID accounts or server synchronization.
 - Art prompts: preserve continent layout and remove only the four outer vertical paths; generate matching transparent closed/open wooden gate, downward rowboat and ancient book/table atlas. Built-in imagegen outputs were normalized into public/adventure.webp and public/journey-props.png.
+
+### Ocean, routes and reading rewards
+- The village now extends to 1536×1536 with a dock and open sea. The camera follows the boat south across the sea before switching to the continent.
+- Continent roads are wider (34px navigable half-width). Portal routing uses eight-direction A* and obstacle-checked line-of-sight smoothing, with no mandatory central waypoint.
+- Books moved from x530 to x610 on the left interior branch. Completing every page grants 2% of that stage's quest dose once; readBooks is migrated from old saves and persists on reload. Stage access checks and level loot also apply to book rewards.
+- Dog/cat glasses and headbands use species-specific eye/brow positions and walking-frame offsets.
+- Only characters completing all three tutorial quests see Dr. Silicon's speech bubble; dictionary and FAQ have separate buttons.
+- Additional map prompts: preserve upper village positions and extend only its southern dock into open sea; widen continent roads around the existing centerlines without restoring outer vertical links.

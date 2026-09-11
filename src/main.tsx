@@ -14,7 +14,7 @@ import {availableCharacter,rewardNames,equipment} from './equipment';
 import {quests} from './quests';
 import {weeklyQuests,shopItems} from './adventure';
 import {restore,hasKey,type Save} from './save';
-import {grantReward,purchase} from './economy.mjs';
+import {grantReward,purchase,grantBookReward,bookDose} from './economy.mjs';
 import {progress,conductivity,resistivity,levelLabel,scientific,sigmaLabel,MIN_DOPING,MAX_DOPING} from './progression.mjs';
 import './style.css';import './touch.css';import './adventure.css';
 const allQuests=[...quests.map((q,i)=>({...q,id:i,week:0,dose:[2e13,3e13,4e13][i],coins:20,name:'길잡이 Dr. 실리콘'})),...weeklyQuests];
@@ -50,11 +50,11 @@ function App(){
  <nav className="bottom-menu hud" aria-label="게임 메뉴">{[{id:'character',icon:'♙',label:'캐릭터'},{id:'inventory',icon:'▣',label:'인벤토리'},{id:'samples',icon:'◈',label:'도핑 가방'},{id:'quests',icon:'☷',label:'퀘스트'},{id:'map',icon:'⌘',label:'전체 지도'},{id:'guide',icon:'?',label:'도움말'}].map(item=><button key={item.id} onClick={()=>{if(item.id==='character')setEditing(true);else{setMapArea(area);setPanel(item.id);}}}><span>{item.icon}</span>{item.label}</button>)}</nav>
  <button className="talk-button" disabled={blocked} onClick={()=>emit('lab-talk')}><span>···</span>대화</button>
  {(toast||storageError)&&<div className="toast" role="status">{storageError?'자동 저장을 사용할 수 없습니다. 브라우저 저장 공간을 확인해 주세요.':toast}</div>}
- {(!save||!save.studentId||editing)&&<Modal wide label="캐릭터 제작" onClose={save?.studentId?()=>setEditing(false):undefined}><Creator initial={save?.character} name={save?.name??''} studentId={save?.studentId??''} completed={completed} purchased={save?.purchased??[]} onClose={save?.studentId?()=>setEditing(false):undefined} onSave={(name,c,studentId)=>{setSave(s=>({...s,version:3,name,studentId,character:availableCharacter(c,s?.completed??[],s?.purchased??[]),completed:s?.completed??[],doping:s?.doping??MIN_DOPING,type:s?.type??'n',coins:s?.coins??0,purchased:s?.purchased??[],area:s?.area??'village'}));setEditing(false);}}/></Modal>}
- {panel&&<Modal wide={['map','quests','cave'].includes(panel)} label={panel} onClose={()=>setPanel(null)}><div className="dialog-heading"><div><small>SEMI ADVENTURE</small><h2>{{map:'전체 모험 지도',quests:'모험 기록',samples:'도핑 가방',guide:'탐험 안내',inventory:'인벤토리',shop:'도너 상점',cave:'실리콘 결정 동굴',silicon:'길잡이 Dr. 실리콘',library:'실리콘의 용어·FAQ',practice:'Stage 복습',loot:'장비 획득',book:'낡은 강의 노트'}[panel]}</h2></div><button onClick={()=>setPanel(null)}>닫기 ×</button></div>
- {panel==='silicon'&&<><p>무엇이 궁금하니?</p><div className="choices"><button onClick={()=>setPanel('library')}>용어·FAQ 살펴보기</button></div></>}
- {panel==='library'&&<SiliconLibrary/>}
- {panel==='book'&&stageIndex(area)>=0&&<StageBook key={area} stage={stageIndex(area)}/>}
+ {(!save||!save.studentId||editing)&&<Modal wide label="캐릭터 제작" onClose={save?.studentId?()=>setEditing(false):undefined}><Creator initial={save?.character} name={save?.name??''} studentId={save?.studentId??''} completed={completed} purchased={save?.purchased??[]} onClose={save?.studentId?()=>setEditing(false):undefined} onSave={(name,c,studentId)=>{setSave(s=>({...s,version:3,name,studentId,character:availableCharacter(c,s?.completed??[],s?.purchased??[]),completed:s?.completed??[],readBooks:s?.readBooks??[],doping:s?.doping??MIN_DOPING,type:s?.type??'n',coins:s?.coins??0,purchased:s?.purchased??[],area:s?.area??'village'}));setEditing(false);}}/></Modal>}
+ {panel&&<Modal wide={['map','quests','cave'].includes(panel)} label={panel} onClose={()=>setPanel(null)}><div className="dialog-heading"><div><small>SEMI ADVENTURE</small><h2>{{map:'전체 모험 지도',quests:'모험 기록',samples:'도핑 가방',guide:'탐험 안내',inventory:'인벤토리',shop:'도너 상점',cave:'실리콘 결정 동굴',silicon:'길잡이 Dr. 실리콘',library:'실리콘의 용어 사전',faq:'실리콘의 FAQ',practice:'Stage 복습',loot:'장비 획득',book:'낡은 강의 노트'}[panel]}</h2></div><button onClick={()=>setPanel(null)}>닫기 ×</button></div>
+ {panel==='silicon'&&<><p className="silicon-speech">무엇이 궁금하니?<br/>무엇이든 물어보렴</p><div className="choices"><button onClick={()=>setPanel('library')}>용어 사전</button><button onClick={()=>setPanel('faq')}>FAQ 살펴보기</button></div></>}
+ {(panel==='library'||panel==='faq')&&<SiliconLibrary key={panel} initialTab={panel==='faq'?'faq':'terms'}/>}
+ {panel==='book'&&stageIndex(area)>=0&&<StageBook key={area} stage={stageIndex(area)} completed={save?.readBooks?.includes(stageIndex(area))??false} onComplete={()=>{const index=stageIndex(area);setSave(s=>s?grantBookReward(s,index):s);}}/>}
  {panel==='practice'&&<PracticeBoard key={practiceId} quest={allQuests[practiceId]}/>}
  {panel==='loot'&&<ItemReveal ids={rewardItems}/>}
  {panel==='inventory'&&save&&<Inventory character={character} completed={completed} purchased={save.purchased} onEquip={c=>setSave(s=>s?{...s,character:availableCharacter(c,s.completed,s.purchased)}:s)}/>}

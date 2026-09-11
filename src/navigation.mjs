@@ -7,10 +7,36 @@ export function walkable(x,y,area='village'){if(stageIndex(area)>=0)return x>=32
 const cell=16,cols=96,rows=64,valid=[];
 for(let y=0;y<rows;y++)for(let x=0;x<cols;x++)if(walkable(x*cell+8,y*cell+8))valid.push(y*cols+x);
 function nearest(x,y,valid){let id=valid[0],best=Infinity;for(const v of valid){const d=(v%cols*cell+8-x)**2+(Math.floor(v/cols)*cell+8-y)**2;if(d<best){best=d;id=v;}}return id;}
-export function route(x,y,tx,ty,area='village'){const cells=stageIndex(area)>=0?cellsForStage.get(area):area==='adventure'?adventureCells:valid;const start=nearest(x,y,cells),end=nearest(tx,ty,cells),queue=[start],previous=new Map([[start,-1]]),allowed=new Set(cells);for(let n=0;n<queue.length;n++){const v=queue[n];if(v===end)break;for(const next of [v-1,v+1,v-cols,v+cols]){if(!allowed.has(next)||previous.has(next)||Math.abs(v%cols-next%cols)>1)continue;previous.set(next,v);queue.push(next);}}if(!previous.has(end))return [];const result=[];for(let v=end;v!==start;v=previous.get(v)){result.unshift({x:v%cols*cell+8,y:Math.floor(v/cols)*cell+8});}return result;}
+// Eight-direction A* followed by line-of-sight smoothing. No forced waypoints.
+export function clearSegment(a,b,area){
+ const steps=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.y-a.y)/4));
+ for(let i=0;i<=steps;i++)if(!walkable(a.x+(b.x-a.x)*i/steps,a.y+(b.y-a.y)*i/steps,area))return false;
+ return true;
+}
+export function route(x,y,tx,ty,area='village'){
+ const cells=stageIndex(area)>=0?cellsForStage.get(area):area==='adventure'?adventureCells:valid;
+ const start=nearest(x,y,cells),end=nearest(tx,ty,cells),allowed=new Set(cells),point=id=>({x:id%cols*cell+8,y:Math.floor(id/cols)*cell+8});
+ const goal=point(end),heuristic=id=>Math.hypot(point(id).x-goal.x,point(id).y-goal.y),open=[start],closed=new Set(),previous=new Map(),cost=new Map([[start,0]]);
+ while(open.length){let best=0;for(let i=1;i<open.length;i++)if(cost.get(open[i])+heuristic(open[i])<cost.get(open[best])+heuristic(open[best]))best=i;
+  const current=open.splice(best,1)[0];if(current===end)break;closed.add(current);
+  for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]]){
+   const next=current+dx+dy*cols;if(!allowed.has(next)||closed.has(next)||Math.abs(current%cols-next%cols)>1)continue;
+   if(dx&&dy&&(!allowed.has(current+dx)||!allowed.has(current+dy*cols)))continue;
+   if(!clearSegment(point(current),point(next),area))continue;
+   const tentative=cost.get(current)+cell*Math.hypot(dx,dy);
+   if(tentative<(cost.get(next)??Infinity)){previous.set(next,current);cost.set(next,tentative);if(!open.includes(next))open.push(next);}
+  }
+ }
+ if(start!==end&&!previous.has(end))return [];
+ const raw=[point(end)];for(let v=end;v!==start;){v=previous.get(v);raw.unshift(point(v));}
+ const path=[],origin={x,y};let anchor=origin,i=0;
+ while(i<raw.length){let far=i;for(let j=raw.length-1;j>i;j--)if(clearSegment(anchor,raw[j],area)){far=j;break;}path.push(raw[far]);anchor=raw[far];i=far+1;}
+ const exact={x:tx,y:ty};if(walkable(tx,ty,area)&&clearSegment(path.at(-1)??origin,exact,area))path.push(exact);
+ return path.filter((p,i)=>Math.hypot(p.x-(i?path[i-1].x:x),p.y-(i?path[i-1].y:y))>.1);
+}
 export const npcLocations=[{x:800,y:406},{x:298,y:492},{x:1320,y:582}];
 
-const adventureCorridors=[...hubRoads.flatMap(points=>points.slice(1).map((end,i)=>[...points[i],...end,20])),...gatewayLocations.map(p=>[p.x,p.y+10,p.x,p.y+50,45])];
+const adventureCorridors=[...hubRoads.flatMap(points=>points.slice(1).map((end,i)=>[...points[i],...end,34])),...gatewayLocations.map(p=>[p.x,p.y+10,p.x,p.y+50,45])];
 export const stageRoadHeights=[465,450,495,470,480,500,500,450,470,470,490,470];
 function corridorsForStage(area){
  const i=stageIndex(area),y=stageRoadHeights[i],end=i===7?470:i===9?710:820;
@@ -23,14 +49,8 @@ for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
 }
 export const adventureLocations=gatewayLocations;
 
-// Gateway auto-travel joins the middle road before heading to the next row.
+// Gate clicks use the same shortest navigable route as ground clicks.
 export function routeToGateway(x,y,index){
- const gate=gatewayLocations[index];if(!gate)return [];
- const spine=hubRoads[0],near=target=>spine.reduce((a,b)=>Math.abs(b[1]-target)<Math.abs(a[1]-target)?b:a);
- const points=[near(y),near(gate.y+30),[gate.x,gate.y]],path=[];
- for(const [tx,ty] of points){const segment=route(x,y,tx,ty,'adventure');path.push(...segment);const end=segment.at(-1);if(end){x=end.x;y=end.y;}}
- return path;
+ const gate=gatewayLocations[index];return gate?route(x,y,gate.x,gate.y,'adventure'):[];
 }
-
-
-export const stageBookPoint=area=>({x:530,y:stageRoadHeights[stageIndex(area)]});
+export const stageBookPoint=area=>({x:610,y:stageRoadHeights[stageIndex(area)]});
