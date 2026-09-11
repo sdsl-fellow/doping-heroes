@@ -15,6 +15,5 @@ export const shopItems=[
  {id:'dopant',name:'불순물 꾸러미',description:'현재 경험치 구간의 10%만큼 도핑 농도 추가',price:10},
  {id:'cap',name:'숲길 모자',description:'언제든 착용할 수 있는 모자',price:30},
  {id:'boots',name:'탐험 부츠',description:'모험용 신발',price:20},
- {id:'sword',name:'새벽의 검',description:'외형 장비 · 전투 기능 없음',price:60},
- {id:'cardigan',name:'별빛 가디건',description:'모험용 복장',price:45}
+ {id:'sword',name:'새벽의 검',description:'외형 장비 · 전투 기능 없음',price:60}
 ];

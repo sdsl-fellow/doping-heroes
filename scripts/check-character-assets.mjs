@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {layers,defaultCharacter,hairStyles,outfits,validCharacter} from '../src/character.ts';
 import {equipment,availableCharacter,unlocked} from '../src/equipment.ts';
 const fullyEquipped={...defaultCharacter,outfit:'cardigan',hat:'cap',weapon:'sword',shoes:'boots'};
-assert.deepEqual(availableCharacter(fullyEquipped,[]),defaultCharacter);
+assert.deepEqual(availableCharacter(fullyEquipped,[]),{...defaultCharacter,outfit:'cardigan'});
 assert.deepEqual(availableCharacter(fullyEquipped,[0,1,2]),fullyEquipped);
 assert.equal(availableCharacter(fullyEquipped,[0]).shoes,'boots');
 assert.equal(availableCharacter(fullyEquipped,[0]).hat,'none');

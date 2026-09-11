@@ -1,8 +1,8 @@
 import type {Character} from './character';
 export const equipment = [
  {slot:'outfit',id:'tshirt',name:'세미 마을 티셔츠',quest:-1},
- {slot:'outfit',id:'longsleeve',name:'여행자 셔츠',quest:0},
- {slot:'outfit',id:'cardigan',name:'별빛 가디건',quest:2},
+ {slot:'outfit',id:'longsleeve',name:'여행자 셔츠',quest:-1},
+ {slot:'outfit',id:'cardigan',name:'별빛 가디건',quest:-1},
  {slot:'shoes',id:'basic',name:'기본 신발',quest:-1},
  {slot:'shoes',id:'boots',name:'탐험 부츠',quest:0},
  {slot:'hat',id:'none',name:'없음',quest:-1},

@@ -73,3 +73,7 @@ Quadruped cat and dog under public/lpc/animals/{cat,dog}/walk.png:
   https://opengameart.org/content/lpc-cats-and-dogs
   https://creativecommons.org/licenses/by/3.0/
   Derivatives: first color variant cropped, 32px walk frames packed into 64px atlas, nearest-neighbor scaling, runtime recoloring and accessories. Original full animal anatomy retained (no human body).
+
+2026-09-11 update: fluffy gray puppy public/lpc/animals/dog/walk.png is original AI-generated quadruped artwork; packed/scaled into walk atlas. Replaces previous LPC dog rendering.
+Inventory icons public/items.png are cropped/scaled/recolored from the credited LPC garment, shoe, hat and sword layers.
+Traveler collared shirt: torso/clothes/longsleeve/formal/male/walk.png |   | bluecarrot16,Thane Brimhall (pennomi),laetissima,Stephen Challener (Redshrike),Johannes Sjölund (wulax)  | CC-BY-SA 3.0,GPL 3.0  | https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,https://opengameart.org/content/lpc-2-characters,https://opengameart.org/content/lpc-gentleman

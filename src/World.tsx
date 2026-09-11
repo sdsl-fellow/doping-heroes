@@ -3,8 +3,8 @@ import Phaser from 'phaser';
 import {Character,characterSheet,defaultCharacter} from './character';
 import {weeklyQuests} from './adventure';
 import {npcLocations,adventureLocations,route,walkable} from './navigation.mjs';
-export function World({character,name,completed,area,active,onTalk,onTravel,onPosition,onError}:{character:Character;name:string;completed:number[];area:'village'|'adventure';active:boolean;onTravel:()=>void;onTalk:(i:number)=>void;onPosition:(x:number,y:number)=>void;onError:(text:string)=>void}){
- const root=useRef<HTMLDivElement>(null),live=useRef({character,name,completed,area,active,onTalk,onTravel,onPosition,onError});live.current={character,name,completed,area,active,onTalk,onTravel,onPosition,onError};
+export function World({character,name,completed,area,arrival,active,onTalk,onTravel,onPosition,onError}:{character:Character;name:string;completed:number[];area:'village'|'adventure';arrival:number|null;active:boolean;onTravel:()=>void;onTalk:(i:number)=>void;onPosition:(x:number,y:number)=>void;onError:(text:string)=>void}){
+ const root=useRef<HTMLDivElement>(null),live=useRef({character,name,completed,area,arrival,active,onTalk,onTravel,onPosition,onError});live.current={character,name,completed,area,arrival,active,onTalk,onTravel,onPosition,onError};
  useEffect(()=>{
  if(!root.current)return;let disposed=false;const places=area==='adventure'?adventureLocations:npcLocations;const names=area==='adventure'?weeklyQuests.map(q=>q.name):['길잡이 Dr. 실리콘','상인 엔','결정 동굴 안내자'];const passable=(x:number,y:number)=>walkable(x,y,area);
  class Campus extends Phaser.Scene{
@@ -26,7 +26,7 @@ export function World({character,name,completed,area,active,onTalk,onTravel,onPo
   go(x:number,y:number,npc:number|null){if(!this.player)return;this.path=route(this.player.x,this.player.y,x,y,area);this.pending=npc;const end=this.path.at(-1);if(end)this.destination?.setPosition(end.x,end.y).setVisible(true);}
   update(time:number,delta:number){
    const props=live.current,next=JSON.stringify(props.character);
-   if(next!==this.skinKey){this.skinKey=next;const token=++this.generation;this.sprite(props.character,'player-'+token,this.player?.x??768,this.player?.y??(area==='adventure'?820:590)).then(sprite=>{if(!sprite)return;if(token!==this.generation){sprite.destroy();return;}this.player?.destroy();this.player=sprite;this.cameras.main.startFollow(sprite,true,.12,.12);if(!this.label)this.label=this.add.text(0,0,'',{fontSize:'17px',color:'#fff9e4',backgroundColor:'#223644bb',padding:{x:7,y:3}}).setOrigin(.5);}).catch(e=>props.onError(e.message));}
+   if(next!==this.skinKey){this.skinKey=next;const token=++this.generation;this.sprite(props.character,'player-'+token,this.player?.x??(area==='adventure'&&arrival!==null?places[arrival]?.x??768:768),this.player?.y??(area==='adventure'?(arrival!==null?(places[arrival]?.y??800)+20:820):590)).then(sprite=>{if(!sprite)return;if(token!==this.generation){sprite.destroy();return;}this.player?.destroy();this.player=sprite;this.cameras.main.startFollow(sprite,true,.12,.12);if(!this.label)this.label=this.add.text(0,0,'',{fontSize:'17px',color:'#fff9e4',backgroundColor:'#223644bb',padding:{x:7,y:3}}).setOrigin(.5);}).catch(e=>props.onError(e.message));}
    if(!this.player)return;this.markers.forEach((m,i)=>m.setText(area==='adventure'?(props.completed.includes(i+3)?'✓':'!'):i===0?([0,1,2].every(q=>props.completed.includes(q))?'✓':'!'):i===1?'$':'◈'));
    this.label?.setPosition(this.player.x,this.player.y-108).setText(props.name).setDepth(1600);
    if(!props.active){this.path=[];this.pending=null;this.touch={x:0,y:0};this.keys&&Object.values(this.keys).forEach(k=>k.reset());this.player.setFrame(this.dir*9);this.destination?.setVisible(false);return;}

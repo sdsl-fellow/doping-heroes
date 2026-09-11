@@ -10,7 +10,7 @@ export function restore():Save|null{
   const completed=[...new Set<number>(s.completed.filter((n:unknown)=>Number.isInteger(n)&&Number(n)>=0&&Number(n)<11))];
   const purchased=Array.isArray(s.purchased)?s.purchased.filter((i:unknown)=>['boots','cap','sword','cardigan','trailcap','snowboots'].includes(String(i))):[];
   const oldDose=[2e13,3e13,4e13].reduce((n,d,i)=>n+(completed.includes(i)?d:0),MIN_DOPING);
-  const result:Save={version:3,name:s.name,studentId:typeof s.studentId==='string'&&/^[0-9A-Za-z-]{4,20}$/.test(s.studentId)?s.studentId:'',character:availableCharacter(validCharacter(s.character),completed,purchased),completed,purchased,doping:clampDoping(s.version===3?s.doping:oldDose),type:s.type==='p'?'p':'n',coins:Number.isFinite(s.coins)?Math.max(0,Math.floor(s.coins)):completed.length*20,area:s.area==='adventure'?'adventure':'village'};
-  if(!hasKey(result))result.area='village';return result;
+  const result:Save={version:3,name:s.name,studentId:typeof s.studentId==='string'&&/^[0-9]{8}$/.test(s.studentId)?s.studentId:'',character:availableCharacter(validCharacter(s.character),completed,purchased),completed,purchased,doping:clampDoping(s.version===3?s.doping:oldDose),type:s.type==='p'?'p':'n',coins:Number.isFinite(s.coins)?Math.max(0,Math.floor(s.coins)):completed.length*20,area:'village'};
+  if(result.character.gender==='neutral'&&result.character.species==='dog')result.character.hairColor='#dae0e5';return result;
  }catch{return null;}
 }
