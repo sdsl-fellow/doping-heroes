@@ -66,3 +66,10 @@ Quest equipment added 2026-09-11 (OGA-BY 3.0 selected):
   https://opengameart.org/content/lpc-expanded-sit-run-jump-more
 Runtime derivatives: recoloring; gender-independent sturdy/agile scaling of body and clothing.
 Cat and dog heads under head/heads/{cat,dog}/adult/walk.png: original AI-generated pixel art created for Semi Adventure; packed into four-direction walk atlases. They are not LPC originals despite sharing the runtime asset directory. Composites with LPC layers follow the applicable LPC art licenses above.
+
+Adventure continent background public/adventure.webp: original AI-generated pixel art created for Semi Adventure, 2026-09-11.
+Quadruped cat and dog under public/lpc/animals/{cat,dog}/walk.png:
+  bluecarrot16, LPC Cats and Dogs. CC-BY 3.0 selected.
+  https://opengameart.org/content/lpc-cats-and-dogs
+  https://creativecommons.org/licenses/by/3.0/
+  Derivatives: first color variant cropped, 32px walk frames packed into 64px atlas, nearest-neighbor scaling, runtime recoloring and accessories. Original full animal anatomy retained (no human body).

@@ -9,7 +9,9 @@ assert.equal(availableCharacter(fullyEquipped,[0]).shoes,'boots');
 assert.equal(availableCharacter(fullyEquipped,[0]).hat,'none');
 assert.equal(availableCharacter(fullyEquipped,[0,1]).hat,'cap');
 assert.equal(availableCharacter(fullyEquipped,[0,1]).weapon,'none');
-for(const item of equipment)assert.equal(unlocked(item,[0,1,2]),true);
+for(const item of equipment)assert.equal(unlocked(item,[0,1,2]),item.quest!==-2);
+assert.equal(availableCharacter({...defaultCharacter,hat:'trailcap'},[],['trailcap']).hat,'trailcap');
+assert.equal(availableCharacter({...defaultCharacter,hat:'trailcap'},[]).hat,'none');
 let count=0;const files=new Set();
 for(const body of ['sturdy','agile'])for(const [hair] of hairStyles)for(const [outfit] of outfits){
  for(const {path} of layers({...defaultCharacter,body,hair,outfit})){const buffer=fs.readFileSync('public/lpc/'+path);assert.equal(buffer.readUInt32BE(16),576,path);assert.equal(buffer.readUInt32BE(20),256,path);files.add(path);}count++;
