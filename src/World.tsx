@@ -1,3 +1,4 @@
+import {FET_GAME_POINT} from './fet-process.mjs';
 import {useEffect,useRef} from 'react';
 import Phaser from 'phaser';
 import {Character,characterSheet,defaultCharacter} from './character';
@@ -5,8 +6,8 @@ import {weeklyQuests} from './adventure';
 import {mapInfo,stageIndex,stageDefinitions,gatewayLocations,arrivalPoint,stageUnlocked} from './maps.mjs';
 import type {Save} from './save';
 import {npcLocations,adventureLocations,route,walkable,routeToGateway,stageBookPoint} from './navigation.mjs';
-export function World({character,name,completed,area,arrival,destination,active,onTalk,onBook,onBusy,onTravel,onEnterStage,onPosition,onError}:{character:Character;name:string;completed:number[];area:Save['area'];arrival:number|null;destination:number|null;active:boolean;onBook:()=>void;onBusy:(busy:boolean)=>void;onTravel:()=>void;onEnterStage:(index:number)=>void;onTalk:(i:number)=>void;onPosition:(x:number,y:number)=>void;onError:(text:string)=>void}){
- const root=useRef<HTMLDivElement>(null),live=useRef({character,name,completed,area,arrival,destination,active,onTalk,onBook,onBusy,onTravel,onEnterStage,onPosition,onError});live.current={character,name,completed,area,arrival,destination,active,onTalk,onBook,onBusy,onTravel,onEnterStage,onPosition,onError};
+export function World({character,name,completed,area,arrival,destination,active,onTalk,onBook,onMiniGame,onBusy,onTravel,onEnterStage,onPosition,onError}:{character:Character;name:string;completed:number[];area:Save['area'];arrival:number|null;destination:number|null;active:boolean;onBook:()=>void;onMiniGame:()=>void;onBusy:(busy:boolean)=>void;onTravel:()=>void;onEnterStage:(index:number)=>void;onTalk:(i:number)=>void;onPosition:(x:number,y:number)=>void;onError:(text:string)=>void}){
+ const root=useRef<HTMLDivElement>(null),live=useRef({character,name,completed,area,arrival,destination,active,onTalk,onBook,onMiniGame,onBusy,onTravel,onEnterStage,onPosition,onError});live.current={character,name,completed,area,arrival,destination,active,onTalk,onBook,onMiniGame,onBusy,onTravel,onEnterStage,onPosition,onError};
  useEffect(()=>{
  if(!root.current)return;let disposed=false;const info=mapInfo(area),index=stageIndex(area),stage=index>=0?stageDefinitions[index]:null;const places=area==='adventure'?gatewayLocations:stage?[info.npc!]:npcLocations;const names=stage?[weeklyQuests.find(q=>q.id===stage.questId)!.name]:['길잡이 Dr. 실리콘','상인 엔','결정 동굴 안내자'];const passable=(x:number,y:number)=>walkable(x,y,area)&&(area!=='village'||y<825);const spawn=arrivalPoint(area,arrival);
  const interact=(i:number)=>area==='adventure'?live.current.onEnterStage(i):live.current.onTalk(stage?stage.questId:i);
@@ -34,8 +35,12 @@ export function World({character,name,completed,area,arrival,destination,active,
     this.add.text(point.x,point.y-115,'낡은 책 · 읽기',{fontSize:'16px',color:'#ffe6a3',backgroundColor:'#263c36dd',padding:{x:8,y:6}}).setOrigin(.5).setDepth(1500);
     this.add.zone(point.x,point.y-35,125,145).setInteractive({useHandCursor:true}).setDepth(1601).on('pointerdown',()=>{if(live.current.active&&!this.busy)this.go(point.x,point.y,-2);});
    }
+   if(area==='stage-11'){const p=FET_GAME_POINT;
+    this.add.ellipse(p.x,p.y+8,110,35,0x63dbc0,.25).setStrokeStyle(2,0xa3efd0).setDepth(p.y-1);
+    this.add.text(p.x,p.y-18,'MOSFET 공정 퍼즐\n미니게임 · 터치해서 시작',{fontSize:'18px',color:'#fff3ba',backgroundColor:'#153e35ee',align:'center',padding:{x:16,y:14}}).setOrigin(.5).setDepth(1500).setInteractive({useHandCursor:true}).on('pointerdown',()=>{if(live.current.active&&!this.busy)this.go(p.x,p.y,-3);});
+   }
    this.input.on('pointerdown',(p:Phaser.Input.Pointer,objects:unknown[])=>{if(!objects.length&&live.current.active){const point=this.cameras.main.getWorldPoint(p.x,p.y);this.go(point.x,point.y,null);}});
-   this.game.events.on('talk',()=>{if(!this.player||!live.current.active)return;if(area==='adventure'){live.current.onError('입장하려면 관문을 직접 터치하세요.');return;}if(stage){const b=stageBookPoint(area);if(Math.hypot(this.player.x-b.x,this.player.y-b.y)<90){this.readBook();return;}}if(area==='village'&&this.player.y>745){this.openGate();return;}const i=places.findIndex(p=>Math.hypot(this.player!.x-p.x,this.player!.y-p.y)<110);if(i>=0)interact(i);else live.current.onError('NPC를 터치하면 길을 따라 다가갑니다.');});
+   this.game.events.on('talk',()=>{if(!this.player||!live.current.active)return;if(area==='adventure'){live.current.onError('입장하려면 관문을 직접 터치하세요.');return;}if(area==='stage-11'&&Math.hypot(this.player.x-FET_GAME_POINT.x,this.player.y-FET_GAME_POINT.y)<90){live.current.onMiniGame();return;}if(stage){const b=stageBookPoint(area);if(Math.hypot(this.player.x-b.x,this.player.y-b.y)<90){this.readBook();return;}}if(area==='village'&&this.player.y>745){this.openGate();return;}const i=places.findIndex(p=>Math.hypot(this.player!.x-p.x,this.player!.y-p.y)<110);if(i>=0)interact(i);else live.current.onError('NPC를 터치하면 길을 따라 다가갑니다.');});
    this.game.events.on('navigate',(id:number)=>{const local=area==='adventure'?stageDefinitions.findIndex(s=>s.questId===id):stage?0:id;const p=places[local];if(p&&live.current.active)this.go(p.x,p.y+(area==='adventure'?0:20),area==='adventure'?null:local);});this.game.events.on('direction',(v:{x:number;y:number})=>{this.touch=v;});this.game.events.on('map-target',(p:{x:number;y:number})=>{if(live.current.active)this.go(p.x,p.y,null);});
   }
   go(x:number,y:number,npc:number|null){if(!this.player||this.busy)return;if(area==='village')y=Math.min(y,795);this.path=area==='adventure'&&npc!==null?routeToGateway(this.player.x,this.player.y,npc):route(this.player.x,this.player.y,x,y,area);this.pending=npc;const end=this.path.at(-1);if(end)this.destination?.setPosition(end.x,end.y).setVisible(true);}
@@ -72,7 +77,7 @@ export function World({character,name,completed,area,arrival,destination,active,
    const manual=!!(dx||dy);if(manual){this.path=[];this.pending=null;}else if(this.path.length){dx=this.path[0].x-this.player.x;dy=this.path[0].y-this.player.y;}
    const len=Math.hypot(dx,dy),step=manual?Math.min(delta,40)*.19:Math.min(len,Math.min(delta,40)*.19);let moving=false;
    if(len>.1){this.dir=Math.abs(dx)>Math.abs(dy)?dx>0?3:1:dy>0?2:0;const nx=this.player.x+dx/len*step,ny=this.player.y+dy/len*step;if(passable(nx,ny)){this.player.setPosition(nx,ny);moving=true;}else if(manual){if(passable(nx,this.player.y))this.player.x=nx;if(passable(this.player.x,ny))this.player.y=ny;}else this.path=[];if(!manual&&len<=step+1)this.path.shift();}
-   if(!this.path.length){this.destination?.setVisible(false);if(this.pending!==null){const i=this.pending;this.pending=null;if(i===-1){if(this.player.y>750)this.openGate();}else if(i===-2){const b=stageBookPoint(area);if(Math.hypot(this.player.x-b.x,this.player.y-b.y)<90)this.readBook();}else if(Math.hypot(this.player.x-places[i].x,this.player.y-places[i].y)<100)interact(i);}}
+   if(!this.path.length){this.destination?.setVisible(false);if(this.pending!==null){const i=this.pending;this.pending=null;if(i===-1){if(this.player.y>750)this.openGate();}else if(i===-2){const b=stageBookPoint(area);if(Math.hypot(this.player.x-b.x,this.player.y-b.y)<90)this.readBook();}else if(i===-3){if(area==='stage-11'&&Math.hypot(this.player.x-FET_GAME_POINT.x,this.player.y-FET_GAME_POINT.y)<90)props.onMiniGame();}else if(Math.hypot(this.player.x-places[i].x,this.player.y-places[i].y)<100)interact(i);}}
    const exiting=area==='village'?false:this.player.y<info.exit.y+30&&Math.abs(this.player.x-info.exit.x)<60;
    if(exiting){this.player.y=area==='village'?890:info.exit.y+100;this.path=[];props.onTravel();}
 
@@ -87,4 +92,3 @@ export function World({character,name,completed,area,arrival,destination,active,
  },[area]);
  return <div ref={root} className="world" role="application" aria-label="세미 월드. 맵 터치로 이동하고 NPC 터치로 대화합니다."/>;
 }
-
