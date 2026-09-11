@@ -12,9 +12,18 @@ export const conductivity=(n,type='n')=>1/resistivity(n,type);
 export function progress(n,type='n'){
  n=clampDoping(n);const exponent=Math.min(21,Math.floor(Math.log10(n)+1e-12));const max=n>=MAX_DOPING;
  const low=10**(max?20:exponent),high=10**(max?21:exponent+1);
- return {n,stage:exponent-12,low,high,fraction:max?1:Math.min(1,(n-low)/(high-low)),max,sigma:conductivity(10**exponent,type)};
+ return {n,stage:exponent-12,low,high,fraction:max?1:Math.min(1,(n-low)/(high-low)),max,sigma:conductivity(n,type)};
 }
 export const addDopants=(n,amount)=>clampDoping(clampDoping(n)+Math.max(0,amount));
 export const scientific=n=>n.toExponential(1).replace('.0e','e').replace('e+','e');
 export const sigmaLabel=n=>Number(n.toPrecision(3)).toLocaleString('en-US',{maximumSignificantDigits:3});
 export const levelLabel=(n,type='n')=>`Lv. ${sigmaLabel(progress(n,type).sigma)} S/cm`;
+
+// Twelve additive rewards follow the visible Stage order, independent of quest IDs.
+// Tutorial finishes at 1e14; all twelve quests finish at 95% of the 1e21 cap.
+export const STAGE_COMPLETION_DOPING=9.5e20;
+export function stageDose(index){
+ if(!Number.isInteger(index)||index<0||index>=12)throw new RangeError('Invalid stage index');
+ const target=i=>1e14*(STAGE_COMPLETION_DOPING/1e14)**(i/12);
+ return target(index+1)-target(index);
+}

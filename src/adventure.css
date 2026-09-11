@@ -52,3 +52,5 @@
  .talk-button{bottom:calc(100px + env(safe-area-inset-bottom))}
  .welcome-ribbon{top:auto;bottom:calc(220px + env(safe-area-inset-bottom));max-width:calc(100vw - 32px);width:max-content;box-sizing:border-box;font-size:12px;line-height:1.4;padding:6px 12px}
 }
+
+.implant-animation .reward-level{margin:12px 0 0;color:#ffe0a0;font-size:18px}

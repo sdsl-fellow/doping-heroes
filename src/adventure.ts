@@ -1,3 +1,5 @@
+import {stageForQuest} from './maps.mjs';
+import {stageDose} from './progression.mjs';
 export const weeklyQuests=[
  {name:'결정 숲의 루미',region:'결정 숲',week:1,title:'격자의 비밀',question:'실리콘 다이아몬드 결정에서 한 Si 원자의 최근접 이웃 원자 수는?',options:['4개','6개','8개'],answer:0,explanation:'각 Si 원자는 최근접 이웃 4개와 공유 결합하며 정사면체 구조를 이룹니다.'},
  {name:'초원의 밴디',region:'밴드 초원',week:2,title:'금지된 에너지',question:'이상적인 반도체의 밴드갭 안에는 어떤 상태가 있을까요?',options:['자유전자의 허용 상태가 연속적으로 존재','이상 결정의 허용 에너지 상태가 없음','원자핵만 이동하는 상태'],answer:1,explanation:'밴드갭은 가전자대와 전도대 사이의 금지 에너지 구간입니다. 결함이나 불순물은 갭 내 준위를 만들 수 있습니다.'},
@@ -12,7 +14,7 @@ export const weeklyQuests=[
  {name:'바다의 바이',region:'BJT 오션',week:11,title:'세 개의 단자',question:'BJT의 세 단자 이름은?',options:['게이트·소스·드레인','애노드·캐소드·기판','이미터·베이스·컬렉터'],answer:2,explanation:'BJT는 이미터, 베이스, 컬렉터로 이루어집니다. 전자와 정공 두 종류 캐리어가 동작에 관여합니다.'},
  {name:'심층의 파워',region:'Power 반도체 동굴',week:12,title:'전력을 다루는 결정',question:'전력 반도체 설계에서 함께 고려하는 대표 성능은?',options:['차단 전압과 도통·스위칭 손실','화면 해상도와 음량','원자의 색과 냄새'],answer:0,explanation:'전력 소자는 높은 차단 전압, 낮은 도통 손실과 스위칭 손실 등 여러 특성의 균형을 고려합니다.'}
 
-].map((q,i)=>({...q,id:i+3,dose:9*10**Math.min(20,13+i),coins:30,options:q.options,dopant:i%2?'B':'P'}));
+].map((q,i)=>({...q,id:i+3,dose:stageDose(stageForQuest(i+3)!.index),coins:30,options:q.options,dopant:i%2?'B':'P'}));
 
 export const shopItems=[
  {id:'trailcap',name:'푸른 탐험 모자',description:'상점 전용 · 하늘빛 모자',price:60},

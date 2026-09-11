@@ -83,3 +83,5 @@ Traveler collared shirt: torso/clothes/longsleeve/formal/male/walk.png |   | blu
 2026-09-11 v0.5.1: public/gateways.png contains 12 original AI-generated gateway illustrations, cropped/scaled into a transparent 3x4 atlas. Female body/clothing composites apply a narrower torso/limb profile and tapered waist to the credited LPC layers; heads/accessories retain their alignment.
 
 Continent 3×4 background and floating silicon crystal: original OpenAI-generated assets (2026-09-11).
+
+v0.7.0 native 1536×1024 stage maps (12) and winding continent: original OpenAI-generated reconstructions of this project’s maps, 2026-09-11.

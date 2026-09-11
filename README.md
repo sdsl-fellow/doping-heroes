@@ -160,3 +160,9 @@ v0.3의 컨덕턴스(S) 표시는 대체되었습니다. 현재 화면은 첨부
 - Quest rewards animate ion implantation into the customized character, showing concentration and sample conductivity before/after, with a level-up pulse at decade thresholds. Reduced-motion preferences are respected.
 - Continent: 3 rows × 4 columns, longer northern approach, themed gates with smaller labels above them, floating silicon crystal at Stage 1.
 - Desktop minimap and adjacent quest panel enlarged; mobile movement controls separated from guidance. Concentration uses one decimal in scientific notation.
+
+### v0.7.0
+- Twelve native 1536×1024 stage backgrounds replace the magnified 362px atlas frames; village, hub and stages share world dimensions and camera scale.
+- Winding continent roads use matching walkable centerlines; the silicon crystal is inset into the Stage 1 gateway.
+- Rewards rise by visible Stage order. Tutorial + twelve quests total 9.5e20 cm⁻³ without shop purchases; completion order remains unrestricted. Existing earned progress is preserved.
+- Annealing uses orange/red heat effects. Conductivity labels consistently reflect the current concentration; decade thresholds still trigger the level-up animation. The reward character label updates when implantation completes.
