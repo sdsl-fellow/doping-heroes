@@ -3,6 +3,19 @@ import {stageDose} from '../src/progression.mjs';
 import {test} from 'node:test';import assert from 'node:assert/strict';
 import {grantReward,purchase,bridgeUnlocked,grantBookReward,bookDose} from '../src/economy.mjs';
 const start=()=>({completed:[],doping:1e13,coins:0,purchased:[]});
+test('root earns the same stage and reading rewards without prerequisites, once only',()=>{
+ const root={...start(),name:'공수교대',studentId:'099746'};
+ const index=10,q={id:stageDefinitions[index].questId,dose:stageDose(index),coins:30};
+ const ordinary={...start(),completed:[0,1,2,...stageDefinitions.slice(0,index).map(s=>s.questId)]};
+ const expected=grantReward(ordinary,q,()=>.3),actual=grantReward(root,q,()=>.3);
+ assert.deepEqual(root.completed,[]);assert.equal(root.doping,1e13);
+ assert.deepEqual(actual.completed,[q.id]);assert.equal(actual.doping,expected.doping);
+ assert.equal(actual.coins,expected.coins);assert.deepEqual(actual.purchased,expected.purchased);
+ assert.equal(grantReward(actual,q),actual);
+ const book=grantBookReward(root,index,()=>.3),normalBook=grantBookReward(ordinary,index,()=>.3);
+ assert.equal(book.doping,normalBook.doping);assert.deepEqual(book.completed,[]);
+ assert.deepEqual(book.readBooks,[index]);assert.equal(grantBookReward(book,index),book);
+});
 test('guide grants key after exactly three ordered rewards, never duplicate rewards',()=>{
  let s=start();assert.equal(grantReward(s,{id:2,dose:4e13,coins:20}),s);
  for(let i=0;i<3;i++){const q={id:i,dose:[2e13,3e13,4e13][i],coins:20};s=grantReward(s,q);assert.equal(bridgeUnlocked(s),i===2);assert.equal(grantReward(s,q),s);}

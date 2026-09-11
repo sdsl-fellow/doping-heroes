@@ -38,9 +38,10 @@ export const npcLocations=[{x:800,y:406},{x:298,y:492},{x:1320,y:582}];
 
 const adventureCorridors=[...hubRoads.flatMap(points=>points.slice(1).map((end,i)=>[...points[i],...end,34])),...gatewayLocations.map(p=>[p.x,p.y+10,p.x,p.y+50,45])];
 export const stageRoadHeights=[465,450,495,470,480,500,500,450,470,470,490,470];
+export const stageBookPoint=area=>({x:stageIndex(area)===9?400:250,y:stageRoadHeights[stageIndex(area)]});
 function corridorsForStage(area){
- const i=stageIndex(area),y=stageRoadHeights[i],end=i===7?470:i===9?710:820;
- return [[768,64,768,end,i===7?30:40],[506,y,1030,y,i===7?30:35]];
+ const i=stageIndex(area),y=stageRoadHeights[i],end=i===7?470:i===9?710:i===10?920:820;
+ return [[768,64,768,end,i===7?30:40],[stageBookPoint(area).x,y,1030,y,i===7?30:35]];
 }
 const adventureCells=[],cellsForStage=new Map(Array.from({length:12},(_,i)=>[`stage-${i+1}`,[]]));
 for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
@@ -53,4 +54,3 @@ export const adventureLocations=gatewayLocations;
 export function routeToGateway(x,y,index){
  const gate=gatewayLocations[index];return gate?route(x,y,gate.x,gate.y,'adventure'):[];
 }
-export const stageBookPoint=area=>({x:610,y:stageRoadHeights[stageIndex(area)]});

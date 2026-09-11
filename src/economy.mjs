@@ -1,11 +1,12 @@
 import {stageForQuest,stageUnlocked} from './maps.mjs';
+import {isRootAccount} from './access.mjs';
 import {rollLevelLoot} from './loot.mjs';
 import {addDopants,progress,MAX_DOPING,stageDose} from './progression.mjs';
 export const bridgeUnlocked=s=>[0,1,2].every(i=>s.completed.includes(i));
 export function grantReward(s,q,random=Math.random){
  if(s.completed.includes(q.id))return s;
  if(q.id<3&&Array.from({length:q.id},(_,i)=>i).some(i=>!s.completed.includes(i)))return s;
- if(q.id>=3&&(!stageForQuest(q.id)||!stageUnlocked(s.completed,stageForQuest(q.id).index)))return s;
+ if(q.id>=3&&(!stageForQuest(q.id)||!stageUnlocked(s.completed,stageForQuest(q.id).index,isRootAccount(s))))return s;
  return awardLevelLoot(s,{...s,completed:[...s.completed,q.id],doping:addDopants(s.doping,q.dose),coins:s.coins+q.coins},random);
 }
 export function purchase(s,item,alreadyOwned=false,random=Math.random){
@@ -23,6 +24,6 @@ function awardLevelLoot(before,after,random){
 
 export const bookDose=index=>stageDose(index)*.02;
 export function grantBookReward(s,index,random=Math.random){
- if(!stageUnlocked(s.completed,index)||(s.readBooks??[]).includes(index))return s;
+ if(!stageUnlocked(s.completed,index,isRootAccount(s))||(s.readBooks??[]).includes(index))return s;
  return awardLevelLoot(s,{...s,readBooks:[...(s.readBooks??[]),index],doping:addDopants(s.doping,bookDose(index))},random);
 }

@@ -1,5 +1,5 @@
 export const FET_GAME_ID='fet-process-v1';
-export const FET_GAME_POINT={x:768,y:755};
+export const FET_GAME_POINT={x:768,y:920};
 // Simplified planar, self-aligned nMOS flow. Isolation is grouped with substrate preparation.
 export const processSteps=[
  {id:'substrate',title:'기판 준비·소자 분리',detail:'p형 실리콘 기판을 준비하고 소자 양옆의 분리 영역을 만듭니다.',hint:'소자를 만들 실리콘 기판과 활성 영역을 먼저 준비하세요.'},
