@@ -1,6 +1,6 @@
 import {test} from 'node:test';import fs from 'node:fs';import assert from 'node:assert/strict';
 import {stageDefinitions,mapInfo,arrivalPoint,gatewayLocations} from '../src/maps.mjs';
-import {walkable,route,routeToGateway} from '../src/navigation.mjs';
+import {walkable,route,routeToGateway,stageBookPoint} from '../src/navigation.mjs';
 test('twelve unique stage scenes preserve quest IDs and connect to safe return positions',()=>{
  assert.equal(stageDefinitions.length,12);assert.equal(new Set(stageDefinitions.map(s=>s.questId)).size,12);assert.equal(new Set(stageDefinitions.map(s=>mapInfo(s.area).image)).size,12);
  for(const s of stageDefinitions){const info=mapInfo(s.area);assert.ok(walkable(info.spawn.x,info.spawn.y,s.area));for(const target of [{x:info.npc.x,y:info.npc.y+20},info.exit]){const path=route(info.spawn.x,info.spawn.y,target.x,target.y,s.area);assert.ok(path.length);assert.ok(path.every(p=>walkable(p.x,p.y,s.area)));assert.ok(Math.hypot(path.at(-1).x-target.x,path.at(-1).y-target.y)<20);}
@@ -29,4 +29,13 @@ test('next-stage routes pass through the middle road',()=>{
  const from=arrivalPoint('adventure',i),to=gatewayLocations[i+1];const path=routeToGateway(from.x,from.y,i+1);
  assert.ok(path.length);assert.ok(path.every(p=>walkable(p.x,p.y,'adventure')));assert.ok(path.some(p=>p.x>730&&p.x<835));assert.ok(Math.hypot(path.at(-1).x-to.x,path.at(-1).y-to.y)<20);
  }
+});
+
+
+test('removed outer vertical links are blocked while each row stays reachable',()=>{
+ for(const x of [246,1289])for(const y of [480,680])assert.equal(walkable(x,y,'adventure'),false);
+ for(const index of [0,3,4,7,8,11]){const p=routeToGateway(768,200,index),g=gatewayLocations[index];assert.ok(p.length);assert.ok(Math.hypot(p.at(-1).x-g.x,p.at(-1).y-g.y)<20);}
+});
+test('all twelve books are reachable from spawn and connect back to the exit',()=>{
+ for(const stage of stageDefinitions){const info=mapInfo(stage.area),book=stageBookPoint(stage.area);assert.ok(book.x<info.spawn.x);assert.ok(walkable(book.x,book.y,stage.area));for(const [from,to] of [[info.spawn,book],[book,info.exit]]){const p=route(from.x,from.y,to.x,to.y,stage.area);assert.ok(p.length);assert.ok(Math.hypot(p.at(-1).x-to.x,p.at(-1).y-to.y)<20);}}
 });

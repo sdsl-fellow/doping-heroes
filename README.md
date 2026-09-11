@@ -173,3 +173,13 @@ v0.3의 컨덕턴스(S) 표시는 대체되었습니다. 현재 화면은 첨부
 - Stage access and reward grants enforce visible Stage order across portals and menu shortcuts. Gateway auto-travel follows the middle continent road. Small 1–12 markers appear on the continent maps.
 - Completed stages offer repeat practice without duplicate rewards. Lecture-based practiceBank entries are intentionally empty until teaching materials are supplied.
 - Dr. Silicon offers searchable Korean(English) terms and FAQ. Browser storage behavior remains unchanged.
+
+
+### Tutorial and journey interaction update
+- Dr. Silicon starts the first incomplete tutorial directly; glossary/FAQ appears after all three tutorial rewards.
+- Implantation includes heat-matched headings, a 25–1000 °C indicator, and equipment reveals inside its own panel.
+- Removed the four outer vertical continent paths in both the artwork and navigation. Automatic routing only approaches portals; touching a portal explicitly starts entry.
+- Touch the south wooden gate after earning the key to unlock it, board the boat and sail to the continent. Destination shortcuts also require this journey.
+- Each stage has a book table on the left branch, with three placeholder pages in src/StageBook.tsx. Replace lecturePages when the real lecture materials arrive.
+- Storage is unchanged: one browser-local save, not separate name/student-ID accounts or server synchronization.
+- Art prompts: preserve continent layout and remove only the four outer vertical paths; generate matching transparent closed/open wooden gate, downward rowboat and ancient book/table atlas. Built-in imagegen outputs were normalized into public/adventure.webp and public/journey-props.png.
