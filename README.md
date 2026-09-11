@@ -2,7 +2,18 @@
 
 대학생용 반도체 학습 2D 웹 RPG. React + TypeScript + Vite + Phaser 3.
 
-## v0.1.0
+## v0.2.0 — Full-screen pixel-art RPG
+
+- Full-screen academy campus with painted environment, independent animated sprites, collision corridors and touch pathfinding
+- Character creator: gender (including unspecified), 2 body types, 6 hairstyles, 8 hair colors, 5 skin tones, 3 outfits, 7 outfit colors, optional glasses
+- All hair/outfit choices are available regardless of gender; appearance does not affect learning outcomes
+- Four-direction walking preview; chosen appearance is used by the in-world sprite and portrait
+- Character appearance can be edited later without resetting learning progress
+- Overlay HUD, player-location minimap, quest tracker, touch direction pad and interaction button
+- v1 local learning saves migrate to v2 automatically; the old save is retained
+- Google Sheets, student accounts, multi-device sync and multiplayer remain unimplemented
+
+Original v0.1 learning features retained:
 
 - 이름 및 캐릭터 색상 선택
 - 클릭/터치 또는 WASD/방향키로 실리콘 연구소 탐색
@@ -24,7 +35,7 @@ npm ci
 npm run dev
 ```
 
-검증: `npm test`, `npm run build`. 빌드 결과는 `dist/`.
+검증: `npm test`, `node --experimental-strip-types scripts/check-character-assets.mjs`, `npm run build`. 빌드 결과는 `dist/`.
 
 ## GitHub Pages
 
@@ -56,11 +67,31 @@ Google 계정 배포/승인 및 엔드포인트 선택 후 연동을 구현합�
 ## 구조
 
 - src/World.tsx: Phaser 맵, 이동, NPC 상호작용
+- src/character.ts, src/Avatar.tsx, src/Creator.tsx: 검증된 외형 설정, 레이어 합성, 제작 화면
+- src/navigation.mjs: 보행 구역과 길찾기
 - src/main.tsx: 캐릭터, 퀘스트, 시료 관찰 및 로컬 저장
 - src/quests.ts: 학습 콘텐츠
 - src/physics.mjs: 캐리어/전도도/레벨 계산
 - tests/physics.test.mjs: 물리 계산 회귀 검증
 - .github/workflows/pages.yml: 테스트, 빌드, Pages 배포
 
-맵과 캐릭터는 초기 기능 검증용 기하학적 표식입니다. 픽셀 아트와
-스프라이트 애니메이션, 추가 맵, 충돌 지형 등은 후속 제작 대상입니다.
+## Artwork
+
+Campus: AI-generated pixel-art scenery; WebP optimized for delivery.
+Characters: Liberated Pixel Cup sprite layers, recolored/composited at runtime.
+Detailed per-file author attribution, selected licenses and upstream source URLs:
+[public/ART-CREDITS.txt](public/ART-CREDITS.txt), also linked in the in-game help.
+Original sprite PNGs are retained in `public/lpc/` for download and reuse under
+their stated licenses. No upstream generator application code is incorporated.
+
+## Scope and validation
+
+Campus exterior and three original learning quests are playable. Buildings are
+scenery with NPC interaction points, not enterable interiors. The navigation
+mask is authored to match the paths, river bridge and plaza. This is not a
+tilemap editor or multiplayer server. Portrait mode uses a following camera;
+the minimap and quest tracker can navigate to offscreen NPCs.
+
+Validation: TypeScript/build, carrier/level tests, navigation tests and every
+body/hair/outfit asset combination. Physical mobile devices and browser-based
+end-to-end playthrough have not been tested in this revision.

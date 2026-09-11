@@ -1,66 +1,47 @@
-import { useEffect, useRef } from 'react';
+import {useEffect,useRef} from 'react';
 import Phaser from 'phaser';
-import { quests } from './quests';
-
-export function World({ color, completed, active, onTalk }: { color:string; completed:number[]; active:boolean; onTalk:(i:number)=>void }) {
- const root=useRef<HTMLDivElement>(null);
- const live=useRef({completed,active,onTalk}); live.current={completed,active,onTalk};
+import {Character,characterSheet,defaultCharacter} from './character';
+import {quests} from './quests';
+import {npcLocations,route,walkable} from './navigation.mjs';
+export function World({character,name,completed,active,onTalk,onPosition,onError}:{character:Character;name:string;completed:number[];active:boolean;onTalk:(i:number)=>void;onPosition:(x:number,y:number)=>void;onError:(text:string)=>void}){
+ const root=useRef<HTMLDivElement>(null),live=useRef({character,name,completed,active,onTalk,onPosition,onError});live.current={character,name,completed,active,onTalk,onPosition,onError};
  useEffect(()=>{
-  if(!root.current)return;
-  class Lab extends Phaser.Scene {
-   player!:Phaser.GameObjects.Container; keys!:Record<string,Phaser.Input.Keyboard.Key>; target:{x:number;y:number}|null=null;
-   labels:Phaser.GameObjects.Text[]=[]; hint!:Phaser.GameObjects.Text; pendingTalk:number|null=null;
-   create(){
-    const g=this.add.graphics(); g.fillStyle(0x142338);g.fillRect(0,0,880,560);
-    g.lineStyle(1,0x24415a,.7);
-    for(let x=0;x<880;x+=40)g.lineBetween(x,0,x,560);
-    for(let y=0;y<560;y+=40)g.lineBetween(0,y,880,y);
-    // A functional top-down laboratory floor plan, with walkable aisles.
-    for(const r of [{x:65,y:75,w:300,h:175,c:0x53d5ff},{x:505,y:75,w:300,h:175,c:0x8bef99},{x:505,y:335,w:300,h:170,c:0xffb377}]){
-     g.fillStyle(r.c,.065);g.fillRoundedRect(r.x,r.y,r.w,r.h,14);g.lineStyle(2,r.c,.45);g.strokeRoundedRect(r.x,r.y,r.w,r.h,14);
-    }
-    this.add.text(35,24,'Si / RESEARCH CAMPUS',{fontSize:'17px',fontFamily:'monospace',color:'#91abc4'});
-    this.add.text(85,99,'01  기초 연구실',{fontSize:'18px',color:'#91e5ff'});
-    this.add.text(525,99,'02  도너 실험실',{fontSize:'18px',color:'#abefb6'});
-    this.add.text(525,355,'03  억셉터 실험실',{fontSize:'18px',color:'#ffd2b0'});
-    this.add.text(86,425,'이동 → 대화 → 실험',{fontSize:'19px',color:'#bed1e7'});
-    this.add.text(86,459,'탐색하며 세 개의 시료를 완성하세요.',{fontSize:'15px',color:'#91abc4'});
-    quests.forEach((q,i)=>{
-     this.add.circle(q.x,q.y,27,q.color,.13).setStrokeStyle(2,q.color);
-     this.add.text(q.x,q.y,q.symbol,{fontSize:'20px',fontFamily:'monospace',color:'#ffffff'}).setOrigin(.5);
-     const marker=this.add.zone(q.x,q.y,120,120).setInteractive({useHandCursor:true});
-     marker.on('pointerdown',()=>{if(live.current.active){this.target={x:q.x,y:q.y+57};this.pendingTalk=i;}});
-     this.labels.push(this.add.text(q.x+35,q.y-25,'!',{fontSize:'25px',color:'#ffe184'}));
-     this.add.text(q.x,q.y+35,q.name,{fontSize:'15px',color:'#e1eaf7'}).setOrigin(.5);
-    });
-    const ring=this.add.circle(0,0,17,Phaser.Display.Color.HexStringToColor(color).color).setStrokeStyle(3,0xffffff);
-    const you=this.add.text(0,0,'◆',{fontSize:'18px',color:'#142338'}).setOrigin(.5);
-    this.player=this.add.container(220,310,[ring,you]);
-    this.hint=this.add.text(440,536,'',{fontSize:'17px',color:'#ffffff',backgroundColor:'#101827'}).setOrigin(.5);
-    this.keys=this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,E,SPACE') as Record<string,Phaser.Input.Keyboard.Key>;
-    this.input.on('pointerdown',(p:Phaser.Input.Pointer,objects:unknown[])=>{if(live.current.active&&!objects.length){this.pendingTalk=null;this.target={x:Phaser.Math.Clamp(p.x,30,850),y:Phaser.Math.Clamp(p.y,55,510)};}});
-    this.game.events.on('talk',()=>this.talk());
-   }
-   nearest(){return quests.findIndex(q=>Phaser.Math.Distance.Between(this.player.x,this.player.y,q.x,q.y)<90);}
-   talk(){if(!live.current.active)return;const i=this.nearest();if(i>=0){this.target=null;live.current.onTalk(i);}}
-   update(_time:number,delta:number){
-    if(!this.player)return;
-    this.labels.forEach((l,i)=>l.setText(live.current.completed.includes(i)?'✓':i===live.current.completed.length?'!':'·'));
-    this.input.keyboard!.enabled=live.current.active;
-    if(!live.current.active){this.target=null;this.pendingTalk=null;return;}
-    const k=this.keys;let dx=Number(k.D.isDown||k.RIGHT.isDown)-Number(k.A.isDown||k.LEFT.isDown),dy=Number(k.S.isDown||k.DOWN.isDown)-Number(k.W.isDown||k.UP.isDown);
-    if(dx||dy){this.target=null;this.pendingTalk=null;}
-    else if(this.target){dx=this.target.x-this.player.x;dy=this.target.y-this.player.y;if(Math.hypot(dx,dy)<5){this.target=null;dx=dy=0;}}
-    const len=Math.hypot(dx,dy),step=Math.min(delta,35)*.21;
-    if(len){this.player.x=Phaser.Math.Clamp(this.player.x+dx/len*step,30,850);this.player.y=Phaser.Math.Clamp(this.player.y+dy/len*step,55,510);}
-    const i=this.nearest();this.hint.setText(i>=0?`${quests[i].name} · 아래 대화 버튼으로 대화`:'맵 터치로 이동 · NPC 터치로 대화');
-    if(this.pendingTalk!==null&&!this.target){const next=this.pendingTalk;this.pendingTalk=null;live.current.onTalk(next);return;}
-    if(Phaser.Input.Keyboard.JustDown(k.E)||Phaser.Input.Keyboard.JustDown(k.SPACE))this.talk();
-   }
+ if(!root.current)return;let disposed=false;
+ class Campus extends Phaser.Scene{
+  player?:Phaser.GameObjects.Sprite;label?:Phaser.GameObjects.Text;markers:Phaser.GameObjects.Text[]=[];keys!:Record<string,Phaser.Input.Keyboard.Key>;path:{x:number;y:number}[]=[];pending:number|null=null;dir=2;skinKey='';generation=0;lastUpdate=0;touch={x:0,y:0};destination?:Phaser.GameObjects.Ellipse;
+  preload(){this.load.image('campus','./campus.webp');this.load.on('loaderror',()=>live.current.onError('맵을 불러오지 못했습니다. 새로고침해 주세요.'));}
+  async sprite(c:Character,key:string,x:number,y:number){const sheet=await characterSheet(c);if(disposed)return;const texture=this.textures.addCanvas(key,sheet)!;for(let row=0;row<4;row++)for(let col=0;col<9;col++)texture.add(row*9+col,0,col*64,row*64,64,64);return this.add.sprite(x,y,key,18).setOrigin(.5,.95).setScale(1.7).setDepth(y);}
+  create(){
+   this.add.image(0,0,'campus').setOrigin(0);this.cameras.main.setBounds(0,0,1536,1024);this.cameras.main.setScroll(0,150);
+   const resize=()=>{const w=this.scale.width,h=this.scale.height;this.cameras.main.setZoom(w<700?1.15:Math.max(w/1536,h/1024));};resize();this.scale.on('resize',resize);
+   this.destination=this.add.ellipse(768,550,24,12,0xffedb0,.35).setStrokeStyle(2,0xffedb0).setVisible(false).setDepth(900);
+   this.keys=this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,E,SPACE',false) as Record<string,Phaser.Input.Keyboard.Key>;
+   npcLocations.forEach((p,i)=>{const c={...defaultCharacter,body:i===2?'female':'male',hair:i===0?'bangs':i===1?'bedhead':'bob',hairColor:i===0?'#dae0e5':i===1?'#77452f':'#b298d1',outfitColor:i===0?'#e6e9e5':i===1?'#438674':'#695c98'} as Character;this.sprite(c,'npc-'+i,p.x,p.y).catch(e=>live.current.onError(e.message));this.markers.push(this.add.text(p.x,p.y-109,'!',{fontFamily:'sans-serif',fontStyle:'bold',fontSize:'32px',color:'#ffe895',stroke:'#263145',strokeThickness:6}).setOrigin(.5).setDepth(1500));this.add.text(p.x,p.y+5,quests[i].name,{fontSize:'16px',color:'#fff8dd',backgroundColor:'#152c36cc',padding:{x:8,y:4}}).setOrigin(.5,0).setDepth(1500);this.add.zone(p.x,p.y-40,100,120).setInteractive({useHandCursor:true}).setDepth(1600).on('pointerdown',()=>{if(live.current.active)this.go(p.x,p.y+20,i);});});
+   for(const t of [{x:768,y:325,text:'반도체 연구 아카데미'},{x:230,y:420,text:'도너 실험 상점'},{x:1330,y:485,text:'실리콘 결정 동굴'}])this.add.text(t.x,t.y,t.text,{fontSize:'20px',color:'#fff4d4',stroke:'#1a3547',strokeThickness:6,fontStyle:'bold'}).setOrigin(.5).setDepth(1500);
+   this.input.on('pointerdown',(p:Phaser.Input.Pointer,objects:unknown[])=>{if(!objects.length&&live.current.active){const point=this.cameras.main.getWorldPoint(p.x,p.y);this.go(point.x,point.y,null);}});
+   this.game.events.on('talk',()=>{if(!this.player||!live.current.active)return;const i=npcLocations.findIndex(p=>Math.hypot(this.player!.x-p.x,this.player!.y-p.y)<110);if(i>=0)live.current.onTalk(i);else live.current.onError('NPC를 터치하면 길을 따라 다가갑니다.');});
+   this.game.events.on('navigate',(i:number)=>{const p=npcLocations[i];if(p&&live.current.active)this.go(p.x,p.y+20,i);});this.game.events.on('direction',(v:{x:number;y:number})=>{this.touch=v;});this.game.events.on('map-target',(p:{x:number;y:number})=>{if(live.current.active)this.go(p.x,p.y,null);});
   }
-  const game=new Phaser.Game({type:Phaser.AUTO,parent:root.current,width:880,height:560,backgroundColor:'#142338',scene:Lab,scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH},render:{antialias:true},input:{keyboard:true}});
-  const talk=()=>game.events.emit('talk'); window.addEventListener('lab-talk',talk);
-  return()=>{window.removeEventListener('lab-talk',talk);game.destroy(true);};
- },[color]);
- return <div className="world" ref={root} role="application" aria-label="실리콘 연구소 맵. 방향키 또는 WASD 이동, E 대화. 터치로 이동할 수도 있습니다."/>;
+  go(x:number,y:number,npc:number|null){if(!this.player)return;this.path=route(this.player.x,this.player.y,x,y);this.pending=npc;const end=this.path.at(-1);if(end)this.destination?.setPosition(end.x,end.y).setVisible(true);}
+  update(time:number,delta:number){
+   const props=live.current,next=JSON.stringify(props.character);
+   if(next!==this.skinKey){this.skinKey=next;const token=++this.generation;this.sprite(props.character,'player-'+token,this.player?.x??768,this.player?.y??590).then(sprite=>{if(!sprite)return;if(token!==this.generation){sprite.destroy();return;}this.player?.destroy();this.player=sprite;this.cameras.main.startFollow(sprite,true,.12,.12);if(!this.label)this.label=this.add.text(0,0,'',{fontSize:'17px',color:'#fff9e4',backgroundColor:'#223644bb',padding:{x:7,y:3}}).setOrigin(.5);}).catch(e=>props.onError(e.message));}
+   if(!this.player)return;this.markers.forEach((m,i)=>m.setText(props.completed.includes(i)?'✓':i===props.completed.length?'!':'…'));
+   this.label?.setPosition(this.player.x,this.player.y-108).setText(props.name).setDepth(1600);
+   if(!props.active){this.path=[];this.pending=null;this.touch={x:0,y:0};this.keys&&Object.values(this.keys).forEach(k=>k.reset());this.player.setFrame(this.dir*9);this.destination?.setVisible(false);return;}
+   const k=this.keys;if(!k)return;let dx=Number(k.D.isDown||k.RIGHT.isDown)-Number(k.A.isDown||k.LEFT.isDown)+this.touch.x,dy=Number(k.S.isDown||k.DOWN.isDown)-Number(k.W.isDown||k.UP.isDown)+this.touch.y;
+   const manual=!!(dx||dy);if(manual){this.path=[];this.pending=null;}else if(this.path.length){dx=this.path[0].x-this.player.x;dy=this.path[0].y-this.player.y;}
+   const len=Math.hypot(dx,dy),step=manual?Math.min(delta,40)*.19:Math.min(len,Math.min(delta,40)*.19);let moving=false;
+   if(len>.1){this.dir=Math.abs(dx)>Math.abs(dy)?dx>0?3:1:dy>0?2:0;const nx=this.player.x+dx/len*step,ny=this.player.y+dy/len*step;if(walkable(nx,ny)){this.player.setPosition(nx,ny);moving=true;}else if(manual){if(walkable(nx,this.player.y))this.player.x=nx;if(walkable(this.player.x,ny))this.player.y=ny;}else this.path=[];if(!manual&&len<=step+1)this.path.shift();}
+   if(!this.path.length){this.destination?.setVisible(false);if(this.pending!==null){const i=this.pending;this.pending=null;if(Math.hypot(this.player.x-npcLocations[i].x,this.player.y-npcLocations[i].y)<100)props.onTalk(i);}}
+   this.player.setDepth(this.player.y).setFrame(this.dir*9+(moving?1+Math.floor(time/110)%8:0));
+   if(time-this.lastUpdate>160){props.onPosition(this.player.x,this.player.y);this.lastUpdate=time;}
+   if(Phaser.Input.Keyboard.JustDown(k.E)||Phaser.Input.Keyboard.JustDown(k.SPACE))this.game.events.emit('talk');
+  }
+ }
+ const game=new Phaser.Game({type:Phaser.AUTO,parent:root.current,backgroundColor:'#284d42',scene:Campus,pixelArt:true,scale:{mode:Phaser.Scale.RESIZE,width:root.current.clientWidth,height:root.current.clientHeight},input:{activePointers:3}});
+ const listeners=[['lab-talk','talk'],['lab-navigate','navigate'],['lab-direction','direction'],['lab-map-target','map-target']].map(([dom,event])=>{const fn=(e:Event)=>game.events.emit(event,(e as CustomEvent).detail);window.addEventListener(dom,fn);return {dom,fn};});
+ return()=>{disposed=true;listeners.forEach(({dom,fn})=>window.removeEventListener(dom,fn));game.destroy(true);};
+ },[]);
+ return <div ref={root} className="world" role="application" aria-label="아카데미 캠퍼스. 맵 터치로 이동하고 NPC 터치로 대화합니다."/>;
 }

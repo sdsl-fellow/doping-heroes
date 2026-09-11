@@ -1,0 +1,5 @@
+/* Keep map coordinates exact and controls usable with a fingertip. */
+.minimap .map-image{aspect-ratio:1.5}
+.swatches button{width:44px;height:44px;min-height:44px}
+.dpad button{min-width:44px;min-height:44px}
+@media(max-width:700px){.dpad{grid-template-columns:repeat(3,44px);grid-template-rows:repeat(2,44px)}.rotation button{min-height:44px}}
