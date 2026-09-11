@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {canEnterStage,emptyStageReleases,nextGatewayKnock,normalizeStageReleases} from '../src/stage-release.mjs';
+import {canEnterStage,emptyStageReleases,nextGatewayKnock,normalizeStageReleases,stageAccessBlock} from '../src/stage-release.mjs';
 
 test('students need both the administrator release and every prerequisite',()=>{
  const tutorial=[0,1,2],stageOneComplete=[...tutorial,3];
@@ -10,6 +10,10 @@ test('students need both the administrator release and every prerequisite',()=>{
  assert.equal(canEnterStage(stageOneComplete,1,false,true),true);
  assert.equal(canEnterStage([],11,true,false),true);
  assert.equal(canEnterStage([],12,true,false),false);
+ assert.equal(stageAccessBlock(tutorial,0,false,false),'admin');
+ assert.equal(stageAccessBlock(tutorial,1,false,true),'prerequisite');
+ assert.equal(stageAccessBlock(stageOneComplete,1,false,true),null);
+ assert.equal(stageAccessBlock([],11,true,false),null);
 });
 
 test('exactly seven consecutive knocks release one gateway and timeout resets',()=>{
