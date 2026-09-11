@@ -1,0 +1,13 @@
+import {useState} from 'react';
+import {stageDefinitions} from './maps.mjs';
+
+// Replace these placeholder pages together when the lecture material is ready.
+export const lecturePages=stageDefinitions.map(stage=>[
+ {title:'핵심 개념',text:`${stage.name} 강의의 핵심 개념이 이 페이지에 들어갈 예정입니다.`,note:'예시 내용 · 실제 강의자료는 추후 추가됩니다.'},
+ {title:'주요 식과 그림',text:'중요한 관계식, 기호의 의미, 소자 구조와 설명 그림을 정리할 예정입니다.',note:'지금은 책 열기와 페이지 넘기기를 체험할 수 있습니다.'},
+ {title:'생각해 볼 질문',text:'강의를 읽고 스스로 확인할 질문과 핵심 요약을 추가할 예정입니다.',note:'책을 닫으면 탐험하던 자리로 돌아갑니다.'}
+]);
+export function StageBook({stage}:{stage:number}){
+ const [page,setPage]=useState(0),entry=lecturePages[stage][page];
+ return <section className="lecture-book" aria-label="강의 핵심 내용"><p className="book-stage">{stageDefinitions[stage].title}</p><article key={page} className="book-page"><small>강의 노트 · 임시 내용</small><h3>{entry.title}</h3><p>{entry.text}</p><p>{entry.note}</p></article><nav aria-label="책 페이지"><button disabled={page===0} onClick={()=>setPage(p=>p-1)}>이전 장</button><span aria-live="polite">{page+1} / {lecturePages[stage].length}</span><button disabled={page===lecturePages[stage].length-1} onClick={()=>setPage(p=>p+1)}>다음 장</button></nav></section>;
+}

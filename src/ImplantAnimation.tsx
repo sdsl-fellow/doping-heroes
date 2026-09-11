@@ -1,12 +1,13 @@
+import {ItemReveal} from './ItemReveal';
 import {useEffect,useRef,useState} from 'react';
 import {characterSheet,type Character} from './character';
 import {conductivity,scientific,sigmaLabel,progress,levelLabel} from './progression.mjs';
-export function ImplantAnimation({character,before,after,type,onComplete}:{onComplete?:()=>void;character:Character;before:number;after:number;type:'n'|'p'}){
- const ref=useRef<HTMLCanvasElement>(null),[phase,setPhase]=useState(0),[error,setError]=useState('');
+export function ImplantAnimation({character,before,after,type,onComplete,rewardItems=[]}:{rewardItems?:string[];onComplete?:()=>void;character:Character;before:number;after:number;type:'n'|'p'}){
+ const ref=useRef<HTMLCanvasElement>(null),[phase,setPhase]=useState(0),[error,setError]=useState(''),[temperature,setTemperature]=useState(25);
  const finish=useRef(onComplete);finish.current=onComplete;
  const raised=progress(after).stage>progress(before).stage;
  useEffect(()=>{let stopped=false,frame=0,start=0,lastPhase=-1;const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
- characterSheet(character).then(sheet=>{if(stopped)return;ref.current?.scrollIntoView({block:"center",behavior:reduced?"instant":"smooth"});const draw=(time:number)=>{if(stopped)return;start ||= time;const t=reduced?1:Math.min(1,(time-start)/3400),p=Math.min(3,Math.floor(t*4));if(p!==lastPhase){setPhase(p);lastPhase=p;if(p===3)finish.current?.();}const ctx=ref.current?.getContext('2d');if(!ctx)return;
+ characterSheet(character).then(sheet=>{if(stopped)return;ref.current?.scrollIntoView({block:"center",behavior:reduced?"instant":"smooth"});const draw=(time:number)=>{if(stopped)return;start ||= time;const t=reduced?1:Math.min(1,(time-start)/3400),p=Math.min(3,Math.floor(t*4));setTemperature(reduced?1000:Math.round(25+975*Math.max(0,Math.min(1,(t-.5)/.25))));if(p!==lastPhase){setPhase(p);lastPhase=p;if(p===3)finish.current?.();}const ctx=ref.current?.getContext('2d');if(!ctx)return;
  ctx.clearRect(0,0,360,250);ctx.imageSmoothingEnabled=false;const hot=p===2,hue=hot?'#ff7438':type==='n'?'#72d9ff':'#ffce77';
  ctx.fillStyle=hot?'#521d16':'#102936';ctx.fillRect(0,0,360,250);
  const glow=ctx.createRadialGradient(180,166,10,180,166,125);glow.addColorStop(0,hot?'#ff632edc':t>.4?'#3b848a88':'#29465766');glow.addColorStop(1,'#10293600');ctx.fillStyle=glow;ctx.fillRect(0,0,360,250);
@@ -18,5 +19,6 @@ export function ImplantAnimation({character,before,after,type,onComplete}:{onCom
  if(t<1)frame=requestAnimationFrame(draw);
  };frame=requestAnimationFrame(draw);}).catch(()=>{if(!stopped){setError('캐릭터 연출을 불러오지 못했습니다. 보상은 정상 저장되었습니다.');setPhase(3);finish.current?.();}});
  return()=>{stopped=true;cancelAnimationFrame(frame);};},[character,before,after,type,raised]);
- return <section className="implant-animation" aria-label="불순물 주입과 전도도 상승"><div className="implant-phase">{['불순물 이온 가속','캐릭터에 불순물 주입','열처리 · 도펀트 활성화','주입 완료'][phase]}{phase===3&&raised?' · LEVEL UP!':''}</div><canvas ref={ref} width={360} height={250} aria-label="선택한 캐릭터로 이온 빔이 들어오고 전하가 흐르는 게임 애니메이션"/><div className="implant-stats"><p>도핑 농도 <strong>{scientific(before)} → {scientific(after)} cm⁻³</strong></p><p>캐릭터 전도도 레벨 <strong>{sigmaLabel(conductivity(before,type))} → {sigmaLabel(conductivity(after,type))} S/cm</strong></p></div>{error&&<p role="status">{error}</p>}</section>;
+ return <section className="implant-animation" aria-label="불순물 주입과 전도도 상승"><div className={phase===2?"implant-phase hot":"implant-phase"}>{['불순물 이온 가속','캐릭터에 불순물 주입','열처리 · 도펀트 활성화','주입 완료'][phase]}{phase===3&&raised?' · LEVEL UP!':''}</div><div className="implant-chamber"><canvas ref={ref} width={360} height={250} aria-label="선택한 캐릭터로 이온 빔이 들어오고 전하가 흐르는 게임 애니메이션"/><div className={phase===2?"temperature hot":"temperature"} aria-label="열처리 온도"><span>열처리</span><strong>{temperature} °C</strong><meter min={25} max={1000} value={temperature}/><span>25 → 1000 °C</span></div></div><div className="implant-stats"><p>도핑 농도 <strong>{scientific(before)} → {scientific(after)} cm⁻³</strong></p><p>캐릭터 전도도 레벨 <strong>{sigmaLabel(conductivity(before,type))} → {sigmaLabel(conductivity(after,type))} S/cm</strong></p></div>{phase===3&&rewardItems.length>0&&<ItemReveal ids={rewardItems} embedded/>}{error&&<p role="status">{error}</p>}</section>;
 }
+
