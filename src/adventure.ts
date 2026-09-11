@@ -6,9 +6,14 @@ export const weeklyQuests=[
  {name:'바람길의 드리',region:'이동도 계곡',week:5,title:'바람을 타는 전하',question:'같은 전기장에서 이동도 μ가 커지면 드리프트 속력은?',options:['커진다','작아진다','반드시 0이 된다'],answer:0,explanation:'낮은 전기장에서 드리프트 속력은 μE에 비례합니다. 고농도 도핑은 산란을 늘려 이동도를 낮출 수 있습니다.'},
  {name:'사막의 디퓨',region:'확산 사막',week:6,title:'농도 차이의 힘',question:'입자의 순확산은 일반적으로 어느 방향으로 일어날까요?',options:['저농도에서 고농도로','고농도에서 저농도로','농도와 무관하게 한쪽으로만'],answer:1,explanation:'확산은 농도 구배에 의해 생기며 입자의 순이동은 고농도에서 저농도 방향입니다. 전자 전류 방향은 전자 이동 방향과 반대입니다.'},
  {name:'황혼의 정션',region:'접합 숲',week:7,title:'보이지 않는 장벽',question:'열평형 pn 접합에서 외부 단자로 흐르는 순전류는?',options:['항상 매우 큰 순방향 전류','항상 역방향 전류','0'],answer:2,explanation:'열평형에서는 드리프트와 확산 전류가 서로 상쇄되어 순전류가 0입니다.'},
- {name:'설산의 모스',region:'소자 설산',week:8,title:'전계로 여는 길',question:'MOS 구조에서 절연막을 사이에 둔 게이트 전압의 주요 역할은?',options:['표면의 전하 분포를 조절한다','Si 원자핵을 제거한다','항상 게이트에 큰 직류를 흘린다'],answer:0,explanation:'게이트 전계는 반도체 표면의 축적·공핍·반전 상태를 조절합니다. 이상적인 절연막에는 직류가 흐르지 않습니다.'}
-].map((q,i)=>({...q,id:i+3,dose:9*10**(13+i),coins:30,options:q.options,dopant:i%2?'B':'P'}));
-export const regionPoints=weeklyQuests.map((q,i)=>({x:[207,584,945,1321][i%4],y:i<4?268:638,name:q.region,id:q.id}));
+ {name:'설산의 모스',region:'소자 설산',week:8,title:'전계로 여는 길',question:'MOS 구조에서 절연막을 사이에 둔 게이트 전압의 주요 역할은?',options:['표면의 전하 분포를 조절한다','Si 원자핵을 제거한다','항상 게이트에 큰 직류를 흘린다'],answer:0,explanation:'게이트 전계는 반도체 표면의 축적·공핍·반전 상태를 조절합니다. 이상적인 절연막에는 직류가 흐르지 않습니다.'},
+ {name:'격자의 셀리',region:'격자 유적',week:9,title:'반복되는 작은 세계',question:'결정 전체를 평행 이동으로 재현할 수 있는 기본 반복 단위를 무엇이라 하나요?',options:['단위 격자','공핍층','밴드갭'],answer:0,explanation:'단위 격자는 결정의 주기적인 구조를 나타내는 반복 단위입니다.'},
+ {name:'공방의 다이',region:'다이오드 용암 공방',week:10,title:'전류가 흐르는 방향',question:'일반적인 pn 다이오드의 순방향 바이어스는?',options:['p쪽 음극, n쪽 양극','p쪽 양극, n쪽 음극','양쪽 모두 반드시 접지'],answer:1,explanation:'p쪽에 양의 전압, n쪽에 음의 전압을 가하면 장벽이 낮아져 순방향 전류가 흐르기 쉬워집니다.'},
+ {name:'바다의 바이',region:'BJT 오션',week:11,title:'세 개의 단자',question:'BJT의 세 단자 이름은?',options:['게이트·소스·드레인','애노드·캐소드·기판','이미터·베이스·컬렉터'],answer:2,explanation:'BJT는 이미터, 베이스, 컬렉터로 이루어집니다. 전자와 정공 두 종류 캐리어가 동작에 관여합니다.'},
+ {name:'심층의 파워',region:'Power 반도체 동굴',week:12,title:'전력을 다루는 결정',question:'전력 반도체 설계에서 함께 고려하는 대표 성능은?',options:['차단 전압과 도통·스위칭 손실','화면 해상도와 음량','원자의 색과 냄새'],answer:0,explanation:'전력 소자는 높은 차단 전압, 낮은 도통 손실과 스위칭 손실 등 여러 특성의 균형을 고려합니다.'}
+
+].map((q,i)=>({...q,id:i+3,dose:9*10**Math.min(20,13+i),coins:30,options:q.options,dopant:i%2?'B':'P'}));
+
 export const shopItems=[
  {id:'trailcap',name:'푸른 탐험 모자',description:'상점 전용 · 하늘빛 모자',price:60},
  {id:'snowboots',name:'설산 부츠',description:'상점 전용 · 밝은 설산 신발',price:80},

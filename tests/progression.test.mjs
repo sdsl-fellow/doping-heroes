@@ -15,7 +15,7 @@ test('graph resistivity is inverted in ohm cm, interpolated monotonically',()=>{
  for(const type of ['n','p']){let last=0;for(let i=0;i<=80;i++){const n=10**(13+i/10),sigma=conductivity(n,type);assert.ok(Math.abs(sigma*resistivity(n,type)-1)<1e-12);assert.ok(sigma>=last);last=sigma;}}
  assert.ok(conductivity(1e16,'n')>conductivity(1e16,'p'));
 });
-test('all eight independent regions and the return gate are reachable on roads',()=>{
- for(const p of [...adventureLocations,{x:768,y:955}]){const path=route(768,820,p.x,p.y,'adventure');assert.ok(path.length>0);assert.ok(path.every(n=>walkable(n.x,n.y,'adventure')));assert.ok(Math.hypot(path.at(-1).x-p.x,path.at(-1).y-p.y)<20);}
+test('all twelve stage gateways and the northern return gate are reachable on roads',()=>{
+ for(const p of [...adventureLocations,{x:768,y:70}]){const path=route(768,200,p.x,p.y,'adventure');assert.ok(path.length>0);assert.ok(path.every(n=>walkable(n.x,n.y,'adventure')));assert.ok(Math.hypot(path.at(-1).x-p.x,path.at(-1).y-p.y)<20);}
  assert.equal(walkable(1280,100,'adventure'),false);
 });
