@@ -30,3 +30,25 @@
  .top-left .player-status small{font-size:12px}
  .top-left .doping-range{gap:4px;font-size:12px}
 }
+
+/* Implantation reward and roomy continent HUD. */
+.implant-animation{margin:12px auto;max-width:400px;padding:12px;border:1px solid #74c9d766;border-radius:16px;background:#102936;color:#e3f8ff;text-align:center}
+.implant-animation canvas{display:block;width:100%;max-width:360px;height:auto;margin:auto;image-rendering:pixelated;border-radius:12px}
+.implant-phase{color:#a4eaff;font-weight:800;min-height:24px}
+.implant-stats p{margin:6px 0;font-size:14px}.implant-stats strong{display:block;color:#ffe0a0}.implant-animation small{font-size:11px;color:#bad3d8}.reward-level{text-align:center;font-weight:800;color:#866225}
+@media(min-width:1001px){
+ .top-right .minimap{width:266.5px;flex:0 0 266.5px;height:221px;box-sizing:border-box;display:flex;flex-direction:column}
+ .top-right .minimap .map-image{width:100%;flex:1;min-height:0}
+ .top-right .quest-tracker{width:380px;height:221px;max-height:none;overflow:visible;display:flex;flex-direction:column;padding:8px;box-sizing:border-box}
+ .top-right .quest-tracker button{font-size:14px;line-height:1.25;min-height:0;flex:1;padding:3px 0;gap:6px}
+ .top-right .quest-tracker button>span:nth-child(2){flex:1;min-width:0;overflow-wrap:anywhere}
+ .top-right .quest-tracker .tracker-heading{flex:0 0 32px;font-size:16px}
+}
+@media(min-width:1001px) and (max-width:1250px){.top-left{max-width:calc(100vw - 700px)}.top-left .portrait{display:none}.top-left .player-status{min-width:0}.top-left .player-status>div{flex-wrap:wrap}}
+@media(max-width:1500px){.world-title{display:none}}
+@media(max-width:1000px){
+ .bottom-left{bottom:calc(96px + env(safe-area-inset-bottom));left:14px}
+ .bottom-left>small{display:none}
+ .talk-button{bottom:calc(100px + env(safe-area-inset-bottom))}
+ .welcome-ribbon{top:auto;bottom:calc(220px + env(safe-area-inset-bottom));max-width:calc(100vw - 32px);width:max-content;box-sizing:border-box;font-size:12px;line-height:1.4;padding:6px 12px}
+}

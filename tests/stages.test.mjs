@@ -7,5 +7,7 @@ test('twelve unique stage scenes preserve quest IDs and connect to safe return p
  const back=arrivalPoint('adventure',s.index),gate=gatewayLocations[s.index];assert.ok(walkable(back.x,back.y,'adventure'));assert.ok(Math.hypot(back.x-gate.x,back.y-gate.y)>50);}
 });
 test('continent arrival is north of portals with a downward route; pn bridge blocks river',()=>{
- const start=arrivalPoint('adventure');assert.ok(start.y<Math.min(...gatewayLocations.map(g=>g.y)));const path=route(start.x,start.y,768,260,'adventure');assert.ok(path.length);assert.ok(path.at(-1).y>start.y);assert.equal(walkable(512,800,'stage-8'),false);
+ const start=arrivalPoint('adventure');assert.ok(start.y<Math.min(...gatewayLocations.map(g=>g.y)));const path=route(start.x,start.y,768,330,'adventure');assert.ok(path.length);assert.ok(path.at(-1).y>start.y);assert.equal(walkable(512,800,'stage-8'),false);
 });
+
+test('continent gates form three rows and four columns',()=>{assert.equal(new Set(gatewayLocations.map(g=>g.x)).size,4);assert.equal(new Set(gatewayLocations.map(g=>g.y)).size,3);});

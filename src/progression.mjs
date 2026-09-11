@@ -15,6 +15,6 @@ export function progress(n,type='n'){
  return {n,stage:exponent-12,low,high,fraction:max?1:Math.min(1,(n-low)/(high-low)),max,sigma:conductivity(10**exponent,type)};
 }
 export const addDopants=(n,amount)=>clampDoping(clampDoping(n)+Math.max(0,amount));
-export const scientific=n=>n.toExponential(2).replace('.00','').replace('e+','e');
+export const scientific=n=>n.toExponential(1).replace('.0e','e').replace('e+','e');
 export const sigmaLabel=n=>Number(n.toPrecision(3)).toLocaleString('en-US',{maximumSignificantDigits:3});
 export const levelLabel=(n,type='n')=>`Lv. ${sigmaLabel(progress(n,type).sigma)} S/cm`;

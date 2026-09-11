@@ -155,3 +155,8 @@ v0.3의 컨덕턴스(S) 표시는 대체되었습니다. 현재 화면은 첨부
 - 모바일/태블릿: 미니맵을 우측 상단에 고정하고 플레이어 정보와 나란히 배치.
 - 12개 관문은 주제별 투명 배경 그림을 사용하며 라벨은 관문 아래에 배치. 그림과 라벨 영역 터치 모두 관문으로 이동.
 - 여성은 건장한/날렵한 선택을 유지하면서 남성 대비 몸통·팔다리를 조금 더 가늘게 하고 허리를 완만하게 좁힘. 헤어·안경 위치와 보유 장비는 유지.
+
+### v0.6.0
+- Quest rewards animate ion implantation into the customized character, showing concentration and sample conductivity before/after, with a level-up pulse at decade thresholds. Reduced-motion preferences are respected.
+- Continent: 3 rows × 4 columns, longer northern approach, themed gates with smaller labels above them, floating silicon crystal at Stage 1.
+- Desktop minimap and adjacent quest panel enlarged; mobile movement controls separated from guidance. Concentration uses one decimal in scientific notation.

@@ -9,7 +9,7 @@ function nearest(x,y,valid){let id=valid[0],best=Infinity;for(const v of valid){
 export function route(x,y,tx,ty,area='village'){const cells=area==='stage-8'?bridgeCells:stageIndex(area)>=0?stageCells:area==='adventure'?adventureCells:valid;const start=nearest(x,y,cells),end=nearest(tx,ty,cells),queue=[start],previous=new Map([[start,-1]]),allowed=new Set(cells);for(let n=0;n<queue.length;n++){const v=queue[n];if(v===end)break;for(const next of [v-1,v+1,v-cols,v+cols]){if(!allowed.has(next)||previous.has(next)||Math.abs(v%cols-next%cols)>1)continue;previous.set(next,v);queue.push(next);}}if(!previous.has(end))return [];const result=[];for(let v=end;v!==start;v=previous.get(v)){result.unshift({x:v%cols*cell+8,y:Math.floor(v/cols)*cell+8});}return result;}
 export const npcLocations=[{x:800,y:406},{x:298,y:492},{x:1320,y:582}];
 
-const adventureCorridors=[[180,307,1360,307,22],[180,621,1360,621,22],[768,48,768,850,24],...gatewayLocations.map(p=>[p.x,p.y,p.x,p.y+70,30])];
+const adventureCorridors=[[246,382,1289,382,22],[246,586,1289,586,22],[246,788,1289,788,22],[768,48,768,808,24],...[246,584,946,1289].map(x=>[x,352,x,808,24]),...gatewayLocations.map(p=>[p.x,p.y,p.x,p.y+70,30])];
 const stageCorridors=[[512,64,512,820,48],[250,530,774,530,65]];
 const stageBridgeCorridors=[[512,64,512,580,48],[250,530,774,530,45]];
 const adventureCells=[],stageCells=[],bridgeCells=[];
