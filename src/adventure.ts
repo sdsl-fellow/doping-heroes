@@ -1,3 +1,4 @@
+import {shopCatalog} from './catalog.mjs';
 import {stageForQuest} from './maps.mjs';
 import {stageDose} from './progression.mjs';
 export const weeklyQuests=[
@@ -16,11 +17,4 @@ export const weeklyQuests=[
 
 ].map((q,i)=>({...q,id:i+3,dose:stageDose(stageForQuest(i+3)!.index),coins:30,options:q.options,dopant:i%2?'B':'P'}));
 
-export const shopItems=[
- {id:'trailcap',name:'푸른 탐험 모자',description:'상점 전용 · 하늘빛 모자',price:60},
- {id:'snowboots',name:'설산 부츠',description:'상점 전용 · 밝은 설산 신발',price:80},
- {id:'dopant',name:'불순물 꾸러미',description:'현재 경험치 구간의 10%만큼 도핑 농도 추가',price:10},
- {id:'cap',name:'숲길 모자',description:'언제든 착용할 수 있는 모자',price:30},
- {id:'boots',name:'탐험 부츠',description:'모험용 신발',price:20},
- {id:'sword',name:'새벽의 검',description:'외형 장비 · 전투 기능 없음',price:60}
-];
+export const shopItems=shopCatalog;

@@ -9,7 +9,7 @@ assert.equal(availableCharacter(fullyEquipped,[0]).shoes,'boots');
 assert.equal(availableCharacter(fullyEquipped,[0]).hat,'none');
 assert.equal(availableCharacter(fullyEquipped,[0,1]).hat,'cap');
 assert.equal(availableCharacter(fullyEquipped,[0,1]).weapon,'none');
-for(const item of equipment)assert.equal(unlocked(item,[0,1,2]),item.quest!==-2);
+for(const item of equipment)assert.equal(unlocked(item,[0,1,2]),[-1,0,1,2].includes(item.quest));
 assert.equal(availableCharacter({...defaultCharacter,hat:'trailcap'},[],['trailcap']).hat,'trailcap');
 assert.equal(availableCharacter({...defaultCharacter,hat:'trailcap'},[]).hat,'none');
 let count=0;const files=new Set();

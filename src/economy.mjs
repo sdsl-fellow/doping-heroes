@@ -1,5 +1,6 @@
 import {stageForQuest,stageUnlocked} from './maps.mjs';
 import {isRootAccount} from './access.mjs';
+import {isConsumable,catalogItem} from './catalog.mjs';
 import {rollLevelLoot} from './loot.mjs';
 import {addDopants,progress,MAX_DOPING,stageDose} from './progression.mjs';
 export const bridgeUnlocked=s=>[0,1,2].every(i=>s.completed.includes(i));
@@ -10,10 +11,16 @@ export function grantReward(s,q,random=Math.random){
  return awardLevelLoot(s,{...s,completed:[...s.completed,q.id],doping:addDopants(s.doping,q.dose),coins:s.coins+q.coins},random);
 }
 export function purchase(s,item,alreadyOwned=false,random=Math.random){
- if(alreadyOwned||s.purchased.includes(item.id)||s.coins<item.price)return s;
- if(item.id==='dopant'&&s.doping>=MAX_DOPING)return s;
- const xp=progress(s.doping);
- return awardLevelLoot(s,{...s,coins:s.coins-item.price,doping:item.id==='dopant'?addDopants(s.doping,(xp.high-xp.low)/10):s.doping,purchased:item.id==='dopant'?s.purchased:[...s.purchased,item.id]},random);
+ if(!Number.isFinite(item.price)||item.price<0||alreadyOwned||(!isConsumable(item.id)&&s.purchased.includes(item.id))||s.coins<item.price)return s;
+ if(isConsumable(item.id)&&((s.quantities?.[item.id]??0)>=9999||s.doping>=MAX_DOPING))return s;
+ if(isConsumable(item.id))return {...s,coins:s.coins-item.price,purchased:[...new Set([...s.purchased,item.id])],quantities:{...s.quantities,[item.id]:(s.quantities?.[item.id]??0)+1}};
+ return {...s,coins:s.coins-item.price,purchased:[...s.purchased,item.id]};
+}
+
+export function useConsumable(s,id,random=Math.random){
+ if(!isConsumable(id)||!catalogItem(id)||s.doping>=MAX_DOPING||(!isRootAccount(s)&&(s.quantities?.[id]??0)<1))return s;
+ const xp=progress(s.doping),fraction=id==='dopant'?.1:.2;
+ return awardLevelLoot(s,{...s,type:id==='donor-ampoule'?'n':id==='acceptor-ampoule'?'p':s.type,doping:addDopants(s.doping,(xp.high-xp.low)*fraction),quantities:{...s.quantities,[id]:Math.max(0,(s.quantities?.[id]??0)-1)}},random);
 }
 
 function awardLevelLoot(before,after,random){
