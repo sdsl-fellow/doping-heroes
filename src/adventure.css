@@ -9,3 +9,24 @@
 @media(max-width:600px){.bottom-menu{max-width:calc(100vw - 16px);overflow-x:auto}.bottom-menu button{min-width:48px;padding:8px 4px;font-size:12px}.inventory-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 .item-icon{display:block;width:64px;height:64px;flex-shrink:0;background-repeat:no-repeat;image-rendering:pixelated}
+/* Keep the top gateway labels clear of the HUD. */
+@media(min-width:1001px){
+ .top-right{display:flex;flex-direction:row-reverse;align-items:flex-start;gap:12px;width:auto;top:14px;right:14px}
+ .top-right .minimap{width:205px;flex:0 0 205px}
+ .top-right .quest-tracker{position:static;width:235px;max-height:180px;overflow-y:auto;margin:0;box-sizing:border-box}
+}
+@media(max-width:1250px){.world-title{display:none}}
+@media(max-width:1000px){
+ .top-right{top:max(8px,env(safe-area-inset-top));right:8px;width:112px;display:block}
+ .top-right .minimap{width:112px;max-width:112px;padding:3px}
+ .top-right .quest-tracker{display:none}
+ .top-right .minimap>span{font-size:12px;line-height:1.3;padding:3px;display:block}
+ .top-right .minimap small{display:none}
+ .top-left{top:max(8px,env(safe-area-inset-top));left:8px;max-width:calc(100vw - 136px);box-sizing:border-box}
+ .top-left .portrait{display:none}
+ .top-left .player-status{min-width:0;padding:5px}
+ .top-left .player-status>div{gap:3px;flex-wrap:wrap}
+ .top-left .player-status b{font-size:13px}
+ .top-left .player-status small{font-size:12px}
+ .top-left .doping-range{gap:4px;font-size:12px}
+}
