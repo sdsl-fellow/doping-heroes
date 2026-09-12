@@ -6,13 +6,17 @@ export const hairStyles=[['bedhead','내추럴 쇼트'],['bangs','앞머리'],['
 export const hairColors=['#392b36','#77452f','#bf803e','#f1d37e','#df839c','#679abc','#b298d1','#dae0e5'];
 export const skinColors=['#ffe1be','#eaba90','#c58f64','#976647','#6b4736'];
 export const outfitColors=['#e6e9e5','#456fa7','#438674','#bd555f','#c99746','#695c98','#3f4654'];
-export const outfits=[['tshirt','세미 마을 티셔츠'],['longsleeve','긴팔 셔츠'],['cardigan','여행자 가디건']];
-export const defaultCharacter:Character={gender:'male',species:'dog',body:'sturdy',shoes:'basic',hat:'none',weapon:'none',hair:'bedhead',hairColor:hairColors[1],skin:skinColors[0],outfit:'tshirt',outfitColor:outfitColors[0],accessory:'none'};
+export const outfits=[['C01','세미 마을 티셔츠'],['C02','긴팔 셔츠'],['C03','여행자 가디건']];
+export const defaultCharacter:Character={gender:'male',species:'dog',body:'sturdy',shoes:'F01',hat:'none',weapon:'none',hair:'bedhead',hairColor:hairColors[1],skin:skinColors[0],outfit:'C01',outfitColor:outfitColors[0],accessory:'none'};
 export function validCharacter(raw:unknown):Character{
  const r={...(raw&&typeof raw==='object'?raw:{})} as Partial<Character>;for(const slot of ['outfit','shoes','hat','weapon','accessory'] as const)if(r[slot])r[slot]=migrateItemId(r[slot]);
- return {gender:['male','female','neutral'].includes(r.gender??'')?r.gender!:defaultCharacter.gender,species:r.species==='cat'?'cat':'dog',body:r.body==='agile'||String(r.body)==='female'?'agile':'sturdy',shoes:lootVariant(r.shoes)?.slot==='shoes'?r.shoes!:r.shoes==='snowboots'?'snowboots':r.shoes==='boots'?'boots':'basic',hat:lootVariant(r.hat)?.slot==='hat'?r.hat!:r.hat==='trailcap'?'trailcap':r.hat==='cap'?'cap':'none',weapon:lootVariant(r.weapon)?.slot==='weapon'?r.weapon!:r.weapon==='sword'?'sword':'none',hair:hairStyles.some(s=>s[0]===r.hair)?r.hair!:defaultCharacter.hair,hairColor:hairColors.includes(r.hairColor??'')?r.hairColor!:defaultCharacter.hairColor,skin:skinColors.includes(r.skin??'')?r.skin!:defaultCharacter.skin,outfit:lootVariant(r.outfit)?.slot==='outfit'?r.outfit!:outfits.some(s=>s[0]===r.outfit)?r.outfit!:defaultCharacter.outfit,outfitColor:outfitColors.includes(r.outfitColor??'')?r.outfitColor!:defaultCharacter.outfitColor,accessory:catalogItem(r.accessory)?.slot==='accessory'?r.accessory!:'none'};
+ return {gender:['male','female','neutral'].includes(r.gender??'')?r.gender!:defaultCharacter.gender,species:r.species==='cat'?'cat':'dog',body:r.body==='agile'||String(r.body)==='female'?'agile':'sturdy',shoes:lootVariant(r.shoes)?.slot==='shoes'?r.shoes!:r.shoes==='F04'?'F04':r.shoes==='F02'?'F02':'F01',hat:lootVariant(r.hat)?.slot==='hat'?r.hat!:r.hat==='H02'?'H02':r.hat==='H01'?'H01':'none',weapon:lootVariant(r.weapon)?.slot==='weapon'?r.weapon!:r.weapon==='W01'?'W01':'none',hair:hairStyles.some(s=>s[0]===r.hair)?r.hair!:defaultCharacter.hair,hairColor:hairColors.includes(r.hairColor??'')?r.hairColor!:defaultCharacter.hairColor,skin:skinColors.includes(r.skin??'')?r.skin!:defaultCharacter.skin,outfit:lootVariant(r.outfit)?.slot==='outfit'?r.outfit!:outfits.some(s=>s[0]===r.outfit)?r.outfit!:defaultCharacter.outfit,outfitColor:outfitColors.includes(r.outfitColor??'')?r.outfitColor!:defaultCharacter.outfitColor,accessory:catalogItem(r.accessory)?.slot==='accessory'?r.accessory!:'none'};
 }
 const base='./lpc/';
+// Legacy asset names are resolved only at the rendering boundary.
+function renderCharacter(c:Character):Character{
+ return {...c,...Object.fromEntries(['outfit','shoes','hat','weapon','accessory'].map(slot=>[slot,catalogItem(c[slot as keyof Character])?.legacyId??c[slot as keyof Character]]))};
+}
 export function layers(c:Character){const outfit=lootVariant(c.outfit),shoes=lootVariant(c.shoes),hat=lootVariant(c.hat),weapon=lootVariant(c.weapon);const clothesId=outfit?.base??c.outfit;if(c.gender==='neutral')return [{path:`animals/${c.species}/walk.png`,color:c.species==='dog'?'#dae0e5':c.hairColor},...(c.hat!=='none'?[{path:'hat/cloth/leather_cap/adult/walk.png',color:hat?.color??(c.hat==='trailcap'?'#b9dbe4':'#6b8c56')}]:[])];const clothes=clothesId==='cardigan'?'longsleeve/longsleeve2_cardigan':clothesId==='longsleeve'?'longsleeve/formal':'shortsleeve/tshirt';return [
  ...((weapon?.base??c.weapon)==='sword'?[{path:'weapon/sword/arming/universal/bg/walk/steel.png',color:weapon?.color??'#e1e8ee'}]:[]),
  {path:'body/bodies/male/walk.png',color:c.skin},
@@ -29,6 +33,7 @@ const cached=new Map<string,Promise<HTMLCanvasElement>>();
 const images=new Map<string,Promise<HTMLImageElement>>();
 function load(path:string){if(!images.has(path))images.set(path,new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>{images.delete(path);reject(new Error('캐릭터 이미지를 불러오지 못했습니다. 새로고침해 주세요.'));};img.src=base+path;}));return images.get(path)!;}
 export function characterSheet(c:Character):Promise<HTMLCanvasElement>{
+ c=renderCharacter(c);
  const key=JSON.stringify(c);if(cached.has(key))return cached.get(key)!;
  const result=Promise.all(layers(c).map(async l=>({image:await load(l.path),path:l.path,color:l.color,bodyLayer:/^(body|legs|feet|torso)\//.test(l.path),animalHat:c.gender==='neutral'&&l.path.startsWith('hat/'),shadeRange:255}))).then(parts=>{
   const out=document.createElement('canvas');out.width=576;out.height=256;const ctx=out.getContext('2d')!;

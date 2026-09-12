@@ -13,17 +13,17 @@ const rows=[
  ['T','tool',[
  ['gate-key','관문 열쇠',null,2,'key','#e6c56a'],['lecture-notes','낡은 강의 노트',null,-3,'book','#936949'],['dopant','불순물 꾸러미',10,-2,'pouch','#7bded5'],['donor-ampoule','도너 앰풀',20,-2,'vial','#58bbff'],['acceptor-ampoule','억셉터 앰풀',20,-2,'vial','#d674ec'],['wafer-fragment','웨이퍼 조각',30,-2,'material','#bdafe5'],['silicon-crystal','실리콘 결정',40,-2,'material','#6cd4ff'],['repair-kit','회로 수리 키트',50,-2,'tool','#8799aa'],['gold-tweezers','황금 트위져',60,-2,'tool','#eac357'],['process-blueprint','공정 설계도',80,-2,'tool','#548ecb']]]
 ];
-export const catalog=rows.flatMap(([prefix,slot,items],row)=>items.map(([id,name,price,quest,base,color],col)=>({id,name,price,quest,base,color,slot,code:prefix+String(col+1).padStart(2,'0'),row,col,icon:row*10+col})));
-export const catalogItem=id=>catalog.find(item=>item.id===id||item.code===id);
+export const catalog=rows.flatMap(([prefix,slot,items],row)=>items.map(([legacyId,name,price,quest,base,color],col)=>({id:prefix+String(col+1).padStart(2,'0'),legacyId,name,price,quest,base,color,slot,code:prefix+String(col+1).padStart(2,'0'),row,col,icon:row*10+col})));
+export const catalogItem=id=>catalog.find(item=>item.id===id||item.legacyId===id);
 export const slotNames={outfit:'의복 · Clothing',shoes:'신발 · Footwear',hat:'모자 · Headwear',weapon:'무기 · Weapons',accessory:'액세서리 · Accessories',tool:'도구·소모품 · Tools'};
-export const migrateItemId=id=>({'ember-boots':'lab-shoes','moon-sword':'semiconductor-pen'}[id]??catalogItem(id)?.id??id);
-export const consumableIds=['dopant','donor-ampoule','acceptor-ampoule'];
+export const migrateItemId=id=>catalogItem({'ember-boots':'lab-shoes','moon-sword':'semiconductor-pen'}[id]??id)?.id??id;
+export const consumableIds=['T03','T04','T05'];
 export const isConsumable=id=>consumableIds.includes(id);
-export const itemDescription=item=>isConsumable(item.id)?(item.id==='dopant'?'사용 시 현재 경험치 구간의 10% 증가':`사용 시 ${item.id==='donor-ampoule'?'n형':'p형'} 시료로 전환하고 경험치 구간의 20% 증가`):item.id==='gate-key'?'첫걸음 완료 후 남쪽 관문을 여는 열쇠':item.id==='lecture-notes'?'각 스테이지에서 읽고 경험치를 받는 강의 노트':item.slot==='tool'?'수집용 연구 도구 · 추가 효과 없음':'외형 장비 · 능력치 추가 없음';
+export const itemDescription=item=>isConsumable(item.id)?(item.id==='T03'?'사용 시 현재 경험치 구간의 10% 증가':`사용 시 ${item.id==='T04'?'n형':'p형'} 시료로 전환하고 경험치 구간의 20% 증가`):item.id==='T01'?'첫걸음 완료 후 남쪽 관문을 여는 열쇠':item.id==='T02'?'각 스테이지에서 읽고 경험치를 받는 강의 노트':item.slot==='tool'?'수집용 연구 도구 · 추가 효과 없음':'외형 장비 · 능력치 추가 없음';
 export const shopCatalog=catalog.filter(item=>item.price!==null).map(item=>({...item,description:itemDescription(item)}));
 export function inventoryIds(s){
  const base=(s.purchased??[]).map(migrateItemId).filter(id=>catalogItem(id));
  if(isRootAccount(s))return catalog.map(i=>i.id);
- if((s.readBooks??[]).length)base.push('lecture-notes');
+ if((s.readBooks??[]).length)base.push('T02');
  return [...new Set(base)];
 }

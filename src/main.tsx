@@ -39,7 +39,7 @@ function App(){
  const completed=save?.completed??[],character=save?.character??defaultCharacter,area=save?.area??'village',doping=save?.doping??MIN_DOPING,type=save?.type??'n',xp=progress(doping,type),key=hasKey(save),q=dialog===null?null:allQuests[dialog];
  const rootAccount=isRootAccount(save),unlocked=(index:number|undefined)=>canEnterStage(completed,index,rootAccount,releasedStages[index??-1]);
  const stageBlocked=(index:number|undefined)=>stageAccessBlock(completed,index,rootAccount,releasedStages[index??-1])==='admin'?'아직 접근 불가한 Stage입니다.':'이전 Stage 퀘스트를 모두 완료해 주세요.';
- const ownedIds=save?inventoryIds(save):[],counts=Object.fromEntries(['dopant','donor-ampoule','acceptor-ampoule'].map(id=>[id,rootAccount?Math.max(1,save?.quantities?.[id]??0):save?.quantities?.[id]??0]));
+ const ownedIds=save?inventoryIds(save):[],counts=Object.fromEntries(['T03','T04','T05'].map(id=>[id,rootAccount?Math.max(1,save?.quantities?.[id]??0):save?.quantities?.[id]??0]));
  const blocked=cinematic||!cloudReady||!save||!save.studentId||editing||!!panel||dialog!==null||relockIndex!==null;
  useEffect(()=>{if(save)try{localStorage.setItem('doping-heroes:v3',JSON.stringify(save));setStorageError(false);}catch{setStorageError(true);}},[save]);
  useEffect(()=>{let stopped=false;const refresh=()=>fetchCloudStages().then(response=>{if(!stopped&&response.stages)setReleasedStages(normalizeStageFlags(response.stages));}).catch(()=>{});refresh();const timer=window.setInterval(refresh,15000);const visible=()=>{if(document.visibilityState==='visible')refresh();};document.addEventListener('visibilitychange',visible);return()=>{stopped=true;window.clearInterval(timer);document.removeEventListener('visibilitychange',visible);};},[]);

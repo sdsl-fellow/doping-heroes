@@ -33,12 +33,12 @@ test('stages unlock strictly in visible order and reward once',()=>{
 test('each crossed level grants unique loot including pack purchases',()=>{
  let s={...start(),completed:[0,1,2],doping:1e14};
  s=grantReward(s,{id:3,dose:9.9e15,coins:30},()=>0);assert.equal(s.purchased.length,2);
- const before=s;s=purchase({...s,doping:9.9e16,coins:20},{id:'dopant',price:10},false,()=>0);assert.equal(s.purchased.length,before.purchased.length+1);
+ const before=s;s=purchase({...s,doping:9.9e16,coins:20},{id:'T03',price:10},false,()=>0);assert.equal(s.purchased.length,before.purchased.length+1);
  const saved=JSON.parse(JSON.stringify(s));assert.deepEqual(saved.purchased,s.purchased);
 });
 test('shop checks coins, prevents duplicate equipment purchase, no spending at max XP',()=>{
- const hat={id:'trailcap',price:60},pack={id:'dopant',price:10};let s=start();assert.equal(purchase(s,hat),s);s={...s,coins:80};s=purchase(s,hat);assert.equal(s.coins,20);assert.deepEqual(s.purchased,['trailcap']);assert.equal(purchase(s,hat),s);
- s=purchase(s,pack);assert.equal(s.coins,10);assert.equal(s.doping,1e13);assert.equal(s.quantities.dopant,1);s=useConsumable(s,'dopant');assert.equal(s.doping,1.9e13);assert.equal(s.quantities.dopant,0);assert.equal(useConsumable(s,'dopant'),s);s={...s,doping:1e21};assert.equal(useConsumable(s,'dopant'),s);
+ const hat={id:'H02',price:60},pack={id:'T03',price:10};let s=start();assert.equal(purchase(s,hat),s);s={...s,coins:80};s=purchase(s,hat);assert.equal(s.coins,20);assert.deepEqual(s.purchased,['H02']);assert.equal(purchase(s,hat),s);
+ s=purchase(s,pack);assert.equal(s.coins,10);assert.equal(s.doping,1e13);assert.equal(s.quantities.T03,1);s=useConsumable(s,'T03');assert.equal(s.doping,1.9e13);assert.equal(s.quantities.T03,0);assert.equal(useConsumable(s,'T03'),s);s={...s,doping:1e21};assert.equal(useConsumable(s,'T03'),s);
 });
 
 
