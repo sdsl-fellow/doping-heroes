@@ -22,21 +22,21 @@ export function layers(c:Character){c=renderCharacter(c);const outfit=lootVarian
  ...((weapon?.base??c.weapon)==='sword'?[{path:'weapon/sword/arming/universal/bg/walk/steel.png',color:weapon?.color??'#e1e8ee'}]:[]),
  {path:'body/bodies/male/walk.png',color:c.skin},
  {path:`head/heads/human/${c.gender}/walk.png`,color:c.skin},
- {path:'legs/pants/male/walk.png',color:'#38455c'},
+ {path:'legs/pants/male/walk.png',color:c.gender==='female'?'#b39a43':'#29496b'},
  {path:`feet/${(shoes?.base??c.shoes)!=='basic'?'boots':'shoes'}/basic/male/walk.png`,color:shoes?.color??(c.shoes==='snowboots'?'#d6dfe3':c.shoes==='boots'?'#b88450':'#564433')},
  {path:`torso/clothes/${clothes}/male/walk.png`,color:(({ 'C01':'#f5f6f7','C02':'#fff0df','C03':'#514a8c','C04':'#2779dc','C05':'#538047','C06':'#e24439','C07':'#f5ad25'} as Record<string,string>)[outfit?.id as string]??outfit?.color??c.outfitColor)},
  {path:`hair/${c.hair}/adult/walk.png`,color:c.hairColor},
  ...(c.accessory==='headband'?[{path:'hat/headband/thick/adult/walk.png',color:'#d87569'}]:[]),
  ...(c.hat!=='none'?[{path:'hat/cloth/leather_cap/adult/walk.png',color:hat?.color??(c.hat==='trailcap'?'#b9dbe4':'#6b8c56')}]:[]),
  ...((weapon?.base??c.weapon)==='sword'?[{path:'weapon/sword/arming/universal/fg/walk/steel.png',color:weapon?.color??'#e1e8ee'}]:[])
- ].filter(l=>!(c.outfit==='none'&&l.path.startsWith('torso/'))&&!(c.shoes==='none'&&l.path.startsWith('feet/')));}
+ ].filter(l=>!(c.shoes==='none'&&l.path.startsWith('feet/')));}
 const cached=new Map<string,Promise<HTMLCanvasElement>>();
 const images=new Map<string,Promise<HTMLImageElement>>();
 function load(path:string){if(!images.has(path))images.set(path,new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>{images.delete(path);reject(new Error('캐릭터 이미지를 불러오지 못했습니다. 새로고침해 주세요.'));};img.src=base+path;}));return images.get(path)!;}
 export function characterSheet(c:Character):Promise<HTMLCanvasElement>{
  c=renderCharacter(c);
  const key=JSON.stringify(c);if(cached.has(key))return cached.get(key)!;
- const result=loadGear(c).then(gear=>Promise.all(layers(c).filter(l=>!l.path.startsWith('weapon/')&&!l.path.startsWith('hat/headband/')&&!(c.gender==='neutral'&&l.path.startsWith('hat/'))).map(async l=>({image:await load(l.path),path:l.path,color:l.color,bodyLayer:/^(body|legs|feet|torso)\//.test(l.path),animalHat:c.gender==='neutral'&&l.path.startsWith('hat/'),shadeRange:255}))).then(parts=>{
+ const result=loadGear(c).then(gear=>Promise.all(layers(c).filter(l=>!l.path.startsWith('weapon/')&&!l.path.startsWith('hat/')).map(async l=>({image:await load(l.path),path:l.path,color:l.color,bodyLayer:/^(body|legs|feet|torso)\//.test(l.path),animalHat:c.gender==='neutral'&&l.path.startsWith('hat/'),shadeRange:255}))).then(parts=>{
   const out=document.createElement('canvas');out.width=576;out.height=256;const ctx=out.getContext('2d')!;
   parts.forEach(({image,path,color,shadeRange,bodyLayer,animalHat})=>{const layer=document.createElement('canvas');layer.width=576;layer.height=256;const lc=layer.getContext('2d')!;lc.drawImage(image,0,0);const pixels=lc.getImageData(0,0,576,256);const rgb=[1,3,5].map(i=>parseInt(color.slice(i,i+2),16));for(let i=0;i<pixels.data.length;i+=4){if(!pixels.data[i+3])continue;const max=Math.max(pixels.data[i],pixels.data[i+1],pixels.data[i+2]);const shade=Math.min(1,max/shadeRange);for(let j=0;j<3;j++)pixels.data[i+j]=Math.round(rgb[j]*shade);}lc.putImageData(pixels,0,0);decorateWearable(lc,path,c);paintCatalogLayer(lc,path,c,gear);if(animalHat){ctx.imageSmoothingEnabled=false;for(let row=0;row<4;row++)for(let f=0;f<9;f++){const hx=row===1?21:row===3?43:32;ctx.drawImage(layer,f*64,row*64,64,40,f*64+hx-22,row*64+(row===2?27:row===0?15:19),44,28);}}else if(bodyLayer){const baseWidth=c.body==='sturdy'?70:56;ctx.imageSmoothingEnabled=false;for(let row=0;row<4;row++)for(let f=0;f<9;f++){if(c.gender!=='female'){ctx.drawImage(layer,f*64,row*64,64,64,f*64+(64-baseWidth)/2,row*64,baseWidth,64);continue;}for(let y=0;y<64;y++){const waist=Math.max(0,1-Math.abs(y-42)/9);const feminine=c.gender==='female'?(0.91-0.055*waist):1;const w=baseWidth*feminine;ctx.drawImage(layer,f*64,row*64+y,64,1,f*64+(64-w)/2,row*64+y,w,1);}}}else ctx.drawImage(layer,0,0);});
   paintCatalogEquipment(ctx,c,gear);

@@ -1,4 +1,5 @@
 import {catalogItem} from './catalog.mjs';
+import {faceFit} from './face-fit.mjs';
 import type {Character} from './character';
 type Art=HTMLCanvasElement;
 export type Gear=Partial<Record<'outfit'|'shoes'|'hat'|'weapon'|'accessory',Art>>;
@@ -23,7 +24,7 @@ async function icon(id:string):Promise<Art>{
   const out=canvas(w,h),oc=out.getContext('2d')!;oc.drawImage(c,x,y,w,h,0,0,w,h);if(item.id==='C01'){const p=oc.getImageData(0,0,w,h);for(let i=0;i<p.data.length;i+=4){const value=Math.max(p.data[i],p.data[i+1],p.data[i+2]);p.data[i]=p.data[i+1]=p.data[i+2]=value;}oc.putImageData(p,0,0);}resolve(out);
  };im.src='./item-icons/'+item.id+'.png';});cache.set(item.id,promise);promise.catch(()=>cache.delete(item.id));return promise;
 }
-export async function loadGear(c:Character):Promise<Gear>{const result:Gear={};await Promise.all((['outfit','shoes','hat','weapon','accessory'] as const).map(async s=>{if(catalogItem(c[s]))result[s]=await icon(c[s]);}));return result;}
+export async function loadGear(c:Character):Promise<Gear>{const result:Gear={};await Promise.all((['outfit','shoes','hat','weapon','accessory'] as const).map(async s=>{if(catalogItem(c[s]))result[s]=await icon(c[s]);}));if(c.outfit==='none'){const vest=canvas(32,32),v=vest.getContext('2d')!;v.fillStyle='#f5f6f8';v.fillRect(5,4,22,28);v.clearRect(12,0,8,10);result.outfit=vest;}return result;}
 function draw(ctx:CanvasRenderingContext2D,im:Art,x:number,y:number,w:number,h:number,mirror=false){ctx.save();ctx.imageSmoothingEnabled=false;if(mirror){ctx.translate(x+w,y);ctx.scale(-1,1);ctx.drawImage(im,0,0,w,h);}else ctx.drawImage(im,x,y,w,h);ctx.restore();}
 function texture(ctx:CanvasRenderingContext2D,im:Art,x:number,y:number,w:number,h:number){ctx.drawImage(im,im.width*.25,im.height*.2,im.width*.5,im.height*.78,x,y,w,h);}
 const hoodWindows=new WeakMap<Art,Art>();
@@ -36,7 +37,14 @@ function bob(row:number,f:number){return row===2?(f===3||f===7?1:0):(f===1||f===
 // Human clothing retains the animated sleeve/torso mask, with the original item design.
 export function paintCatalogLayer(ctx:CanvasRenderingContext2D,path:string,c:Character,g:Gear){
  if(c.gender==='neutral')return;
- if(path.startsWith('torso/')&&g.outfit){
+ if(path.startsWith('torso/')&&c.outfit==='none'){
+  ctx.clearRect(0,0,576,256);
+  for(let r=0;r<4;r++)for(let f=0;f<9;f++){
+   ctx.save();ctx.translate(f*64,r*64+bob(r,f));const side=r===1||r===3;
+   const points=side?[[28,35],[31,35],[32,39],[36,39],[37,35],[39,35],[38,50],[27,50]]:[[24,35],[28,35],[29,r===0?37:39],[35,r===0?37:39],[36,35],[40,35],[39,50],[25,50]];
+   ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();ctx.fillStyle='#f5f6f8';ctx.fill();ctx.strokeStyle='#cbd2dc';ctx.lineWidth=1;ctx.stroke();ctx.restore();
+  }
+ }else if(path.startsWith('torso/')&&g.outfit){
   for(let r=0;r<4;r++)for(let f=0;f<9;f++){
    const frame=canvas(64,64),fc=frame.getContext('2d')!;fc.imageSmoothingEnabled=false;fc.drawImage(ctx.canvas,f*64,r*64,64,64,0,0,64,64);
    fc.globalCompositeOperation='source-atop';const side=r===1||r===3;
@@ -84,18 +92,33 @@ export function paintCatalogEquipment(ctx:CanvasRenderingContext2D,c:Character,g
     }
    }
    if(g.weapon){const shield=catalogItem(c.weapon)?.base==='shield';draw(ctx,g.weapon,side?(r===1?33:18):r===0?32:38,side?29+b:32+b,shield?17:20,shield?17:24,r===3);}
-   if(g.hat){const id=catalogItem(c.hat)!.id,high=['H07','H08','H10'].includes(id),hood=id==='H09';const w=hood?24:23,h=hood?24:high?23:14;const y=(dog?(r===0?12:r===2?22:18):(r===0?17:r===2?(hood?27:22):(hood?23:18)))+b;
-    draw(ctx,hood&&r!==0?openHood(g.hat):g.hat,headX-w/2,y-(high?9:0),w,h,r===3);
-   }
+
   }else if(g.weapon){const base=catalogItem(c.weapon)?.base,shield=base==='shield';draw(ctx,g.weapon,r===1?(shield?8:4):39,shield?35+b:20+b,shield?19:24,shield?19:28,r===1);}
   if(g.accessory){const a=catalogItem(c.accessory)!,im=g.accessory,eyeY=animal?(dog?(side?33:38):(side?36:40)):29+b,bodyY=animal?44+b:39+b;
-   if(a.base==='glasses'&&r!==0)draw(ctx,im,headX-(side?6:10),eyeY,side?10:20,8,r===3);
-   if(a.base==='headband')draw(ctx,im,headX-11,eyeY-7,22,5,r===3);
+   const fit=faceFit(c,r,f);
+   if(a.base==='glasses'&&r!==0){
+    const tint=a.id==='A04'?'#66dbee':'#253344';ctx.lineWidth=1;
+    for(const x of fit.eyes){ctx.beginPath();ctx.ellipse(x,fit.y,fit.lens/2,Math.max(1.5,fit.lens/2-.5),0,0,Math.PI*2);ctx.fillStyle=a.id==='A04'?'#82dfe950':'#b1d6e325';ctx.fill();ctx.strokeStyle=tint;ctx.stroke();ctx.fillStyle='#e9fcff';ctx.fillRect(Math.floor(x-1),Math.floor(fit.y-1),1,1);}
+    ctx.fillStyle=tint;if(!side)ctx.fillRect(fit.eyes[0]+fit.lens/2,fit.y,fit.eyes[1]-fit.eyes[0]-fit.lens,1);else ctx.fillRect(r===1?fit.eyes[0]+3:fit.eyes[0]-7,fit.y-1,4,1);
+   }
+   if(a.base==='headband'){
+    ctx.fillStyle='#982d32';ctx.fillRect(fit.bandX,fit.bandY,fit.bandWidth,3);ctx.fillStyle='#f04c49';ctx.fillRect(fit.bandX+1,fit.bandY,fit.bandWidth-2,2);ctx.fillStyle='#ff8a70';ctx.fillRect(fit.bandX+2,fit.bandY,fit.bandWidth-4,1);
+    if(side||r===0){const knot=r===1?fit.bandX+fit.bandWidth-2:fit.bandX;ctx.fillStyle='#b72c39';ctx.fillRect(knot,fit.bandY+1,3,3);ctx.fillRect(knot+1,fit.bandY+4,2,4);}
+   }
    if(a.base==='bracelet'||a.base==='ring')draw(ctx,im,animal?(r===1?25:36):(r===1?22:40),animal?50:45+b,a.base==='ring'?4:6,4,r===3);
    if(a.base==='badge'&&r!==0)draw(ctx,im,side?34:35,bodyY,6,6);
    if(a.base==='necklace'&&r!==0)draw(ctx,im,headX-6,bodyY-2,12,12);
    if(a.base==='earrings'&&r!==0){ctx.drawImage(im,0,0,im.width*.5,im.height,headX+(side?-5:7),eyeY+3,4,8);if(!side)ctx.drawImage(im,im.width*.5,0,im.width*.5,im.height,headX-11,eyeY+3,4,8);}
    if(a.base==='backpack'){if(r===0||side)draw(ctx,im,side?(r===1?34:19):25,animal?34+b:33+b,side?10:16,18,r===3);else{ctx.fillStyle='#a16d3d';ctx.fillRect(25,bodyY-3,2,12);ctx.fillRect(38,bodyY-3,2,12);}}
+  }
+  if(g.hat){
+   if(animal){
+   if(g.hat){const id=catalogItem(c.hat)!.id,high=['H07','H08','H10'].includes(id),hood=id==='H09';const w=hood?24:23,h=hood?24:high?23:14;const y=(dog?(r===0?12:r===2?22:18):(r===0?17:r===2?(hood?27:22):(hood?23:18)))+b;
+    draw(ctx,hood&&r!==0?openHood(g.hat):g.hat,headX-w/2,y-(high?9:0),w,h,r===3);
+   }
+   }else{const id=catalogItem(c.hat)!.id,high=['H07','H08','H10'].includes(id),hood=id==='H09',w=hood?29:side?26:30,h=hood?29:high?27:18;
+    draw(ctx,hood&&r!==0?openHood(g.hat):g.hat,32-w/2,(hood?12:high?0:9)+b,w,h,r===3);
+   }
   }
   ctx.restore();
  }

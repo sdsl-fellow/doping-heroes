@@ -6,7 +6,9 @@ const fullyEquipped={...defaultCharacter,outfit:'C03',hat:'H01',weapon:'W01',sho
 const unequipped={...defaultCharacter,outfit:'none',shoes:'none',hat:'none',weapon:'none',accessory:'none'};
 assert.deepEqual(validCharacter(unequipped),unequipped);
 assert.deepEqual(availableCharacter(unequipped,[]),unequipped);
-assert.ok(layers(unequipped).every(l=>!l.path.startsWith('torso/')&&!l.path.startsWith('feet/')));
+assert.ok(layers(unequipped).some(l=>l.path.startsWith('torso/')));
+assert.ok(layers(unequipped).every(l=>!l.path.startsWith('feet/')));
+assert.notEqual(layers({...defaultCharacter,gender:'male'}).find(l=>l.path.startsWith('legs/')).color,layers({...defaultCharacter,gender:'female'}).find(l=>l.path.startsWith('legs/')).color);
 // A saved custom clothing colour must never replace an equipped item's palette.
 for(const outfit of ['C01','C02','C03']){
  const white=layers({...defaultCharacter,outfit,outfitColor:'#e6e9e5'});
