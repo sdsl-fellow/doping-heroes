@@ -14,8 +14,8 @@ test('approved catalogue has six ordered categories with unique codes and ascend
 test('root test inventory is derived without awarding progress or leaking to an ordinary identity',()=>{
  const root={name:'공수교대',studentId:'099746',purchased:['H02'],completed:[],doping:1e13};
  const before=JSON.stringify(root);assert.equal(inventoryIds(root).length,60);assert.equal(JSON.stringify(root),before);
- assert.deepEqual(inventoryIds({...root,name:'학생',studentId:'202601'}),['H02']);
- assert.deepEqual(inventoryIds({...root,name:'학생',studentId:'202601',purchased:['moon-sword','ember-boots'],readBooks:[0]}),['W08','F08','T02']);
+ assert.deepEqual(inventoryIds({...root,name:'학생',studentId:'202601'}),['C01','C02','C03','F01','H02','A01','A02']);
+ assert.deepEqual(inventoryIds({...root,name:'학생',studentId:'202601',purchased:['moon-sword','ember-boots'],readBooks:[0]}),['C01','C02','C03','F01','F08','W08','A01','A02','T02']);
  assert.equal(migrateItemId('W08'),'W08');
 });
 test('ampoules persist quantities, consume one dose, and root follows the same XP rules',()=>{

@@ -25,5 +25,6 @@ export function inventoryIds(s){
  const base=(s.purchased??[]).map(migrateItemId).filter(id=>catalogItem(id));
  if(isRootAccount(s))return catalog.map(i=>i.id);
  if((s.readBooks??[]).length)base.push('T02');
- return [...new Set(base)];
+ for(const [id,count] of Object.entries(s.quantities??{}))if(count>0)base.push(migrateItemId(id));
+ return catalog.filter(item=>item.quest===-1||(s.completed??[]).includes(item.quest)||base.includes(item.id)).map(item=>item.id);
 }

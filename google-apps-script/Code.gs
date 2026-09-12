@@ -5,8 +5,8 @@
  * named ROOT_PIN, and run setupDopingHeroes() once before deploying as a web app.
  */
 
-const API_VERSION = 3;
-const RELEASE_LABEL = 'roster-kst-3';
+const API_VERSION = 4;
+const RELEASE_LABEL = 'inventory-seoul-4';
 const ROOT_STUDENT_ID = '099746';
 const ROOT_NAME = '공수교대';
 const ROSTER_SHEET = 'Roster';
@@ -64,6 +64,7 @@ function setupDopingHeroes() {
 
   ensureSheet_(spreadsheet, AUDIT_SHEET, AUDIT_HEADERS);
   ensureRootRow_(students);
+  repairInventoryAndSeoulTime();
   SpreadsheetApp.flush();
   return 'Doping Heroes 시트 초기화 완료';
 }
@@ -320,11 +321,11 @@ function studentRow_(studentId, name, save, revision, updatedAt, createdAt, pinS
     save.doping,
     save.type,
     save.coins,
-    save.purchased.join(','),
+    inventoryIds(save).join(','),
     JSON.stringify(save),
     revision,
-    updatedAt,
-    createdAt,
+    seoulCellTime_(updatedAt),
+    seoulCellTime_(createdAt),
     pinSalt || '',
     pinHash || ''
   ];
@@ -590,6 +591,49 @@ function koreaTimestamp_() {
   return Utilities.formatDate(new Date(), 'Asia/Seoul', "yyyy-MM-dd'T'HH:mm:ss") + '+09:00';
 }
 
+function seoulCellTime_(value) {
+  if (!value) return value;
+  // Only convert unambiguous instants. Never guess the zone of old plain text.
+  if (!(value instanceof Date) && !/(?:Z|[+-]\d{2}:\d{2})$/.test(String(value))) return value;
+  const date = value instanceof Date ? value : new Date(value);
+  if (!Number.isFinite(date.getTime())) return value;
+  return Utilities.formatDate(date, 'Asia/Seoul', "yyyy-MM-dd'T'HH:mm:ss") + '+09:00';
+}
+
+function repairInventoryAndSeoulTime() {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const id = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+    const ss = SpreadsheetApp.openById(id);
+    ss.setSpreadsheetTimeZone('Asia/Seoul');
+    const students = ss.getSheetByName(STUDENTS_SHEET);
+    let repaired = 0;
+    for (let row = 2; row <= students.getLastRow(); row++) {
+      const values = students.getRange(row, 1, 1, STUDENT_HEADERS.length).getValues()[0];
+      if (!values[0]) continue;
+      let save;
+      try { save = JSON.parse(String(values[7] || '{}')); } catch (_) { continue; }
+      // Use the authoritative row identity for root, not client-supplied save identity.
+      save.studentId = canonicalStudentId_(values[0]);
+      save.name = String(values[1]);
+      students.getRange(row, 7).setValue(inventoryIds(save).join(','));
+      repaired++;
+    }
+    [[students, [10,11]], [ss.getSheetByName(STAGES_SHEET), [3]], [ss.getSheetByName(AUDIT_SHEET), [1]]].forEach(function (entry) {
+      const sheet = entry[0];
+      if (!sheet || sheet.getLastRow() < 2) return;
+      entry[1].forEach(function (col) {
+        const range = sheet.getRange(2, col, sheet.getLastRow() - 1, 1);
+        const values = range.getValues().map(function (row) { return [seoulCellTime_(row[0])]; });
+        range.setNumberFormat('@').setValues(values);
+      });
+    });
+    SpreadsheetApp.flush();
+    return repaired + '개 계정 items 갱신 및 서울 시간 변환 완료';
+  } finally { lock.releaseLock(); }
+}
+
 function constantTimeEqual_(left, right) {
   left = String(left || '');
   right = String(right || '');
@@ -623,3 +667,18 @@ function jsonOutput_(value) {
   return ContentService.createTextOutput(JSON.stringify(value))
     .setMimeType(ContentService.MimeType.JSON);
 }
+
+// BEGIN GENERATED ITEM RULES
+// Generated from src/catalog.mjs. Run node scripts/sync-apps-script-items.mjs.
+const catalog = [{"id":"C01","legacyId":"tshirt","quest":-1},{"id":"C02","legacyId":"longsleeve","quest":-1},{"id":"C03","legacyId":"cardigan","quest":-1},{"id":"C04","legacyId":"aurora-shirt","quest":-2},{"id":"C05","legacyId":"forest-shirt","quest":-2},{"id":"C06","legacyId":"ember-cardigan","quest":-2},{"id":"C07","legacyId":"gold-tshirt","quest":-2},{"id":"C08","legacyId":"lab-coat","quest":-2},{"id":"C09","legacyId":"cleanroom-suit","quest":-2},{"id":"C10","legacyId":"crystal-armor","quest":-2},{"id":"F01","legacyId":"basic","quest":-1},{"id":"F02","legacyId":"boots","quest":0},{"id":"F03","legacyId":"sandals","quest":-2},{"id":"F04","legacyId":"snowboots","quest":-2},{"id":"F05","legacyId":"moss-boots","quest":-2},{"id":"F06","legacyId":"violet-boots","quest":-2},{"id":"F07","legacyId":"crystal-boots","quest":-2},{"id":"F08","legacyId":"lab-shoes","quest":-2},{"id":"F09","legacyId":"cleanroom-shoes","quest":-2},{"id":"F10","legacyId":"electron-boots","quest":-2},{"id":"H01","legacyId":"cap","quest":1},{"id":"H02","legacyId":"trailcap","quest":-2},{"id":"H03","legacyId":"forest-cap","quest":-2},{"id":"H04","legacyId":"sun-cap","quest":-2},{"id":"H05","legacyId":"miner-helmet","quest":-2},{"id":"H06","legacyId":"crystal-cap","quest":-2},{"id":"H07","legacyId":"moon-cap","quest":-2},{"id":"H08","legacyId":"process-hat","quest":-2},{"id":"H09","legacyId":"cleanroom-hood","quest":-2},{"id":"H10","legacyId":"silicon-crown","quest":-2},{"id":"W01","legacyId":"sword","quest":2},{"id":"W02","legacyId":"crystal-sword","quest":-2},{"id":"W03","legacyId":"sun-sword","quest":-2},{"id":"W04","legacyId":"ember-sword","quest":-2},{"id":"W05","legacyId":"lattice-hammer","quest":-2},{"id":"W06","legacyId":"donor-staff","quest":-2},{"id":"W07","legacyId":"acceptor-staff","quest":-2},{"id":"W08","legacyId":"semiconductor-pen","quest":-2},{"id":"W09","legacyId":"wafer-shield","quest":-2},{"id":"W10","legacyId":"photon-bow","quest":-2},{"id":"A01","legacyId":"glasses","quest":-1},{"id":"A02","legacyId":"headband","quest":-1},{"id":"A03","legacyId":"grounding-bracelet","quest":-2},{"id":"A04","legacyId":"goggles","quest":-2},{"id":"A05","legacyId":"germanium-bracelet","quest":-2},{"id":"A06","legacyId":"chip-ring","quest":-2},{"id":"A07","legacyId":"doping-backpack","quest":-2},{"id":"A08","legacyId":"research-badge","quest":-2},{"id":"A09","legacyId":"wafer-necklace","quest":-2},{"id":"A10","legacyId":"crystal-earrings","quest":-2},{"id":"T01","legacyId":"gate-key","quest":2},{"id":"T02","legacyId":"lecture-notes","quest":-3},{"id":"T03","legacyId":"dopant","quest":-2},{"id":"T04","legacyId":"donor-ampoule","quest":-2},{"id":"T05","legacyId":"acceptor-ampoule","quest":-2},{"id":"T06","legacyId":"wafer-fragment","quest":-2},{"id":"T07","legacyId":"silicon-crystal","quest":-2},{"id":"T08","legacyId":"repair-kit","quest":-2},{"id":"T09","legacyId":"gold-tweezers","quest":-2},{"id":"T10","legacyId":"process-blueprint","quest":-2}];
+const catalogItem = id=>catalog.find(item=>item.id===id||item.legacyId===id);
+const migrateItemId = id=>catalogItem({'ember-boots':'lab-shoes','moon-sword':'semiconductor-pen'}[id]??id)?.id??id;
+const isRootAccount = account => account?.name?.trim() === '공수교대' && account?.studentId === '099746';
+function inventoryIds(s){
+ const base=(s.purchased??[]).map(migrateItemId).filter(id=>catalogItem(id));
+ if(isRootAccount(s))return catalog.map(i=>i.id);
+ if((s.readBooks??[]).length)base.push('T02');
+ for(const [id,count] of Object.entries(s.quantities??{}))if(count>0)base.push(migrateItemId(id));
+ return catalog.filter(item=>item.quest===-1||(s.completed??[]).includes(item.quest)||base.includes(item.id)).map(item=>item.id);
+}
+// END GENERATED ITEM RULES
