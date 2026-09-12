@@ -13,7 +13,12 @@ const rows=[
  ['T','tool',[
  ['gate-key','관문 열쇠',null,2,'key','#e6c56a'],['lecture-notes','낡은 책',null,-3,'book','#936949'],['dopant','불순물 꾸러미',10,-2,'pouch','#7bded5'],['donor-ampoule','도너 앰풀',20,-2,'vial','#58bbff'],['acceptor-ampoule','억셉터 앰풀',20,-2,'vial','#d674ec'],['wafer-fragment','웨이퍼 조각',30,-2,'material','#bdafe5'],['silicon-crystal','실리콘 결정',40,-2,'material','#6cd4ff'],['repair-kit','회로 수리 키트',50,-2,'tool','#8799aa'],['gold-tweezers','황금 트위져',60,-2,'tool','#eac357'],['process-blueprint','공정 설계도',80,-2,'tool','#548ecb']]]
 ];
-export const catalog=rows.flatMap(([prefix,slot,items],row)=>items.map(([legacyId,name,price,quest,base,color],col)=>({id:prefix+String(col+1).padStart(2,'0'),legacyId,name,price,quest,base,color,slot,code:prefix+String(col+1).padStart(2,'0'),row,col,icon:row*10+col})));
+// Keep artwork coordinates stable while catalogue codes follow display order.
+const originalArtwork=new Map(rows.flatMap(([prefix,,items],row)=>items.map(([key],col)=>[key,{assetCode:prefix+String(col+1).padStart(2,'0'),icon:row*10+col}])));
+const orders={F:['basic','sandals','moss-boots','boots','snowboots','violet-boots','crystal-boots','lab-shoes','cleanroom-shoes','electron-boots'],H:['cap','trailcap','sun-cap','miner-helmet','forest-cap','crystal-cap','moon-cap','process-hat','cleanroom-hood','silicon-crown']};
+const prices={F:[null,60,80,null,100,120,140,150,180,220],H:[null,60,80,100,100,120,120,180,200,300]};
+for(const [prefix,,items] of rows){if(!orders[prefix])continue;items.sort((a,b)=>orders[prefix].indexOf(a[0])-orders[prefix].indexOf(b[0]));items.forEach((item,i)=>item[2]=prices[prefix][i]);}
+export const catalog=rows.flatMap(([prefix,slot,items],row)=>items.map(([legacyId,name,price,quest,base,color],col)=>({id:prefix+String(col+1).padStart(2,'0'),legacyId,name,price,quest,base,color,slot,code:prefix+String(col+1).padStart(2,'0'),row,col,...originalArtwork.get(legacyId)})));
 export const catalogItem=id=>catalog.find(item=>item.id===id||item.legacyId===id);
 export const slotNames={outfit:'의복 · Clothing',shoes:'신발 · Footwear',hat:'모자 · Headwear',weapon:'무기 · Weapons',accessory:'액세서리 · Accessories',tool:'도구·소모품 · Tools'};
 export const migrateItemId=id=>catalogItem({'ember-boots':'lab-shoes','moon-sword':'semiconductor-pen'}[id]??id)?.id??id;

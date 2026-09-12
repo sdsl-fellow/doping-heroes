@@ -1,5 +1,5 @@
 import type {Save} from './save';
-import {normalizeItemSave} from './item-save.mjs';
+import {normalizeItemSave,toCloudItemSave} from './item-save.mjs';
 import {fromStoredSave,toStoredSave} from './completion-save.mjs';
 
 export const CLOUD_API_URL='https://script.google.com/macros/s/AKfycbxhD26YhH_DPStnnVkwbn-qqhnyOn8GyCM4tYGw0Uzp02HF1HywH5H9ww9fe7l4ujI/exec';
@@ -17,7 +17,7 @@ export class CloudError extends Error{
 async function request(body?:Record<string,unknown>):Promise<CloudResponse>{
  // Keep the old request field during the independently deployed v4→v5 transition.
  // v5 strips it before persisting; this prevents v4 from erasing progress.
- if(body?.save)body={...body,save:{...fromStoredSave(body.save),fetPuzzleCompleted:(body.save as Save).puzzle_completed?.includes(10)??false}};
+ if(body?.save)body={...body,save:{...toCloudItemSave(fromStoredSave(body.save)),fetPuzzleCompleted:(body.save as Save).puzzle_completed?.includes(10)??false}};
  const controller=new AbortController(),timer=window.setTimeout(()=>controller.abort(),15000);
  try{
   const response=await fetch(CLOUD_API_URL,body?{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(body),redirect:'follow',credentials:'omit',signal:controller.signal}:{method:'GET',redirect:'follow',credentials:'omit',cache:'no-store',signal:controller.signal});

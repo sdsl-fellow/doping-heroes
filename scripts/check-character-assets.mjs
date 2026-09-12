@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {layers,defaultCharacter,hairStyles,outfits,validCharacter} from '../src/character.ts';
 import {equipment,availableCharacter,unlocked} from '../src/equipment.ts';
-const fullyEquipped={...defaultCharacter,outfit:'C03',hat:'H01',weapon:'W01',shoes:'F02'};
+const fullyEquipped={...defaultCharacter,outfit:'C03',hat:'H01',weapon:'W01',shoes:'F04'};
 const unequipped={...defaultCharacter,outfit:'none',shoes:'none',hat:'none',weapon:'none',accessory:'none'};
 assert.deepEqual(validCharacter(unequipped),unequipped);
 assert.deepEqual(availableCharacter(unequipped,[]),unequipped);
@@ -17,7 +17,7 @@ for(const outfit of ['C01','C02','C03']){
 }
 assert.deepEqual(availableCharacter(fullyEquipped,[]),{...defaultCharacter,outfit:'C03'});
 assert.deepEqual(availableCharacter(fullyEquipped,[0,1,2]),fullyEquipped);
-assert.equal(availableCharacter(fullyEquipped,[0]).shoes,'F02');
+assert.equal(availableCharacter(fullyEquipped,[0]).shoes,'F04');
 assert.equal(availableCharacter(fullyEquipped,[0]).hat,'none');
 assert.equal(availableCharacter(fullyEquipped,[0,1]).hat,'H01');
 assert.equal(availableCharacter(fullyEquipped,[0,1]).weapon,'none');
@@ -39,7 +39,7 @@ const invalid=validCharacter({hair:'../oops',body:'unknown',skin:'bad',outfit:'b
 console.log(`${count} body/hair/outfit combinations validated; ${files.size} PNG layers, all 576x256. Invalid appearance values sanitized.`);
 
 for(const gender of ['male','female','neutral'])for(const accessory of ['none','A01','A02']){
- for(const {path} of layers({...defaultCharacter,gender,accessory,hat:'H01',weapon:'W01',shoes:'F02'})){
+ for(const {path} of layers({...defaultCharacter,gender,accessory,hat:'H01',weapon:'W01',shoes:'F04'})){
   const b=fs.readFileSync('public/lpc/'+path);assert.equal(b.readUInt32BE(16),576,path);assert.equal(b.readUInt32BE(20),256,path);
  }
 }
