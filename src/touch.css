@@ -16,3 +16,11 @@
 .equipment-choices button{display:flex;flex-direction:column;gap:5px;min-height:60px}.equipment-choices small{font-size:14px}.equipment-choices button:disabled{opacity:.6}
 .player-status>div{flex-wrap:wrap}.player-status b{white-space:nowrap}.sigma strong{overflow-wrap:anywhere}
 @media(max-width:600px){.creator-footer{flex-wrap:wrap}.creator-footer .primary{width:100%}.character-stage .rotation{gap:4px}.player-status b{font-size:14px}}
+@media(max-width:700px){
+ .character-stage{grid-template-columns:minmax(0,140px) minmax(0,1fr);min-width:0}
+ .character-stage>canvas{grid-row:2/4}
+ .character-stage .rotation{grid-column:1/-1;grid-row:4;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;width:100%;min-width:0;margin:8px 0}
+ .character-stage .rotation label{min-width:0}
+ .character-stage .rotation span{width:100%;min-width:0;padding:0 4px;white-space:nowrap}
+ .character-stage>button{grid-column:1/-1;grid-row:5;width:100%;min-width:0;white-space:nowrap}
+}
