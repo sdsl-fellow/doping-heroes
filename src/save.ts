@@ -1,5 +1,6 @@
 import {catalog,inventoryIds,migrateItemId} from './catalog.mjs';
 import {normalizeItemSave} from './item-save.mjs';
+import {fromStoredSave} from './completion-save.mjs';
 import {isRootAccount,validStudentId} from './access.mjs';
 import {lootItems} from './loot.mjs';
 import {validCharacter,type Character} from './character';
@@ -9,7 +10,7 @@ export type Save={version:3;studentId:string;name:string;character:Character;com
 export const hasKey=(s:Save|null)=>isRootAccount(s)||[0,1,2].every(i=>s?.completed.includes(i));
 export function restore():Save|null{
  try{
-  const s=normalizeItemSave(JSON.parse(localStorage.getItem('doping-heroes:v3')||localStorage.getItem('doping-heroes:v2')||localStorage.getItem('doping-heroes:v1')||'null'));
+  const s=normalizeItemSave(fromStoredSave(JSON.parse(localStorage.getItem('doping-heroes:v3')||localStorage.getItem('doping-heroes:v2')||localStorage.getItem('doping-heroes:v1')||'null')));
   if(!s||typeof s.name!=='string'||!s.name.trim()||s.name.length>20||!Array.isArray(s.completed))return null;
   const completed=[...new Set<number>(s.completed.filter((n:unknown)=>Number.isInteger(n)&&Number(n)>=0&&Number(n)<15))];
   const purchased=Array.isArray(s.purchased)?s.purchased.map((i:unknown)=>migrateItemId(String(i))).filter((i:unknown)=>catalog.some(item=>item.id===migrateItemId(String(i)))):[];

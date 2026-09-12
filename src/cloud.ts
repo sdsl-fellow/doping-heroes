@@ -1,5 +1,6 @@
 import type {Save} from './save';
 import {normalizeItemSave} from './item-save.mjs';
+import {fromStoredSave,toStoredSave} from './completion-save.mjs';
 
 export const CLOUD_API_URL='https://script.google.com/macros/s/AKfycbxNgvnkqNYcGw4hG_OAQi_k4SdqlyDlSB7lMNPwrWwyJuDodsCoo_KOy4O8AtYJfiue/exec';
 const CLOUD_AUTH_KEY='doping-heroes:cloud-auth:v1';
@@ -14,12 +15,15 @@ export class CloudError extends Error{
 }
 
 async function request(body?:Record<string,unknown>):Promise<CloudResponse>{
+ // Keep the old request field during the independently deployed v4→v5 transition.
+ // v5 strips it before persisting; this prevents v4 from erasing progress.
+ if(body?.save)body={...body,save:{...toStoredSave(body.save),completed:(body.save as Save).completed}};
  const controller=new AbortController(),timer=window.setTimeout(()=>controller.abort(),15000);
  try{
   const response=await fetch(CLOUD_API_URL,body?{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(body),redirect:'follow',credentials:'omit',signal:controller.signal}:{method:'GET',redirect:'follow',credentials:'omit',cache:'no-store',signal:controller.signal});
   const text=await response.text();let data:CloudResponse;
   try{data=JSON.parse(text) as CloudResponse;}catch{throw new CloudError('INVALID_RESPONSE','클라우드 저장소의 응답을 읽을 수 없습니다. Apps Script 배포 권한을 확인해 주세요.');}
-  if(data.student)data.student.save=normalizeItemSave(data.student.save);
+  if(data.student)data.student.save=normalizeItemSave(fromStoredSave(data.student.save));
   if(!data.ok)throw new CloudError(data.error?.code??'CLOUD_ERROR',data.error?.message??'클라우드 요청에 실패했습니다.',data);
   return data;
  }catch(error){
