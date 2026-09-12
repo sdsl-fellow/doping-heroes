@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import {catalog,catalogItem,migrateItemId,inventoryIds} from '../src/catalog.mjs';
 import {isRootAccount} from '../src/access.mjs';
-import {completionIds,fromStoredSave,toStoredSave} from '../src/completion-save.mjs';
+import {completionIds,fromStoredSave,toStoredSave,puzzleIds,stageQuestIds} from '../src/completion-save.mjs';
 const path='google-apps-script/Code.gs';
 const start='// BEGIN GENERATED ITEM RULES';
 const end='// END GENERATED ITEM RULES';
@@ -10,7 +10,7 @@ const block=[start,'// Generated from src/catalog.mjs. Run node scripts/sync-app
  'const catalogItem = '+catalogItem.toString()+';',
  'const migrateItemId = '+migrateItemId.toString()+';',
  'const isRootAccount = '+isRootAccount.toString()+';',
- inventoryIds.toString(),completionIds.toString(),fromStoredSave.toString(),toStoredSave.toString(),end].join('\n');
+ inventoryIds.toString(),'const stageQuestIds = '+JSON.stringify(stageQuestIds)+';',completionIds.toString(),puzzleIds.toString(),fromStoredSave.toString(),toStoredSave.toString(),end].join('\n');
 const source=fs.readFileSync(path,'utf8');
 const next=source.includes(start)?source.slice(0,source.indexOf(start))+block+source.slice(source.indexOf(end)+end.length):source+'\n'+block+'\n';
 if(process.argv.includes('--check')){

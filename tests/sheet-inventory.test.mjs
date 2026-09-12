@@ -17,7 +17,7 @@ test('sheet items match the inventory for defaults, quests, loot, tools and root
  {name:'공수교대',studentId:'099746'}]){
   const save={name:'학생',studentId:'20260001',completed:[],purchased:[],coins:0,...partial};
   const expected=inventoryIds(save);
-  assert.equal(context.studentRow_(save.studentId,save.name,save,1,'','', '', '')[6],expected.join(','));
+  assert.equal(context.studentRow_(save.studentId,save.name,save,1,'','', '', '')[5],expected.join(','));
   assert.equal(new Set(expected).size,expected.length);assert.ok(!expected.includes('none'));
  }
  assert.deepEqual(inventoryIds({}),['C01','C02','C03','F01','A01','A02']);
