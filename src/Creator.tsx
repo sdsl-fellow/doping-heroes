@@ -3,14 +3,14 @@ import {useState} from 'react';
 import {Avatar} from './Avatar';
 import {Character,defaultCharacter,hairStyles,hairColors,skinColors,outfitColors} from './character';
 import {equipment,availableCharacter} from './equipment';
-export function Creator({initial,name,studentId='',studentIdLocked=false,completed=[],purchased=[],onSave,onClose}:{initial?:Character;name:string;studentId?:string;studentIdLocked?:boolean;completed?:number[];purchased?:string[];onSave:(name:string,c:Character,studentId:string)=>void;onClose?:()=>void}){
+export function Creator({initial,name,studentId='',studentIdLocked=false,completed=[],purchased=[],level,experience,onSave,onClose}:{initial?:Character;name:string;studentId?:string;studentIdLocked?:boolean;completed?:number[];purchased?:string[];level:string;experience:string;onSave:(name:string,c:Character,studentId:string)=>void;onClose?:()=>void}){
  const [c,setC]=useState<Character>(availableCharacter(initial??defaultCharacter,completed,purchased)),[n,setN]=useState(name),[id,setId]=useState(studentId),[direction,setDirection]=useState(2),[walk,setWalk]=useState(true);
  const update=(patch:Partial<Character>)=>setC(old=>({...old,...patch}));
  const validId=validStudentId(n.trim(),id.trim());
  function swatches(label:string,values:string[],field:'skin'|'hairColor'|'outfitColor'){return <fieldset><legend>{label}</legend><div className="swatches">{values.map((v,i)=><button type="button" aria-label={`${label} ${i+1}`} aria-pressed={c[field]===v} style={{background:v}} key={v} onClick={()=>update({[field]:v})}>{c[field]===v?'✓':''}</button>)}</div></fieldset>;}
  return <form className="creator" onSubmit={e=>{e.preventDefault();if(n.trim()&&validId)onSave(n.trim(),availableCharacter(c,completed,purchased),id.trim());}}>
  <div className="dialog-heading"><div><small>YOUR JOURNEY STARTS HERE</small><h1>{initial?'나의 모험가':'나만의 모험가 만들기'}</h1></div>{onClose&&<button type="button" onClick={onClose}>닫기 ×</button>}</div>
- <div className="creator-grid"><div className="character-stage"><span className="stage-label">LIVE PREVIEW</span><Avatar character={c} size={256} walking={walk} direction={direction}/><strong>{n||'새로운 모험가'}</strong><span>세미 월드 · 모험가</span>
+ <div className="creator-grid"><div className="character-stage"><span className="stage-label">LIVE PREVIEW</span><Avatar character={c} size={256} walking={walk} direction={direction}/><div className="preview-info"><div className="preview-identity"><strong>{n||'새로운 모험가'}</strong><span>세미 월드 · 모험가</span></div><div className="preview-progress"><span>{level}</span><span>도핑 경험치 {experience} cm⁻³</span></div></div>
  <fieldset className="rotation"><legend className="sr-only">미리보기 방향</legend>{([{label:'앞',value:2},{label:'뒤',value:0},{label:'왼쪽',value:1},{label:'오른쪽',value:3}]).map(({label:v,value:i})=><label key={v}><input type="radio" name="preview-direction" checked={direction===i} onChange={()=>setDirection(i)}/><span>{v}</span></label>)}</fieldset>
  <button type="button" onClick={()=>setWalk(!walk)}>{walk?'걷기 미리보기 일시정지':'걷기 미리보기'}</button><p>퀘스트를 완료해 장비를 모으고<br/>나만의 모습으로 모험하세요.</p></div>
  <div className="character-options"><label className="name-label">캐릭터 이름<input autoFocus value={n} maxLength={20} required placeholder="이름을 입력하세요" onChange={e=>setN(e.target.value)}/></label>
