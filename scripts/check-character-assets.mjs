@@ -3,6 +3,12 @@ import assert from 'node:assert/strict';
 import {layers,defaultCharacter,hairStyles,outfits,validCharacter} from '../src/character.ts';
 import {equipment,availableCharacter,unlocked} from '../src/equipment.ts';
 const fullyEquipped={...defaultCharacter,outfit:'C03',hat:'H01',weapon:'W01',shoes:'F02'};
+// A saved custom clothing colour must never replace an equipped item's palette.
+for(const outfit of ['C01','C02','C03']){
+ const white=layers({...defaultCharacter,outfit,outfitColor:'#e6e9e5'});
+ const red=layers({...defaultCharacter,outfit,outfitColor:'#bd555f'});
+ assert.deepEqual(white,red,`${outfit}: catalogue colour overridden by saved custom colour`);
+}
 assert.deepEqual(availableCharacter(fullyEquipped,[]),{...defaultCharacter,outfit:'C03'});
 assert.deepEqual(availableCharacter(fullyEquipped,[0,1,2]),fullyEquipped);
 assert.equal(availableCharacter(fullyEquipped,[0]).shoes,'F02');

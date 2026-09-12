@@ -1,7 +1,7 @@
 import {validStudentId} from './access.mjs';
 import {useState} from 'react';
 import {Avatar} from './Avatar';
-import {Character,defaultCharacter,hairStyles,hairColors,skinColors,outfitColors} from './character';
+import {Character,defaultCharacter,hairStyles,hairColors,skinColors} from './character';
 import {equipment,availableCharacter} from './equipment';
 export function Creator({initial,name,studentId='',studentIdLocked=false,completed=[],purchased=[],level,experience,onSave,onClose}:{initial?:Character;name:string;studentId?:string;studentIdLocked?:boolean;completed?:number[];purchased?:string[];level:string;experience:string;onSave:(name:string,c:Character,studentId:string)=>void;onClose?:()=>void}){
  const [c,setC]=useState<Character>(availableCharacter(initial??defaultCharacter,completed,purchased)),[n,setN]=useState(name),[id,setId]=useState(studentId),[direction,setDirection]=useState(2),[walk,setWalk]=useState(true);
@@ -19,7 +19,7 @@ export function Creator({initial,name,studentId='',studentIdLocked=false,complet
  {c.gender==='neutral'?<fieldset><legend>동물 모험가</legend><div className="choices">{[['dog','강아지'],['cat','고양이']].map(([v,l])=><button type="button" key={v} aria-pressed={c.species===v} onClick={()=>update({species:v as Character['species'],hairColor:v==='dog'?'#dae0e5':'#f1d37e'})}>{l}</button>)}</div></fieldset>:<fieldset><legend>체형</legend><div className="choices">{[['sturdy','건장한 체형'],['agile','날렵한 체형']].map(([v,l])=><button key={v} type="button" aria-pressed={c.body===v} onClick={()=>update({body:v as Character['body']})}>{l}</button>)}</div></fieldset>}
  {c.gender!=='neutral'&&swatches('피부색',skinColors,'skin')}{c.gender!=='neutral'&&<fieldset><legend>헤어스타일</legend><div className="choices hair-choices">{hairStyles.map(([v,l])=><button type="button" key={v} aria-pressed={c.hair===v} onClick={()=>update({hair:v})}>{l}</button>)}</div></fieldset>}{!(c.gender==='neutral'&&c.species==='dog')&&swatches(c.gender==='neutral'?'털색':'머리색',hairColors,'hairColor')}
  <fieldset><legend>액세서리</legend><div className="choices">{[['none','없음'],['A01','안경'],['A02','머리띠']].map(([v,l])=><button type="button" key={v} aria-pressed={c.accessory===v} onClick={()=>update({accessory:v as Character['accessory']})}>{l}</button>)}</div></fieldset>
- <fieldset><legend>기본 복장</legend><div className="choices">{equipment.filter(item=>item.slot==='outfit').map(item=><button type="button" key={item.id} aria-pressed={c.outfit===item.id} onClick={()=>update({outfit:item.id})}>{item.name}</button>)}</div>{c.gender==='neutral'&&<small>복장은 인간 외형에서 표시됩니다.</small>}</fieldset>
- {swatches('복장 색상',outfitColors,'outfitColor')}<p className="equipment-note">모험에서 얻은 장비는 인벤토리에서 확인하고 착용할 수 있어요.</p>
+ <fieldset><legend>기본 복장</legend><div className="choices">{equipment.filter(item=>item.slot==='outfit').map(item=><button type="button" key={item.id} aria-pressed={c.outfit===item.id} onClick={()=>update({outfit:item.id})}>{item.name}</button>)}</div>{c.gender==='neutral'&&<small>동물 체형에 맞춘 복장과 신발을 착용하고, 무기는 등에 장착합니다.</small>}</fieldset>
+ <p className="equipment-note">모험에서 얻은 장비는 인벤토리에서 확인하고 착용할 수 있어요.</p>
  </div></div><div className="creator-footer"><p>학번·외형·진행 기록은 Google Sheets에 안전하게 동기화됩니다.<br/><small>다음 화면에서 이 계정에 사용할 숫자 PIN을 입력하세요.</small></p><button className="primary" disabled={!n.trim()||!validId}>{initial?'저장하기':'모험 떠나기 →'}</button></div></form>;
 }
