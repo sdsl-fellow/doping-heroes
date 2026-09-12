@@ -24,7 +24,7 @@ async function icon(id:string):Promise<Art>{
   const out=canvas(w,h),oc=out.getContext('2d')!;oc.drawImage(c,x,y,w,h,0,0,w,h);if(item.id==='C01'){const p=oc.getImageData(0,0,w,h);for(let i=0;i<p.data.length;i+=4){const value=Math.max(p.data[i],p.data[i+1],p.data[i+2]);p.data[i]=p.data[i+1]=p.data[i+2]=value;}oc.putImageData(p,0,0);}resolve(out);
  };im.src='./item-icons/'+item.id+'.png';});cache.set(item.id,promise);promise.catch(()=>cache.delete(item.id));return promise;
 }
-export async function loadGear(c:Character):Promise<Gear>{const result:Gear={};await Promise.all((['outfit','shoes','hat','weapon','accessory'] as const).map(async s=>{if(catalogItem(c[s]))result[s]=await icon(c[s]);}));if(c.outfit==='none'){const vest=canvas(32,32),v=vest.getContext('2d')!;v.fillStyle='#f5f6f8';v.fillRect(5,4,22,28);v.clearRect(12,0,8,10);result.outfit=vest;}return result;}
+export async function loadGear(c:Character):Promise<Gear>{const result:Gear={};await Promise.all((['outfit','shoes','hat','weapon','accessory'] as const).map(async s=>{if(catalogItem(c[s]))result[s]=await icon(c[s]);}));return result;}
 function draw(ctx:CanvasRenderingContext2D,im:Art,x:number,y:number,w:number,h:number,mirror=false){ctx.save();ctx.imageSmoothingEnabled=false;if(mirror){ctx.translate(x+w,y);ctx.scale(-1,1);ctx.drawImage(im,0,0,w,h);}else ctx.drawImage(im,x,y,w,h);ctx.restore();}
 function texture(ctx:CanvasRenderingContext2D,im:Art,x:number,y:number,w:number,h:number){ctx.drawImage(im,im.width*.25,im.height*.2,im.width*.5,im.height*.78,x,y,w,h);}
 const hoodWindows=new WeakMap<Art,Art>();
@@ -41,7 +41,7 @@ export function paintCatalogLayer(ctx:CanvasRenderingContext2D,path:string,c:Cha
   ctx.clearRect(0,0,576,256);
   for(let r=0;r<4;r++)for(let f=0;f<9;f++){
    ctx.save();ctx.translate(f*64,r*64+bob(r,f));const side=r===1||r===3;
-   const points=side?[[28,35],[31,35],[32,39],[36,39],[37,35],[39,35],[38,50],[27,50]]:[[24,35],[28,35],[29,r===0?37:39],[35,r===0?37:39],[36,35],[40,35],[39,50],[25,50]];
+   const points=side?[[29,35],[31,35],[32,38],[35,38],[36,35],[38,35],[36,45],[29,45]]:[[26,35],[29,35],[30,r===0?37:38],[34,r===0?37:38],[35,35],[38,35],[37,45],[27,45]];
    ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();ctx.fillStyle='#f5f6f8';ctx.fill();ctx.strokeStyle='#cbd2dc';ctx.lineWidth=1;ctx.stroke();ctx.restore();
   }
  }else if(path.startsWith('torso/')&&g.outfit){
