@@ -23,7 +23,7 @@ semiconductor samples and conductivity-based levels.
 - Character appearance can be edited later without resetting learning progress
 - Overlay HUD, player-location minimap, quest tracker, touch direction pad and interaction button
 - v1 local learning saves migrate to v2 automatically; the old save is retained
-- Google Sheets, student accounts, multi-device sync and multiplayer remain unimplemented
+- Google Sheets cloud saves, student PIN accounts and multi-device sync
 
 Original v0.1 learning features retained:
 
@@ -35,7 +35,7 @@ Original v0.1 learning features retained:
 - 순차적 NPC 퀘스트 3개, 오답 힌트, 해설, 중복 보상 방지
 - P/B 치환 개념 애니메이션 및 독립 n/p 시료
 - 캐리어 농도와 전도도, 최고 컨덕턴스(S = 1/Ω) 기반 성장
-- 브라우저 localStorage 자동 저장 (다른 기기와 공유되지 않음)
+- Google Sheets 자동 저장과 브라우저 임시 저장
 - 모바일 반응형 UI 및 reduced-motion 지원
 
 ## 로컬 실행
@@ -66,22 +66,23 @@ electron mobility = 1350, hole mobility = 480 cm^2/(V s).
 n형과 p형은 별도 시료입니다. 보상 도핑, 농도 의존 이동도, 온도 변화,
 실제 결정구조/원자 비율/축척은 구현하지 않았습니다.
 
-## Google Sheets / Apps Script — 후속 연결
+## Google Sheets / Apps Script
 
-현재 버전은 Google로 어떤 데이터도 전송하지 않습니다. Sheets 저장,
-익명 통계, 기기 간 진행 동기화는 아직 미구현입니다.
-권장 후속 설계: 교사용 문제 시트 + 버전된 공개 문제 JSON + 검증 가능한
-Apps Script 기록 API. 공개 쓰기 엔드포인트에는 입력 검증, 중복 방지,
-속도 제한, 개인정보 최소 수집이 필요합니다. 클라이언트 정답 판정과
-localStorage 데이터는 변조 가능하므로 성적 평가 근거로 사용하지 마세요.
-Google 계정 배포/승인 및 엔드포인트 선택 후 연동을 구현합니다.
+학생의 학번, 캐릭터, 경험치, 아이템과 퀘스트 진행 기록은 학생 PIN으로
+보호된 Apps Script API를 통해 Google Sheets에 저장됩니다. root의 Stage
+해금 상태도 같은 API에서 공유되며 게임은 접속 시, 화면 복귀 시, 15초
+간격으로 갱신합니다. 브라우저 저장은 통신 장애 시 복구용으로 유지합니다.
+
+Apps Script 원본과 배포 절차는 `google-apps-script/`에 있습니다. 클라이언트
+데이터는 변조 가능하므로 Google Sheets 기록만으로 성적을 자동 확정하지는
+마세요.
 
 ## 구조
 
 - src/World.tsx: Phaser 맵, 이동, NPC 상호작용
 - src/character.ts, src/Avatar.tsx, src/Creator.tsx: 검증된 외형 설정, 레이어 합성, 제작 화면
 - src/navigation.mjs: 보행 구역과 길찾기
-- src/main.tsx: 캐릭터, 퀘스트, 시료 관찰 및 로컬 저장
+- src/main.tsx, src/cloud.ts: 캐릭터, 퀘스트, 시료 관찰 및 클라우드 동기화
 - src/quests.ts: 학습 콘텐츠
 - src/physics.mjs: 캐리어/전도도/컨덕턴스 성장 계산
 - tests/physics.test.mjs: 물리 계산 회귀 검증

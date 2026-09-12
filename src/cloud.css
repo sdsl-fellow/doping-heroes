@@ -1,0 +1,7 @@
+.cloud-access{min-width:0}
+.cloud-access>p{font-size:14px}
+.cloud-note{display:block;margin-top:14px;color:#b8d4d0;text-align:center}
+.confirm-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
+.confirm-actions button{flex:1}
+.danger{background:#713b35;border-color:#e0a58f}
+.danger:hover:not(:disabled){background:#8a493f}

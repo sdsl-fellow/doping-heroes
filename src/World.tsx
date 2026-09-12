@@ -7,14 +7,14 @@ import {weeklyQuests} from './adventure';
 import {mapInfo,stageIndex,stageDefinitions,gatewayLocations,arrivalPoint,stageUnlocked} from './maps.mjs';
 import type {Save} from './save';
 import {npcLocations,adventureLocations,route,walkable,routeToGateway,stageBookPoint} from './navigation.mjs';
-export function World({rootAccount,releasedStages,character,name,completed,area,arrival,destination,active,onTalk,onBook,onMiniGame,onBusy,onTravel,onReleaseStage,onEnterStage,onPosition,onError}:{rootAccount:boolean;releasedStages:boolean[];character:Character;name:string;completed:number[];area:Save['area'];arrival:number|null;destination:number|null;active:boolean;onBook:()=>void;onMiniGame:()=>void;onBusy:(busy:boolean)=>void;onTravel:()=>void;onReleaseStage:(index:number)=>void;onEnterStage:(index:number)=>void;onTalk:(i:number)=>void;onPosition:(x:number,y:number)=>void;onError:(text:string)=>void}){
- const root=useRef<HTMLDivElement>(null),live=useRef({rootAccount,releasedStages,character,name,completed,area,arrival,destination,active,onTalk,onBook,onMiniGame,onBusy,onTravel,onReleaseStage,onEnterStage,onPosition,onError});live.current={rootAccount,releasedStages,character,name,completed,area,arrival,destination,active,onTalk,onBook,onMiniGame,onBusy,onTravel,onReleaseStage,onEnterStage,onPosition,onError};
+export function World({rootAccount,releasedStages,character,name,completed,area,arrival,destination,active,onTalk,onBook,onMiniGame,onBusy,onTravel,onReleaseStage,onRequestRelock,onEnterStage,onPosition,onError}:{rootAccount:boolean;releasedStages:boolean[];character:Character;name:string;completed:number[];area:Save['area'];arrival:number|null;destination:number|null;active:boolean;onBook:()=>void;onMiniGame:()=>void;onBusy:(busy:boolean)=>void;onTravel:()=>void;onReleaseStage:(index:number)=>void;onRequestRelock:(index:number)=>void;onEnterStage:(index:number)=>void;onTalk:(i:number)=>void;onPosition:(x:number,y:number)=>void;onError:(text:string)=>void}){
+ const root=useRef<HTMLDivElement>(null),live=useRef({rootAccount,releasedStages,character,name,completed,area,arrival,destination,active,onTalk,onBook,onMiniGame,onBusy,onTravel,onReleaseStage,onRequestRelock,onEnterStage,onPosition,onError});live.current={rootAccount,releasedStages,character,name,completed,area,arrival,destination,active,onTalk,onBook,onMiniGame,onBusy,onTravel,onReleaseStage,onRequestRelock,onEnterStage,onPosition,onError};
  useEffect(()=>{
  if(!root.current)return;let disposed=false;const info=mapInfo(area),index=stageIndex(area),stage=index>=0?stageDefinitions[index]:null;const places=area==='adventure'?gatewayLocations:stage?[info.npc!]:npcLocations;const names=stage?[weeklyQuests.find(q=>q.id===stage.questId)!.name]:['길잡이 Dr. 실리콘','상인 엔','결정 동굴 안내자'];const passable=(x:number,y:number)=>walkable(x,y,area)&&(area!=='village'||y<825);const spawn=arrivalPoint(area,arrival);
  const interact=(i:number)=>area==='adventure'?live.current.onEnterStage(i):live.current.onTalk(stage?stage.questId:i);
 
  class Campus extends Phaser.Scene{
-  player?:Phaser.GameObjects.Sprite;label?:Phaser.GameObjects.Text;markers:Phaser.GameObjects.Text[]=[];keys!:Record<string,Phaser.Input.Keyboard.Key>;path:{x:number;y:number}[]=[];pending:number|null=null;dir=2;skinKey='';generation=0;lastUpdate=0;touch={x:0,y:0};destination?:Phaser.GameObjects.Ellipse;busy=false;gate?:Phaser.GameObjects.Image;boat?:Phaser.GameObjects.Image;book?:Phaser.GameObjects.Image;speech?:Phaser.GameObjects.Container;knockIndex=-1;knockCount=0;knockDeadline=0;
+  player?:Phaser.GameObjects.Sprite;label?:Phaser.GameObjects.Text;markers:Phaser.GameObjects.Text[]=[];keys!:Record<string,Phaser.Input.Keyboard.Key>;path:{x:number;y:number}[]=[];pending:number|null=null;dir=2;skinKey='';generation=0;lastUpdate=0;touch={x:0,y:0};destination?:Phaser.GameObjects.Ellipse;busy=false;gate?:Phaser.GameObjects.Image;boat?:Phaser.GameObjects.Image;book?:Phaser.GameObjects.Image;speech?:Phaser.GameObjects.Container;knockIndex=-1;knockCount=0;knockDeadline=0;relockIndex=-1;relockTimer?:Phaser.Time.TimerEvent;relockRing?:Phaser.GameObjects.Graphics;
   preload(){this.load.image('campus',info.image);this.load.spritesheet('journey-props','./journey-props.png',{frameWidth:512,frameHeight:512});if(area==='adventure'){this.load.spritesheet('gateways','./gateways.png',{frameWidth:128,frameHeight:128});this.load.image('silicon-crystal','./silicon-crystal.png');}this.load.on('loaderror',()=>live.current.onError('맵을 불러오지 못했습니다. 새로고침해 주세요.'));}
   async sprite(c:Character,key:string,x:number,y:number){const sheet=await characterSheet(c);if(disposed)return;const texture=this.textures.addCanvas(key,sheet)!;for(let row=0;row<4;row++)for(let col=0;col<9;col++)texture.add(row*9+col,0,col*64,row*64,64,64);return this.add.sprite(x,y,key,18).setOrigin(.5,.95).setScale(1.7).setDepth(y);}
   create(){
@@ -22,7 +22,18 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
    const resize=()=>{const w=this.scale.width,h=this.scale.height;this.cameras.main.setZoom(w<700?1.15:Math.max(w/info.width,h/info.height));};resize();this.scale.on('resize',resize);
    this.destination=this.add.ellipse(768,550,24,12,0xffedb0,.35).setStrokeStyle(2,0xffedb0).setVisible(false).setDepth(900);
    this.keys=this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,E,SPACE',false) as Record<string,Phaser.Input.Keyboard.Key>;
-   places.forEach((p,i)=>{if(area==='adventure'){this.add.image(p.x,p.y+8,'gateways',i).setOrigin(.5,1).setDisplaySize(112,112).setDepth(p.y);this.markers.push(this.add.text(p.x,p.y-113,stageDefinitions[i].title,{fontSize:'16px',color:'#fff3c3',backgroundColor:'#163e49dd',align:'center',wordWrap:{width:190},padding:{x:7,y:6}}).setOrigin(.5,1).setDepth(1500));if(i===0){this.add.image(p.x,p.y-67,'silicon-crystal').setDisplaySize(30,30).setDepth(p.y+1);}this.add.zone(p.x,p.y-45,190,225).setInteractive({useHandCursor:true}).setDepth(1600).on('pointerdown',()=>{if(!live.current.active||this.busy)return;const near=this.player&&Math.hypot(this.player.x-p.x,this.player.y-p.y)<85;if(!near){this.go(p.x,p.y,null);return;}if(live.current.rootAccount&&!live.current.releasedStages[i]){this.knock(i);return;}interact(i);});return;}const c={...defaultCharacter,gender:i===2?'female':'male',body:i===1?'sturdy':'agile',hair:i===0?'bangs':i===1?'bedhead':'bob',hairColor:i===0?'#dae0e5':i===1?'#77452f':'#b298d1',outfitColor:i===0?'#e6e9e5':i===1?'#438674':'#695c98'} as Character;this.sprite(c,'npc-'+i,p.x,p.y).catch(e=>live.current.onError(e.message));this.markers.push(this.add.text(p.x,p.y-109,'!',{fontFamily:'sans-serif',fontStyle:'bold',fontSize:'32px',color:'#ffe895',stroke:'#263145',strokeThickness:6}).setOrigin(.5).setDepth(1500));this.add.text(p.x,p.y+5,names[i],{fontSize:'16px',color:'#fff8dd',backgroundColor:'#152c36cc',padding:{x:8,y:4}}).setOrigin(.5,0).setDepth(1500);this.add.zone(p.x,p.y-40,100,120).setInteractive({useHandCursor:true}).setDepth(1600).on('pointerdown',()=>{if(live.current.active)this.go(p.x,p.y+20,i);});});
+   places.forEach((p,i)=>{if(area==='adventure'){
+    this.add.image(p.x,p.y+8,'gateways',i).setOrigin(.5,1).setDisplaySize(112,112).setDepth(p.y);
+    this.markers.push(this.add.text(p.x,p.y-113,stageDefinitions[i].title,{fontSize:'16px',color:'#fff3c3',backgroundColor:'#163e49dd',align:'center',wordWrap:{width:190},padding:{x:7,y:6}}).setOrigin(.5,1).setDepth(1500));
+    if(i===0)this.add.image(p.x,p.y-67,'silicon-crystal').setDisplaySize(30,30).setDepth(p.y+1);
+    this.add.zone(p.x,p.y-45,190,225).setInteractive({useHandCursor:true}).setDepth(1600).on('pointerdown',()=>{
+     if(!live.current.active||this.busy)return;const near=this.player&&Math.hypot(this.player.x-p.x,this.player.y-p.y)<85;
+     if(!near){this.go(p.x,p.y,null);return;}
+     if(live.current.rootAccount){if(!live.current.releasedStages[i])this.knock(i);else this.startRelockHold(i);return;}
+     this.tryGateway(i);
+    });return;
+   }
+   const c={...defaultCharacter,gender:i===2?'female':'male',body:i===1?'sturdy':'agile',hair:i===0?'bangs':i===1?'bedhead':'bob',hairColor:i===0?'#dae0e5':i===1?'#77452f':'#b298d1',outfitColor:i===0?'#e6e9e5':i===1?'#438674':'#695c98'} as Character;this.sprite(c,'npc-'+i,p.x,p.y).catch(e=>live.current.onError(e.message));this.markers.push(this.add.text(p.x,p.y-109,'!',{fontFamily:'sans-serif',fontStyle:'bold',fontSize:'32px',color:'#ffe895',stroke:'#263145',strokeThickness:6}).setOrigin(.5).setDepth(1500));this.add.text(p.x,p.y+5,names[i],{fontSize:'16px',color:'#fff8dd',backgroundColor:'#152c36cc',padding:{x:8,y:4}}).setOrigin(.5,0).setDepth(1500);this.add.zone(p.x,p.y-40,100,120).setInteractive({useHandCursor:true}).setDepth(1600).on('pointerdown',()=>{if(live.current.active)this.go(p.x,p.y+20,i);});});
    if(area==='village')for(const t of [{x:230,y:420,text:'도너 상점'},{x:1330,y:485,text:'실리콘 결정 동굴'}])this.add.text(t.x,t.y,t.text,{fontSize:'20px',color:'#fff4d4',stroke:'#1a3547',strokeThickness:6}).setOrigin(.5).setDepth(1500);
    this.add.text(info.exit.x,area==='village'?725:135,area==='village'?'↓ 나무 관문 · 터치해서 열기':stage?'↑ 모험 대륙으로 돌아가기':'↑ 세미 마을로 돌아가기',{fontSize:'18px',color:'#fff4d4',backgroundColor:'#193d43dd',padding:{x:12,y:10}}).setOrigin(.5).setDepth(1500).setInteractive().on('pointerdown',()=>{if(live.current.active)this.go(info.exit.x,area==='village'?795:info.exit.y,null);});
    if(area==='village'){
@@ -46,6 +57,7 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
     this.add.text(p.x,p.y-18,'MOSFET 공정 퍼즐\n미니게임 · 터치해서 시작',{fontSize:'18px',color:'#fff3ba',backgroundColor:'#153e35ee',align:'center',padding:{x:16,y:14}}).setOrigin(.5).setDepth(1500).setInteractive({useHandCursor:true}).on('pointerdown',()=>{if(live.current.active&&!this.busy)this.go(p.x,p.y,-3);});
    }
    this.input.on('pointerdown',(p:Phaser.Input.Pointer,objects:unknown[])=>{if(!objects.length&&live.current.active){const point=this.cameras.main.getWorldPoint(p.x,p.y);this.go(point.x,point.y,null);}});
+   this.input.on('pointerup',()=>this.finishRelockHold());
    this.game.events.on('talk',()=>{if(!this.player||!live.current.active)return;if(area==='adventure'){live.current.onError('입장하려면 관문을 직접 터치하세요.');return;}if(area==='stage-11'&&Math.hypot(this.player.x-FET_GAME_POINT.x,this.player.y-FET_GAME_POINT.y)<90){live.current.onMiniGame();return;}if(stage){const b=stageBookPoint(area);if(Math.hypot(this.player.x-b.x,this.player.y-b.y)<90){this.readBook();return;}}if(area==='village'&&this.player.y>745){this.openGate();return;}const i=places.findIndex(p=>Math.hypot(this.player!.x-p.x,this.player!.y-p.y)<110);if(i>=0)interact(i);else live.current.onError('NPC를 터치하면 길을 따라 다가갑니다.');});
    this.game.events.on('navigate',(id:number)=>{const local=area==='adventure'?stageDefinitions.findIndex(s=>s.questId===id):stage?0:id;const p=places[local];if(p&&live.current.active)this.go(p.x,p.y+(area==='adventure'?0:20),area==='adventure'?null:local);});this.game.events.on('direction',(v:{x:number;y:number})=>{this.touch=v;});this.game.events.on('map-target',(p:{x:number;y:number})=>{if(live.current.active)this.go(p.x,p.y,null);});
   }
@@ -61,6 +73,24 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
    if(!next.released){live.current.onError(`관리자 관문 두드리기 ${this.knockCount}/7`);return;}
    this.knockCount=0;this.knockIndex=-1;live.current.onReleaseStage(index);
   }
+  tryGateway(index:number){
+   if(!live.current.releasedStages[index]||(!live.current.rootAccount&&!stageUnlocked(live.current.completed,index))){interact(index);return;}
+   this.enterGateway(index);
+  }
+  startRelockHold(index:number){
+   this.clearRelockHold();this.relockIndex=index;const p=gatewayLocations[index];this.relockRing=this.add.graphics().setDepth(1750);live.current.onError('관문을 5초 동안 누르면 다시 잠글 수 있습니다. 짧게 누르면 입장합니다.');
+   this.relockTimer=this.time.delayedCall(5000,()=>{const selected=this.relockIndex;this.clearRelockHold();if(selected>=0)live.current.onRequestRelock(selected);});
+   this.relockRing.lineStyle(5,0xffd87a,.9).strokeCircle(p.x,p.y-50,47);
+  }
+  finishRelockHold(){const selected=this.relockIndex;if(selected<0)return;this.clearRelockHold();this.tryGateway(selected);}
+  clearRelockHold(){this.relockTimer?.remove(false);this.relockTimer=undefined;this.relockRing?.destroy();this.relockRing=undefined;this.relockIndex=-1;}
+  enterGateway(index:number){
+   if(this.busy||!this.player)return;this.busy=true;this.path=[];this.pending=null;this.touch={x:0,y:0};this.destination?.setVisible(false);live.current.onBusy(true);
+   const p=gatewayLocations[index],glow=this.add.circle(p.x,p.y-48,36,0xa7f4ff,.22).setStrokeStyle(3,0xffdf8a,.85).setDepth(p.y+1);this.cameras.main.shake(this.motion(180),.002);
+   const startScale=this.player.scaleX;this.dir=0;this.tweens.add({targets:glow,scale:2.1,alpha:0,duration:this.motion(1150),ease:'Sine.easeOut'});
+   this.tweens.add({targets:this.label,alpha:0,y:p.y-125,duration:this.motion(850)});
+   this.tweens.add({targets:this.player,x:p.x,y:p.y-43,scaleX:.16,scaleY:.16,alpha:0,duration:this.motion(1200),ease:'Sine.easeIn',onUpdate:tween=>{if(this.player)this.player.setFrame(1+Math.floor(tween.progress*10)%8);},onComplete:()=>{glow.destroy();const stillOpen=live.current.rootAccount||(live.current.releasedStages[index]&&stageUnlocked(live.current.completed,index));if(!stillOpen){this.player?.setScale(startScale).setAlpha(1);this.label?.setAlpha(1);this.busy=false;live.current.onBusy(false);interact(index);return;}this.busy=false;live.current.onBusy(false);live.current.onEnterStage(index);}});
+  }
   openGate(){
    if(this.busy||!this.player||!this.gate||!this.boat)return;
    if(!live.current.rootAccount&&![0,1,2].every(id=>live.current.completed.includes(id))){live.current.onError('나무 관문이 잠겨 있어요. Dr. 실리콘의 첫걸음 3개를 완료해 열쇠를 받으세요.');return;}
@@ -69,17 +99,22 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
    this.tweens.add({targets:key,x:768,y:823,duration:this.motion(600),onComplete:()=>{
     this.tweens.add({targets:key,angle:90,duration:this.motion(450),onComplete:()=>{
      key.destroy();const closed=this.add.image(768,843,'journey-props',0).setDisplaySize(200,200).setDepth(851);this.gate!.setFrame(1);this.tweens.add({targets:closed,alpha:0,duration:this.motion(500),onComplete:()=>closed.destroy()});live.current.onError('찰칵! 나무 관문이 열렸어요. 배에 탑승합니다.');
-     this.tweens.add({targets:this.player,y:985,delay:this.motion(500),duration:this.motion(1100),onUpdate:()=>{this.player!.setDepth(this.player!.y);this.label?.setPosition(this.player!.x,this.player!.y-108);},onComplete:()=>{
-      this.player!.setScale(.95).setDepth(980);this.boat!.setDepth(979);this.gate!.setDepth(850);
-      const wake=this.add.ellipse(768,966,90,18,0xc7f4ff,.4).setDepth(978);
-      live.current.onError('모험 대륙으로 출항합니다!');
-      this.tweens.add({targets:[this.boat,this.player,this.label,wake].filter(Boolean),y:'+=450',duration:this.motion(4500),ease:'Sine.easeInOut',onComplete:()=>{live.current.onBusy(false);live.current.onTravel();}});
+     this.tweens.add({targets:this.player,x:768,y:965,scaleX:1.05,scaleY:1.05,delay:this.motion(450),duration:this.motion(1250),ease:'Sine.easeInOut',onUpdate:tween=>{this.player!.setDepth(this.player!.y).setFrame(19+Math.floor(tween.progress*8)%8);this.label?.setPosition(this.player!.x,this.player!.y-108);},onComplete:()=>{
+      this.player!.setScale(.92).setDepth(980).setFrame(18);this.label?.setAlpha(.75).setDepth(981);this.boat!.setDepth(979);this.gate!.setDepth(850);
+      const wakes=[0,1,2].map(i=>this.add.ellipse(768,974+i*9,80+i*34,14+i*4,0xc7f4ff,.42-i*.08).setStrokeStyle(2,0xe5fbff,.55).setDepth(978));
+      const foam=[this.add.circle(704,970,8,0xe5fbff,.65),this.add.circle(832,970,8,0xe5fbff,.65)].map(v=>v.setDepth(978));
+      this.tweens.add({targets:this.boat,angle:{from:-2,to:2},duration:this.motion(520),yoyo:true,repeat:6,ease:'Sine.easeInOut'});
+      this.tweens.add({targets:wakes,scaleX:1.35,alpha:.12,duration:this.motion(850),yoyo:true,repeat:3,ease:'Sine.easeOut'});
+      this.tweens.add({targets:foam,scale:1.8,alpha:.15,duration:this.motion(650),yoyo:true,repeat:4});
+      live.current.onError('물살을 가르며 모험 대륙으로 출항합니다!');this.cameras.main.shake(this.motion(240),.0015);
+      this.tweens.add({targets:[this.boat,this.player,this.label,...wakes,...foam].filter(Boolean),y:'+=450',duration:this.motion(4200),ease:'Sine.easeInOut',onComplete:()=>{live.current.onBusy(false);live.current.onTravel();}});
      }});
     }});
    }});
   }
   update(time:number,delta:number){
    const props=live.current,next=JSON.stringify(props.character);
+   if(this.relockRing&&this.relockTimer&&this.relockIndex>=0){const p=gatewayLocations[this.relockIndex],progress=this.relockTimer.getProgress();this.relockRing.clear().lineStyle(7,0xffd87a,.95).beginPath().arc(p.x,p.y-50,48,-Math.PI/2,-Math.PI/2+Math.PI*2*progress,false).strokePath();}
    if(next!==this.skinKey){this.skinKey=next;const token=++this.generation;this.sprite(props.character,'player-'+token,this.player?.x??spawn.x,this.player?.y??spawn.y).then(sprite=>{if(!sprite)return;if(token!==this.generation){sprite.destroy();return;}const entering=!this.player;this.player?.destroy();this.player=sprite;if(entering&&area==='adventure'){if(destination!==null){this.path=routeToGateway(sprite.x,sprite.y,destination);this.pending=null;}else if(arrival===null)this.go(768,330,null);}this.cameras.main.startFollow(sprite,true,.12,.12);if(!this.label)this.label=this.add.text(0,0,'',{fontSize:'17px',color:'#fff9e4',backgroundColor:'#223644bb',padding:{x:7,y:3}}).setOrigin(.5);}).catch(e=>props.onError(e.message));}
    if(!this.player)return;const tutorialDone=[0,1,2].every(id=>props.completed.includes(id));this.speech?.setVisible(tutorialDone);if(area==='village')this.markers[0]?.setVisible(!tutorialDone);this.markers.forEach((m,i)=>m.setText(area==='adventure'?(!props.releasedStages[i]?'🔐 ':props.completed.includes(stageDefinitions[i].questId)?'✓ ':stageUnlocked(props.completed,i)?'':'🔒 ')+stageDefinitions[i].title:stage?(props.completed.includes(stage.questId)?'✓':'!'):i===0?([0,1,2].every(q=>props.completed.includes(q))?'✓':'!'):i===1?'$':'◈'));
    this.label?.setPosition(this.player.x,this.player.y-108).setText(props.name).setDepth(1600);

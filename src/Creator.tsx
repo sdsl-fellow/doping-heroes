@@ -21,5 +21,5 @@ export function Creator({initial,name,studentId='',completed=[],purchased=[],onS
  <fieldset><legend>액세서리</legend><div className="choices">{[['none','없음'],['glasses','안경'],['headband','머리띠']].map(([v,l])=><button type="button" key={v} aria-pressed={c.accessory===v} onClick={()=>update({accessory:v as Character['accessory']})}>{l}</button>)}</div></fieldset>
  <fieldset><legend>기본 복장</legend><div className="choices">{equipment.filter(item=>item.slot==='outfit').map(item=><button type="button" key={item.id} aria-pressed={c.outfit===item.id} onClick={()=>update({outfit:item.id})}>{item.name}</button>)}</div>{c.gender==='neutral'&&<small>복장은 인간 외형에서 표시됩니다.</small>}</fieldset>
  {swatches('복장 색상',outfitColors,'outfitColor')}<p className="equipment-note">모험에서 얻은 장비는 인벤토리에서 확인하고 착용할 수 있어요.</p>
- </div></div><div className="creator-footer"><p>학번·외형·진행 기록은 이 브라우저에 저장됩니다.<br/><small>학번 입력은 로그인 인증이 아니며, 기기 간 동기화는 아직 지원하지 않습니다.</small></p><button className="primary" disabled={!n.trim()||!validId}>{initial?'저장하기':'모험 떠나기 →'}</button></div></form>;
+ </div></div><div className="creator-footer"><p>학번·외형·진행 기록은 Google Sheets에 안전하게 동기화됩니다.<br/><small>다음 화면에서 이 계정에 사용할 숫자 PIN을 입력하세요.</small></p><button className="primary" disabled={!n.trim()||!validId}>{initial?'저장하기':'모험 떠나기 →'}</button></div></form>;
 }

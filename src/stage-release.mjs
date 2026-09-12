@@ -32,6 +32,7 @@ export function subscribeStageReleases(listener){
 }
 
 export const canEnterStage=(completed,index,root,released)=>Number.isInteger(index)&&index>=0&&index<12&&(root||(released===true&&stageUnlocked(completed,index)));
+export const canContinueStage=(currentStage,completed,index,root,released)=>currentStage===index||canEnterStage(completed,index,root,released);
 export function stageAccessBlock(completed,index,root,released){
  if(canEnterStage(completed,index,root,released))return null;
  if(Number.isInteger(index)&&index>=0&&index<12&&released!==true)return 'admin';

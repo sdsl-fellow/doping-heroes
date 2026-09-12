@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {canEnterStage,emptyStageReleases,nextGatewayKnock,normalizeStageReleases,stageAccessBlock} from '../src/stage-release.mjs';
+import {canContinueStage,canEnterStage,emptyStageReleases,nextGatewayKnock,normalizeStageReleases,stageAccessBlock} from '../src/stage-release.mjs';
 
 test('students need both the administrator release and every prerequisite',()=>{
  const tutorial=[0,1,2],stageOneComplete=[...tutorial,3];
@@ -26,4 +26,11 @@ test('exactly seven consecutive knocks release one gateway and timeout resets',(
 test('release state accepts only twelve explicit boolean values',()=>{
  assert.deepEqual(emptyStageReleases(),Array(12).fill(false));
  assert.deepEqual(normalizeStageReleases([true,1,'true']),[true,...Array(11).fill(false)]);
+});
+
+test('relocking blocks the next admission but lets a student already inside finish',()=>{
+ const completed=[3];
+ assert.equal(canEnterStage(completed,0,false,false),false);
+ assert.equal(canContinueStage(0,completed,0,false,false),true);
+ assert.equal(canContinueStage(-1,completed,0,false,false),false);
 });
