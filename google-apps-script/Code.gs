@@ -5,8 +5,8 @@
  * named ROOT_PIN, and run setupDopingHeroes() once before deploying as a web app.
  */
 
-const API_VERSION = 2;
-const RELEASE_LABEL = 'roster-rootfix-2';
+const API_VERSION = 3;
+const RELEASE_LABEL = 'roster-kst-3';
 const ROOT_STUDENT_ID = '099746';
 const ROOT_NAME = '공수교대';
 const ROSTER_SHEET = 'Roster';
@@ -27,6 +27,7 @@ const AUDIT_HEADERS = ['timestamp', 'event', 'studentId', 'detail'];
 function setupDopingHeroes() {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   if (!spreadsheet) throw new Error('Google Sheet에서 확장 프로그램 → Apps Script로 연 뒤 실행하세요.');
+  spreadsheet.setSpreadsheetTimeZone('Asia/Seoul');
 
   const props = PropertiesService.getScriptProperties();
   props.setProperty('SPREADSHEET_ID', spreadsheet.getId());
@@ -54,7 +55,7 @@ function setupDopingHeroes() {
 
   const stages = ensureSheet_(spreadsheet, STAGES_SHEET, STAGE_HEADERS);
   if (stages.getLastRow() < 2) {
-    const now = new Date().toISOString();
+    const now = koreaTimestamp_();
     const rows = Array.from({length: 12}, function (_, index) {
       return [index + 1, false, now, 'setup'];
     });
@@ -74,7 +75,7 @@ function doGet() {
       apiVersion: API_VERSION,
       release: RELEASE_LABEL,
       stages: readStages_(),
-      serverTime: new Date().toISOString()
+      serverTime: koreaTimestamp_()
     });
   } catch (error) {
     return errorOutput_(error);
@@ -91,7 +92,7 @@ function doPost(e) {
       case 'rootLogin': return jsonOutput_(loginRoot_(request));
       case 'load': return jsonOutput_(loadStudent_(request));
       case 'save': return jsonOutput_(saveStudent_(request));
-      case 'stageState': return jsonOutput_({ok: true, stages: readStages_(), serverTime: new Date().toISOString()});
+      case 'stageState': return jsonOutput_({ok: true, stages: readStages_(), serverTime: koreaTimestamp_()});
       case 'setStage': return jsonOutput_(setStage_(request));
       default: throw apiError_('UNKNOWN_ACTION', '지원하지 않는 요청입니다.');
     }
@@ -124,7 +125,7 @@ function registerStudent_(request) {
 
     const salt = Utilities.getUuid();
     const save = normalizeSave_(request.save, studentId, name);
-    const now = new Date().toISOString();
+    const now = koreaTimestamp_();
     appendStudent_(sheet, studentId, name, save, 1, now, now, salt, hashPin_(studentId, pin, salt));
     audit_('REGISTER', studentId, {revision: 1});
     return studentResponse_(studentId, name, save, 1, issueToken_(studentId, 'student'));
@@ -209,14 +210,14 @@ function saveStudent_(request) {
           revision: currentRevision
         },
         stages: readStages_(),
-        serverTime: new Date().toISOString()
+        serverTime: koreaTimestamp_()
       };
     }
 
     const name = auth.role === 'root' ? ROOT_NAME : requireName_(request.save && request.save.name || values[1]);
     const save = normalizeSave_(request.save, auth.studentId, name);
     const revision = currentRevision + 1;
-    const now = new Date().toISOString();
+    const now = koreaTimestamp_();
     writeStudentProgress_(sheet, row, auth.studentId, name, save, revision, now, values[10], values[11], values[12]);
     audit_('SAVE', auth.studentId, {revision: revision});
     return studentResponse_(auth.studentId, name, save, revision, null);
@@ -241,12 +242,12 @@ function setStage_(request) {
     sheet.getRange(row, 1, 1, 4).setValues([[
       index + 1,
       request.released,
-      new Date().toISOString(),
+      koreaTimestamp_(),
       ROOT_STUDENT_ID
     ]]);
     audit_(request.released ? 'STAGE_RELEASE' : 'STAGE_RELOCK', ROOT_STUDENT_ID, {stage: index + 1});
     SpreadsheetApp.flush();
-    return {ok: true, stages: readStages_(), serverTime: new Date().toISOString()};
+    return {ok: true, stages: readStages_(), serverTime: koreaTimestamp_()};
   } finally {
     lock.releaseLock();
   }
@@ -257,7 +258,7 @@ function studentResponse_(studentId, name, save, revision, token) {
     ok: true,
     student: {studentId: studentId, name: name, save: save, revision: revision},
     stages: readStages_(),
-    serverTime: new Date().toISOString()
+    serverTime: koreaTimestamp_()
   };
   if (token) result.token = token;
   return result;
@@ -335,7 +336,7 @@ function ensureRootRow_(sheet) {
     writeStudentId_(sheet, existing, ROOT_STUDENT_ID);
     return existing;
   }
-  const now = new Date().toISOString();
+  const now = koreaTimestamp_();
   appendStudent_(sheet, ROOT_STUDENT_ID, ROOT_NAME, normalizeSave_({}, ROOT_STUDENT_ID, ROOT_NAME), 1, now, now, '', '');
   return sheet.getLastRow();
 }
@@ -566,7 +567,7 @@ function canonicalStudentId_(value) {
 function audit_(event, studentId, detail) {
   try {
     requiredSheet_(AUDIT_SHEET).appendRow([
-      new Date().toISOString(), event, studentId, JSON.stringify(detail || {})
+      koreaTimestamp_(), event, studentId, JSON.stringify(detail || {})
     ]);
   } catch (ignored) {}
 }
@@ -583,6 +584,10 @@ function jsonClone_(value) {
 
 function randomSecret_() {
   return [Utilities.getUuid(), Utilities.getUuid(), Utilities.getUuid()].join('');
+}
+
+function koreaTimestamp_() {
+  return Utilities.formatDate(new Date(), 'Asia/Seoul', "yyyy-MM-dd'T'HH:mm:ss") + '+09:00';
 }
 
 function constantTimeEqual_(left, right) {
@@ -610,7 +615,7 @@ function errorOutput_(error) {
       code: error && error.code ? error.code : 'SERVER_ERROR',
       message: error && error.message ? error.message : '서버 오류가 발생했습니다.'
     },
-    serverTime: new Date().toISOString()
+    serverTime: koreaTimestamp_()
   });
 }
 
