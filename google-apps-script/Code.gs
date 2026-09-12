@@ -5,9 +5,11 @@
  * named ROOT_PIN, and run setupDopingHeroes() once before deploying as a web app.
  */
 
-const API_VERSION = 1;
+const API_VERSION = 2;
+const RELEASE_LABEL = 'roster-rootfix-2';
 const ROOT_STUDENT_ID = '099746';
 const ROOT_NAME = '공수교대';
+const ROSTER_SHEET = 'Roster';
 const STUDENTS_SHEET = 'Students';
 const STAGES_SHEET = 'StageReleases';
 const AUDIT_SHEET = 'AuditLog';
@@ -18,6 +20,7 @@ const STUDENT_HEADERS = [
   'studentId', 'name', 'completedStages', 'doping', 'type', 'coins',
   'items', 'saveJson', 'revision', 'updatedAt', 'createdAt', 'pinSalt', 'pinHash'
 ];
+const ROSTER_HEADERS = ['studentId', 'name'];
 const STAGE_HEADERS = ['stageNumber', 'released', 'updatedAt', 'updatedBy'];
 const AUDIT_HEADERS = ['timestamp', 'event', 'studentId', 'detail'];
 
@@ -44,6 +47,8 @@ function setupDopingHeroes() {
     props.deleteProperty('ROOT_PIN');
   }
 
+  const roster = ensureSheet_(spreadsheet, ROSTER_SHEET, ROSTER_HEADERS);
+  roster.getRange('A:A').setNumberFormat('@');
   const students = ensureSheet_(spreadsheet, STUDENTS_SHEET, STUDENT_HEADERS);
   students.getRange('A:A').setNumberFormat('@');
 
@@ -67,6 +72,7 @@ function doGet() {
     return jsonOutput_({
       ok: true,
       apiVersion: API_VERSION,
+      release: RELEASE_LABEL,
       stages: readStages_(),
       serverTime: new Date().toISOString()
     });
@@ -79,6 +85,7 @@ function doPost(e) {
   try {
     const request = parseRequest_(e);
     switch (request.action) {
+      case 'checkStudent': return jsonOutput_(checkStudent_(request));
       case 'register': return jsonOutput_(registerStudent_(request));
       case 'login': return jsonOutput_(loginStudent_(request));
       case 'rootLogin': return jsonOutput_(loginRoot_(request));
@@ -93,11 +100,21 @@ function doPost(e) {
   }
 }
 
+function checkStudent_(request) {
+  const studentId = requireStudentId_(request.studentId);
+  if (studentId === ROOT_STUDENT_ID) return {ok: true, allowed: true, registered: true};
+  const allowed = rosterStudent_(studentId) !== null;
+  const row = allowed ? findStudentRow_(studentsSheet_(), studentId) : 0;
+  const registered = row ? Boolean(studentsSheet_().getRange(row, 13).getValue()) : false;
+  return {ok: true, allowed: allowed, registered: registered};
+}
+
 function registerStudent_(request) {
   const studentId = requireStudentId_(request.studentId);
   const name = requireName_(request.name);
   const pin = requireStudentPin_(request.pin);
   if (studentId === ROOT_STUDENT_ID) throw apiError_('RESERVED_ACCOUNT', 'root 계정은 rootLogin을 사용하세요.');
+  assertRosterAllowed_(studentId);
 
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);
@@ -120,6 +137,7 @@ function loginStudent_(request) {
   const studentId = requireStudentId_(request.studentId);
   const pin = requireStudentPin_(request.pin);
   if (studentId === ROOT_STUDENT_ID) throw apiError_('INVALID_CREDENTIALS', '학번 또는 PIN을 확인하세요.');
+  assertRosterAllowed_(studentId);
   enforceLoginLimit_(studentId);
 
   const sheet = studentsSheet_();
@@ -152,8 +170,8 @@ function loginRoot_(request) {
   clearLoginFailures_('root');
 
   const sheet = studentsSheet_();
-  ensureRootRow_(sheet);
-  const row = findStudentRow_(sheet, ROOT_STUDENT_ID);
+  const row = ensureRootRow_(sheet);
+  if (!Number.isInteger(row) || row < 2) throw apiError_('ROOT_ROW_ERROR', 'root 계정 행을 복구하지 못했습니다. repairRootAccount를 실행해 주세요.');
   const values = sheet.getRange(row, 1, 1, STUDENT_HEADERS.length).getValues()[0];
   const save = parseStoredSave_(values[7], ROOT_STUDENT_ID, ROOT_NAME);
   audit_('ROOT_LOGIN', ROOT_STUDENT_ID, {});
@@ -281,7 +299,9 @@ function validArea_(value) {
 }
 
 function appendStudent_(sheet, studentId, name, save, revision, updatedAt, createdAt, pinSalt, pinHash) {
-  sheet.appendRow(studentRow_(studentId, name, save, revision, updatedAt, createdAt, pinSalt, pinHash));
+  const row = Math.max(2, sheet.getLastRow() + 1);
+  writeStudentId_(sheet, row, studentId);
+  sheet.getRange(row, 2, 1, STUDENT_HEADERS.length - 1).setValues([studentRow_(studentId, name, save, revision, updatedAt, createdAt, pinSalt, pinHash).slice(1)]);
 }
 
 function writeStudentProgress_(sheet, row, studentId, name, save, revision, updatedAt, createdAt, pinSalt, pinHash) {
@@ -310,9 +330,31 @@ function studentRow_(studentId, name, save, revision, updatedAt, createdAt, pinS
 }
 
 function ensureRootRow_(sheet) {
-  if (findStudentRow_(sheet, ROOT_STUDENT_ID)) return;
+  const existing = findStudentRow_(sheet, ROOT_STUDENT_ID);
+  if (existing) {
+    writeStudentId_(sheet, existing, ROOT_STUDENT_ID);
+    return existing;
+  }
   const now = new Date().toISOString();
   appendStudent_(sheet, ROOT_STUDENT_ID, ROOT_NAME, normalizeSave_({}, ROOT_STUDENT_ID, ROOT_NAME), 1, now, now, '', '');
+  return sheet.getLastRow();
+}
+
+function repairRootAccount() {
+  const sheet = studentsSheet_();
+  const row = ensureRootRow_(sheet);
+  SpreadsheetApp.flush();
+  if (row < 2) throw new Error('root 행 복구에 실패했습니다.');
+  return 'root 계정 복구 완료: Students!' + sheet.getRange(row, 1).getA1Notation() + ' = ' + sheet.getRange(row, 1).getDisplayValue();
+}
+
+function writeStudentId_(sheet, row, studentId) {
+  if (!Number.isInteger(row) || row < 2) throw apiError_('INVALID_STUDENT_ROW', '학생 기록 행 번호가 올바르지 않습니다.');
+  const cell = sheet.getRange(row, 1);
+  cell.setNumberFormat('@');
+  SpreadsheetApp.flush();
+  cell.setValue("'" + studentId);
+  SpreadsheetApp.flush();
 }
 
 function parseStoredSave_(value, studentId, name) {
@@ -359,7 +401,24 @@ function verifyToken_(token) {
   if (payload.role === 'root' && payload.studentId !== ROOT_STUDENT_ID) {
     throw apiError_('UNAUTHORIZED', '관리자 정보가 올바르지 않습니다.');
   }
+  if (payload.role === 'student') assertRosterAllowed_(payload.studentId);
   return payload;
+}
+
+function assertRosterAllowed_(studentId) {
+  if (rosterStudent_(studentId) === null) {
+    throw apiError_('STUDENT_NOT_ALLOWED', '등록된 수강생 학번이 아닙니다. 담당자에게 문의해 주세요.');
+  }
+}
+
+function rosterStudent_(studentId) {
+  const sheet = rosterSheet_();
+  if (sheet.getLastRow() < 2) return null;
+  const values = sheet.getRange(2, 1, sheet.getLastRow() - 1, 2).getDisplayValues();
+  for (let index = 0; index < values.length; index += 1) {
+    if (canonicalStudentId_(values[index][0]) === studentId) return {row: index + 2, name: String(values[index][1] || '')};
+  }
+  return null;
 }
 
 function sign_(text) {
@@ -458,6 +517,10 @@ function studentsSheet_() {
   return requiredSheet_(STUDENTS_SHEET);
 }
 
+function rosterSheet_() {
+  return requiredSheet_(ROSTER_SHEET);
+}
+
 function stagesSheet_() {
   return requiredSheet_(STAGES_SHEET);
 }
@@ -487,9 +550,17 @@ function ensureSheet_(spreadsheet, name, headers) {
 
 function findStudentRow_(sheet, studentId) {
   if (sheet.getLastRow() < 2) return 0;
-  const match = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1)
-    .createTextFinder(studentId).matchEntireCell(true).findNext();
-  return match ? match.getRow() : 0;
+  const values = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getDisplayValues();
+  for (let index = 0; index < values.length; index += 1) {
+    if (canonicalStudentId_(values[index][0]) === studentId) return index + 2;
+  }
+  return 0;
+}
+
+function canonicalStudentId_(value) {
+  const text = String(value || '').trim().replace(/^'/, '');
+  if (text === ROOT_STUDENT_ID || text === String(Number(ROOT_STUDENT_ID))) return ROOT_STUDENT_ID;
+  return /^\d{1,8}$/.test(text) ? text.padStart(8, '0') : text;
 }
 
 function audit_(event, studentId, detail) {
@@ -547,4 +618,3 @@ function jsonOutput_(value) {
   return ContentService.createTextOutput(JSON.stringify(value))
     .setMimeType(ContentService.MimeType.JSON);
 }
-

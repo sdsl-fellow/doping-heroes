@@ -1,11 +1,11 @@
 import type {Save} from './save';
 
-export const CLOUD_API_URL='https://script.google.com/macros/s/AKfycbyklVOX21jqeZEijkYPSbGc5X8UlsYZ3sV85-JISKECkKc6ER_D6tntARLdsR4lFbOq/exec';
+export const CLOUD_API_URL='https://script.google.com/macros/s/AKfycbyD5HFzdCtSQflYs6GO08TOOClsX5R8kCc7Vjg25dUq-b9TIIWoG6YdQKQZKDLDF_xo/exec';
 const CLOUD_AUTH_KEY='doping-heroes:cloud-auth:v1';
 
 export type CloudSession={studentId:string;token:string;revision:number};
 export type CloudStudent={studentId:string;name:string;save:Save;revision:number};
-export type CloudResponse={ok:boolean;token?:string;student?:CloudStudent;stages?:boolean[];serverTime?:string;error?:{code:string;message:string}};
+export type CloudResponse={ok:boolean;token?:string;student?:CloudStudent;stages?:boolean[];allowed?:boolean;registered?:boolean;serverTime?:string;error?:{code:string;message:string}};
 
 export class CloudError extends Error{
  code:string;response?:CloudResponse;
@@ -28,6 +28,7 @@ async function request(body?:Record<string,unknown>):Promise<CloudResponse>{
 }
 
 export const fetchCloudStages=()=>request();
+export const checkCloudStudent=(studentId:string)=>request({action:'checkStudent',studentId});
 export const registerCloud=(save:Save,pin:string)=>request({action:'register',studentId:save.studentId,name:save.name,pin,save});
 export const loginCloud=(studentId:string,pin:string)=>request({action:'login',studentId,pin});
 export const loginRootCloud=(pin:string)=>request({action:'rootLogin',pin});

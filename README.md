@@ -68,8 +68,9 @@ n형과 p형은 별도 시료입니다. 보상 도핑, 농도 의존 이동도, 
 
 ## Google Sheets / Apps Script
 
-학생의 학번, 캐릭터, 경험치, 아이템과 퀘스트 진행 기록은 학생 PIN으로
-보호된 Apps Script API를 통해 Google Sheets에 저장됩니다. root의 Stage
+`Roster` 시트에 등록된 학번만 캐릭터 생성과 로그인이 허용됩니다. 학생의
+학번, 캐릭터, 경험치, 아이템과 퀘스트 진행 기록은 학생 PIN으로 보호된
+Apps Script API를 통해 Google Sheets에 저장됩니다. root의 Stage
 해금 상태도 같은 API에서 공유되며 게임은 접속 시, 화면 복귀 시, 15초
 간격으로 갱신합니다. 브라우저 저장은 통신 장애 시 복구용으로 유지합니다.
 
