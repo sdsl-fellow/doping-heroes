@@ -2,7 +2,7 @@ import {catalog,inventoryIds,isConsumable,slotNames} from './catalog.mjs';
 import {ItemIcon} from './ItemIcon';
 import './catalog.css';
 import {isRootAccount} from './access.mjs';
-import {canContinueStage,canEnterStage,readStageReleases,stageAccessBlock} from './stage-release.mjs';
+import {canContinueStage,canEnterStage,emptyStageReleases,stageAccessBlock} from './stage-release.mjs';
 import {CloudAccess} from './CloudAccess';
 import {CloudError,fetchCloudStages,loadCloud,normalizeStageFlags,readCloudSession,saveCloud,setCloudStage,writeCloudSession,clearCloudSession,type CloudResponse,type CloudSession} from './cloud';
 import {FetProcessGame} from './FetProcessGame';
@@ -32,7 +32,7 @@ function App(){
  const [save,setSave]=useState<Save|null>(restore),[panel,setPanel]=useState<string|null>(null),[editing,setEditing]=useState(false),[arrival,setArrival]=useState<number|null>(null),[destination,setDestination]=useState<number|null>(null),[pos,setPos]=useState({x:768,y:590}),[toast,setToast]=useState(''),[storageError,setStorageError]=useState(false);
  const [dialog,setDialog]=useState<number|null>(null),[choice,setChoice]=useState<number|null>(null),[feedback,setFeedback]=useState(''),[reward,setReward]=useState(false),[implantFrom,setImplantFrom]=useState(MIN_DOPING),[caveExponent,setCaveExponent]=useState(16),[mapArea,setMapArea]=useState<Save['area']>('village');
  const [cinematic,setCinematic]=useState(false),[cloudReady,setCloudReady]=useState(false),[cloudSession,setCloudSession]=useState<CloudSession|null>(readCloudSession),[syncRetry,setSyncRetry]=useState(0),[relockIndex,setRelockIndex]=useState<number|null>(null);
- const [releasedStages,setReleasedStages]=useState<boolean[]>(readStageReleases);
+ const [releasedStages,setReleasedStages]=useState<boolean[]>(emptyStageReleases);
  const [rewardItems,setRewardItems]=useState<string[]>([]),[implantDone,setImplantDone]=useState(false),[practiceId,setPracticeId]=useState(3);
  const revisionRef=useRef(cloudSession?.revision??0),lastSyncedRef=useRef('');
  const completed=save?.completed??[],character=save?.character??defaultCharacter,area=save?.area??'village',doping=save?.doping??MIN_DOPING,type=save?.type??'n',xp=progress(doping,type),key=hasKey(save),q=dialog===null?null:allQuests[dialog];
