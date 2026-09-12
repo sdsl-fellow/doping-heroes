@@ -26,7 +26,7 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
     this.add.image(p.x,p.y+8,'gateways',i).setOrigin(.5,1).setDisplaySize(112,112).setDepth(p.y);
     this.markers.push(this.add.text(p.x,p.y-113,stageDefinitions[i].title,{fontSize:'16px',color:'#fff3c3',backgroundColor:'#163e49dd',align:'center',wordWrap:{width:190},padding:{x:7,y:6}}).setOrigin(.5,1).setDepth(1500));
     if(i===0)this.add.image(p.x,p.y-67,'silicon-crystal').setDisplaySize(30,30).setDepth(p.y+1);
-    this.add.zone(p.x,p.y-45,190,225).setInteractive({useHandCursor:true}).setDepth(1600).on('pointerdown',()=>{
+    this.add.zone(p.x,p.y-48,100,108).setInteractive({useHandCursor:true}).setDepth(1600).on('pointerdown',()=>{
      if(!live.current.active||this.busy)return;const near=this.player&&Math.hypot(this.player.x-p.x,this.player.y-p.y)<85;
      if(!near){this.go(p.x,p.y,null);return;}
      if(live.current.rootAccount){if(!live.current.releasedStages[i])this.knock(i);else this.startRelockHold(i);return;}

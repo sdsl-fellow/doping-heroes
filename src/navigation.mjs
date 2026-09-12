@@ -36,7 +36,7 @@ export function route(x,y,tx,ty,area='village'){
 }
 export const npcLocations=[{x:800,y:406},{x:298,y:492},{x:1320,y:582}];
 
-const adventureCorridors=[...hubRoads.flatMap(points=>points.slice(1).map((end,i)=>[...points[i],...end,34])),...gatewayLocations.map(p=>[p.x,p.y+10,p.x,p.y+50,45])];
+const adventureCorridors=[...hubRoads.flatMap(points=>points.slice(1).map((end,i)=>[...points[i],...end,34])),...gatewayLocations.map(p=>[p.x,p.y+25,p.x,p.y+60,60])];
 export const stageRoadHeights=[465,450,495,470,480,500,500,450,470,470,490,470];
 export const stageBookPoint=area=>({x:stageIndex(area)===9?400:250,y:stageRoadHeights[stageIndex(area)]});
 function corridorsForStage(area){
