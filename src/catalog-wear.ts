@@ -22,7 +22,7 @@ async function icon(id:string):Promise<Art>{
   const xs=largest.map(p=>p%c.width),ys=largest.map(p=>Math.floor(p/c.width));
   const x=Math.min(...xs),y=Math.min(...ys),w=Math.max(...xs)-x+1,h=Math.max(...ys)-y+1;
   const out=canvas(w,h),oc=out.getContext('2d')!;oc.drawImage(c,x,y,w,h,0,0,w,h);if(item.id==='C01'){const p=oc.getImageData(0,0,w,h);for(let i=0;i<p.data.length;i+=4){const value=Math.max(p.data[i],p.data[i+1],p.data[i+2]);p.data[i]=p.data[i+1]=p.data[i+2]=value;}oc.putImageData(p,0,0);}resolve(out);
- };im.src='./item-icons/'+item.assetCode+'.png';});cache.set(item.id,promise);promise.catch(()=>cache.delete(item.id));return promise;
+ };im.src='./item-icons/'+item.assetCode+'.png?v=3';});cache.set(item.id,promise);promise.catch(()=>cache.delete(item.id));return promise;
 }
 export async function loadGear(c:Character):Promise<Gear>{const result:Gear={};await Promise.all((['outfit','shoes','hat','weapon','accessory'] as const).map(async s=>{if(catalogItem(c[s]))result[s]=await icon(c[s]);}));return result;}
 function draw(ctx:CanvasRenderingContext2D,im:Art,x:number,y:number,w:number,h:number,mirror=false){ctx.save();ctx.imageSmoothingEnabled=false;if(mirror){ctx.translate(x+w,y);ctx.scale(-1,1);ctx.drawImage(im,0,0,w,h);}else ctx.drawImage(im,x,y,w,h);ctx.restore();}
@@ -54,7 +54,7 @@ export function paintCatalogLayer(ctx:CanvasRenderingContext2D,path:string,c:Cha
  }
  if(path.startsWith('hat/cloth/')&&g.hat){
   ctx.clearRect(0,0,576,256);
-  for(let r=0;r<4;r++)for(let f=0;f<9;f++){const side=r===1||r===3,id=catalogItem(c.hat)!.id,high=['H07','H08','H10'].includes(id),hood=id==='H09';const w=hood?29:side?26:30,h=hood?29:high?27:18;
+  for(let r=0;r<4;r++)for(let f=0;f<9;f++){const side=r===1||r===3,id=catalogItem(c.hat)!.id,high=['H06','H07','H08','H10'].includes(id),hood=id==='H09';const w=hood?29:side?26:30,h=hood?29:high?27:18;
    draw(ctx,hood&&r!==0?openHood(g.hat):g.hat,f*64+32-w/2,r*64+(hood?12:high?0:9)+bob(r,f),w,h,r===3);
   }
  }
@@ -113,10 +113,10 @@ export function paintCatalogEquipment(ctx:CanvasRenderingContext2D,c:Character,g
   }
   if(g.hat){
    if(animal){
-   if(g.hat){const id=catalogItem(c.hat)!.id,high=['H07','H08','H10'].includes(id),hood=id==='H09';const w=hood?24:23,h=hood?24:high?23:14;const y=(dog?(r===0?12:r===2?22:18):(r===0?17:r===2?(hood?27:22):(hood?23:18)))+b;
+   if(g.hat){const id=catalogItem(c.hat)!.id,high=['H06','H07','H08','H10'].includes(id),hood=id==='H09';const w=hood?24:23,h=hood?24:high?23:14;const y=(dog?(r===0?12:r===2?22:18):(r===0?17:r===2?(hood?27:22):(hood?23:18)))+b;
     draw(ctx,hood&&r!==0?openHood(g.hat):g.hat,headX-w/2,y-(high?9:0),w,h,r===3);
    }
-   }else{const id=catalogItem(c.hat)!.id,high=['H07','H08','H10'].includes(id),hood=id==='H09',w=hood?29:side?26:30,h=hood?29:high?27:18;
+   }else{const id=catalogItem(c.hat)!.id,high=['H06','H07','H08','H10'].includes(id),hood=id==='H09',w=hood?29:side?26:30,h=hood?29:high?27:18;
     draw(ctx,hood&&r!==0?openHood(g.hat):g.hat,32-w/2,(hood?12:high?0:9)+b,w,h,r===3);
    }
   }

@@ -15,7 +15,7 @@ const rows=[
 ];
 // Keep artwork coordinates stable while catalogue codes follow display order.
 const originalArtwork=new Map(rows.flatMap(([prefix,,items],row)=>items.map(([key],col)=>[key,{assetCode:prefix+String(col+1).padStart(2,'0'),icon:row*10+col}])));
-const orders={F:['basic','sandals','moss-boots','boots','snowboots','violet-boots','crystal-boots','lab-shoes','cleanroom-shoes','electron-boots'],H:['cap','trailcap','sun-cap','miner-helmet','forest-cap','crystal-cap','moon-cap','process-hat','cleanroom-hood','silicon-crown']};
+const orders={F:['basic','sandals','moss-boots','boots','snowboots','violet-boots','crystal-boots','lab-shoes','cleanroom-shoes','electron-boots'],H:['cap','trailcap','sun-cap','miner-helmet','forest-cap','moon-cap','crystal-cap','process-hat','cleanroom-hood','silicon-crown']};
 const prices={F:[null,60,80,null,100,120,140,150,180,220],H:[null,60,80,100,100,120,120,180,200,300]};
 for(const [prefix,,items] of rows){if(!orders[prefix])continue;items.sort((a,b)=>orders[prefix].indexOf(a[0])-orders[prefix].indexOf(b[0]));items.forEach((item,i)=>item[2]=prices[prefix][i]);}
 export const catalog=rows.flatMap(([prefix,slot,items],row)=>items.map(([legacyId,name,price,quest,base,color],col)=>({id:prefix+String(col+1).padStart(2,'0'),legacyId,name,price,quest,base,color,slot,code:prefix+String(col+1).padStart(2,'0'),row,col,...originalArtwork.get(legacyId)})));
