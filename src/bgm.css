@@ -1,0 +1,8 @@
+.bgm-controls{display:flex;justify-content:flex-end;position:relative;z-index:1;height:40px}
+.bgm-controls .bgm-toggle{display:flex;align-items:center;justify-content:center;min-height:40px;min-width:88px;padding:4px 0;border:0!important;background:transparent!important;box-shadow:none!important;border-radius:16px;touch-action:manipulation}
+.bgm-toggle>span{display:flex;align-items:center;gap:5px;height:27px;padding:0 9px;border:1px solid #9bc2b18c;border-radius:14px;background:#163a43e8;color:#d9e6d8;font-size:10px;letter-spacing:.4px;white-space:nowrap}
+.bgm-toggle[aria-pressed=false]>span{color:#a8bbb9;background:#17343be0}
+.bgm-toggle svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.modal>.bgm-controls{position:sticky;top:0;z-index:5;margin-top:-8px;margin-bottom:4px;pointer-events:none}
+.modal>.bgm-controls>.bgm-toggle{pointer-events:auto}
+@media(pointer:coarse){.bgm-controls{height:44px}.bgm-controls .bgm-toggle{min-height:44px}}
