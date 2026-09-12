@@ -11,7 +11,7 @@ export const outfits=[['C01','세미 마을 티셔츠'],['C02','여행자 셔츠
 export const defaultCharacter:Character={gender:'male',species:'dog',body:'sturdy',shoes:'F01',hat:'none',weapon:'none',hair:'bedhead',hairColor:hairColors[1],skin:skinColors[0],outfit:'C01',outfitColor:outfitColors[0],accessory:'none'};
 export function validCharacter(raw:unknown):Character{
  const r={...(raw&&typeof raw==='object'?raw:{})} as Partial<Character>;for(const slot of ['outfit','shoes','hat','weapon','accessory'] as const)if(r[slot])r[slot]=migrateItemId(r[slot]);
- return {gender:['male','female','neutral'].includes(r.gender??'')?r.gender!:defaultCharacter.gender,species:r.species==='cat'?'cat':'dog',body:r.body==='agile'||String(r.body)==='female'?'agile':'sturdy',shoes:lootVariant(r.shoes)?.slot==='shoes'?r.shoes!:r.shoes==='F04'?'F04':r.shoes==='F02'?'F02':'F01',hat:lootVariant(r.hat)?.slot==='hat'?r.hat!:r.hat==='H02'?'H02':r.hat==='H01'?'H01':'none',weapon:lootVariant(r.weapon)?.slot==='weapon'?r.weapon!:r.weapon==='W01'?'W01':'none',hair:hairStyles.some(s=>s[0]===r.hair)?r.hair!:defaultCharacter.hair,hairColor:hairColors.includes(r.hairColor??'')?r.hairColor!:defaultCharacter.hairColor,skin:skinColors.includes(r.skin??'')?r.skin!:defaultCharacter.skin,outfit:lootVariant(r.outfit)?.slot==='outfit'?r.outfit!:outfits.some(s=>s[0]===r.outfit)?r.outfit!:defaultCharacter.outfit,outfitColor:outfitColors.includes(r.outfitColor??'')?r.outfitColor!:defaultCharacter.outfitColor,accessory:catalogItem(r.accessory)?.slot==='accessory'?r.accessory!:'none'};
+ return {gender:['male','female','neutral'].includes(r.gender??'')?r.gender!:defaultCharacter.gender,species:r.species==='cat'?'cat':'dog',body:r.body==='agile'||String(r.body)==='female'?'agile':'sturdy',shoes:r.shoes==='none'?'none':lootVariant(r.shoes)?.slot==='shoes'?r.shoes!:r.shoes==='F04'?'F04':r.shoes==='F02'?'F02':'F01',hat:lootVariant(r.hat)?.slot==='hat'?r.hat!:r.hat==='H02'?'H02':r.hat==='H01'?'H01':'none',weapon:lootVariant(r.weapon)?.slot==='weapon'?r.weapon!:r.weapon==='W01'?'W01':'none',hair:hairStyles.some(s=>s[0]===r.hair)?r.hair!:defaultCharacter.hair,hairColor:hairColors.includes(r.hairColor??'')?r.hairColor!:defaultCharacter.hairColor,skin:skinColors.includes(r.skin??'')?r.skin!:defaultCharacter.skin,outfit:r.outfit==='none'?'none':lootVariant(r.outfit)?.slot==='outfit'?r.outfit!:outfits.some(s=>s[0]===r.outfit)?r.outfit!:defaultCharacter.outfit,outfitColor:outfitColors.includes(r.outfitColor??'')?r.outfitColor!:defaultCharacter.outfitColor,accessory:catalogItem(r.accessory)?.slot==='accessory'?r.accessory!:'none'};
 }
 const base='./lpc/';
 // Legacy asset names are resolved only at the rendering boundary.
@@ -24,12 +24,12 @@ export function layers(c:Character){c=renderCharacter(c);const outfit=lootVarian
  {path:`head/heads/human/${c.gender}/walk.png`,color:c.skin},
  {path:'legs/pants/male/walk.png',color:'#38455c'},
  {path:`feet/${(shoes?.base??c.shoes)!=='basic'?'boots':'shoes'}/basic/male/walk.png`,color:shoes?.color??(c.shoes==='snowboots'?'#d6dfe3':c.shoes==='boots'?'#b88450':'#564433')},
- {path:`torso/clothes/${clothes}/male/walk.png`,color:(({ 'C01':'#fff0de','C02':'#fff0df','C03':'#514a8c','C04':'#2779dc','C05':'#538047','C06':'#e24439','C07':'#f5ad25'} as Record<string,string>)[outfit?.id as string]??outfit?.color??c.outfitColor)},
+ {path:`torso/clothes/${clothes}/male/walk.png`,color:(({ 'C01':'#f5f6f7','C02':'#fff0df','C03':'#514a8c','C04':'#2779dc','C05':'#538047','C06':'#e24439','C07':'#f5ad25'} as Record<string,string>)[outfit?.id as string]??outfit?.color??c.outfitColor)},
  {path:`hair/${c.hair}/adult/walk.png`,color:c.hairColor},
  ...(c.accessory==='headband'?[{path:'hat/headband/thick/adult/walk.png',color:'#d87569'}]:[]),
  ...(c.hat!=='none'?[{path:'hat/cloth/leather_cap/adult/walk.png',color:hat?.color??(c.hat==='trailcap'?'#b9dbe4':'#6b8c56')}]:[]),
  ...((weapon?.base??c.weapon)==='sword'?[{path:'weapon/sword/arming/universal/fg/walk/steel.png',color:weapon?.color??'#e1e8ee'}]:[])
- ];}
+ ].filter(l=>!(c.outfit==='none'&&l.path.startsWith('torso/'))&&!(c.shoes==='none'&&l.path.startsWith('feet/')));}
 const cached=new Map<string,Promise<HTMLCanvasElement>>();
 const images=new Map<string,Promise<HTMLImageElement>>();
 function load(path:string){if(!images.has(path))images.set(path,new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>{images.delete(path);reject(new Error('캐릭터 이미지를 불러오지 못했습니다. 새로고침해 주세요.'));};img.src=base+path;}));return images.get(path)!;}

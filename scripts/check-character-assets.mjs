@@ -3,6 +3,10 @@ import assert from 'node:assert/strict';
 import {layers,defaultCharacter,hairStyles,outfits,validCharacter} from '../src/character.ts';
 import {equipment,availableCharacter,unlocked} from '../src/equipment.ts';
 const fullyEquipped={...defaultCharacter,outfit:'C03',hat:'H01',weapon:'W01',shoes:'F02'};
+const unequipped={...defaultCharacter,outfit:'none',shoes:'none',hat:'none',weapon:'none',accessory:'none'};
+assert.deepEqual(validCharacter(unequipped),unequipped);
+assert.deepEqual(availableCharacter(unequipped,[]),unequipped);
+assert.ok(layers(unequipped).every(l=>!l.path.startsWith('torso/')&&!l.path.startsWith('feet/')));
 // A saved custom clothing colour must never replace an equipped item's palette.
 for(const outfit of ['C01','C02','C03']){
  const white=layers({...defaultCharacter,outfit,outfitColor:'#e6e9e5'});

@@ -20,7 +20,7 @@ async function icon(id:string):Promise<Art>{
   largest=components.filter(points=>points.length>=largest.length*.08).flat();
   const xs=largest.map(p=>p%c.width),ys=largest.map(p=>Math.floor(p/c.width));
   const x=Math.min(...xs),y=Math.min(...ys),w=Math.max(...xs)-x+1,h=Math.max(...ys)-y+1;
-  const out=canvas(w,h);out.getContext('2d')!.drawImage(c,x,y,w,h,0,0,w,h);resolve(out);
+  const out=canvas(w,h),oc=out.getContext('2d')!;oc.drawImage(c,x,y,w,h,0,0,w,h);if(item.id==='C01'){const p=oc.getImageData(0,0,w,h);for(let i=0;i<p.data.length;i+=4){const value=Math.max(p.data[i],p.data[i+1],p.data[i+2]);p.data[i]=p.data[i+1]=p.data[i+2]=value;}oc.putImageData(p,0,0);}resolve(out);
  };im.src='./item-icons/'+item.id+'.png';});cache.set(item.id,promise);promise.catch(()=>cache.delete(item.id));return promise;
 }
 export async function loadGear(c:Character):Promise<Gear>{const result:Gear={};await Promise.all((['outfit','shoes','hat','weapon','accessory'] as const).map(async s=>{if(catalogItem(c[s]))result[s]=await icon(c[s]);}));return result;}
