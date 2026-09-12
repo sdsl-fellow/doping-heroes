@@ -32,6 +32,11 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
     this.add.zone(768,812,165,160).setInteractive({useHandCursor:true}).setDepth(1601).on('pointerdown',()=>{if(live.current.active&&!this.busy)this.go(768,795,-1);});
    }
    if(stage){const point=stageBookPoint(area);
+    // World-space signposts stay on the actual paths as the camera moves.
+    const sign=(x:number,y:number,text:string)=>this.add.text(x,y,text,{fontSize:'17px',color:'#f4e9c5',stroke:'#203543',strokeThickness:3,align:'center'}).setOrigin(.5).setAlpha(.78).setDepth(100);
+    sign(645,point.y-24,'← 책 읽기');
+    sign(825,info.npc!.y+25,'퀴즈 ↑');
+    if(area==='stage-11')sign(825,735,'미니게임 ↓');
     this.book=this.add.image(point.x,point.y-36,'journey-props',3).setDisplaySize(150,150).setDepth(point.y-1);
     this.add.text(point.x,point.y-115,'낡은 책 · 읽기',{fontSize:'16px',color:'#ffe6a3',backgroundColor:'#263c36dd',padding:{x:8,y:6}}).setOrigin(.5).setDepth(1500);
     this.add.zone(point.x,point.y-35,125,145).setInteractive({useHandCursor:true}).setDepth(1601).on('pointerdown',()=>{if(live.current.active&&!this.busy)this.go(point.x,point.y,-2);});
