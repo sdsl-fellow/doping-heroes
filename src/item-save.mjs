@@ -22,11 +22,7 @@ export function normalizeItemSave(save){
  return {...save,item_schema:ITEM_SCHEMA,character,purchased:[...new Set((save.purchased??[]).map(convert).filter(id=>catalogItem(id)))],quantities};
 }
 
-// Send explicitly versioned v1 codes until independently deployed servers migrate them.
+// Runtime IDs are already schema 3; never downgrade IDs on the wire.
 export function toCloudItemSave(save){
- const previous=Object.fromEntries(Object.entries(oldCodes).map(([old,current])=>[current,old]));
- const wireId=id=>{const v2=swappedHats[id]??id;return previous[v2]??v2;};
- const character={...save.character};
- for(const slot of ['outfit','shoes','hat','weapon','accessory'])if(character[slot])character[slot]=wireId(character[slot]);
- return {...save,item_schema:1,character,purchased:(save.purchased??[]).map(wireId)};
+ return normalizeItemSave({...save,item_schema:ITEM_SCHEMA});
 }

@@ -12,7 +12,7 @@ test('requested ordering retains each original artwork and ascending purchase pr
  assert.ok(inventoryIds({completed:[0],purchased:[]}).includes('F04'));
  assert.equal(catalogItem('F04').price,null);
 });
-test('all old footwear and hats migrate once, preserving ownership across both server versions',()=>{
+test('all old footwear and hats migrate once, preserving ownership through schema 3 server writes',()=>{
  const context=vm.createContext({});
  const source=fs.readFileSync('google-apps-script/Code.gs','utf8');
  vm.runInContext(source.slice(source.indexOf('// BEGIN GENERATED ITEM RULES')),context);
@@ -23,8 +23,9 @@ test('all old footwear and hats migrate once, preserving ownership across both s
   assert.equal(next.character[slot],expected);assert.deepEqual(next.purchased,[expected]);
   assert.deepEqual(normalizeItemSave(next),next);
   const wire=toCloudItemSave(next);
-  const {item_schema,...oldServer}=wire;
-  assert.deepEqual(normalizeItemSave(oldServer),next);
+  assert.equal(wire.item_schema,3);
+  assert.equal(wire.character[slot],expected);
+  assert.deepEqual(normalizeItemSave(wire),next);
   context.input=wire;
   assert.deepEqual(JSON.parse(JSON.stringify(vm.runInContext('normalizeItemSave(input)',context))),next);
   context.input=save;
@@ -32,14 +33,15 @@ test('all old footwear and hats migrate once, preserving ownership across both s
  }
 });
 
-test('schema 2 crystal and moon hats swap exactly once and survive v2 server replies',()=>{
+test('schema 2 hats migrate once and outbound schema 3 retains the new IDs',()=>{
  for(const [old,current] of [['H06','H07'],['H07','H06']]){
   const input={item_schema:2,character:{hat:old},purchased:[old],coins:120};
   const next=normalizeItemSave(input);
   assert.equal(next.character.hat,current);assert.deepEqual(next.purchased,[current]);
   assert.equal(next.item_schema,3);assert.deepEqual(normalizeItemSave(next),next);
   const wire=toCloudItemSave(next);
-  // v2 server changes only the earlier footwear/hat ordering, leaving H06/H07 intact.
-  assert.deepEqual(normalizeItemSave({...wire,item_schema:2}),next);
+  assert.equal(wire.character.hat,current);
+  assert.equal(wire.item_schema,3);
+  assert.deepEqual(normalizeItemSave(wire),next);
  }
 });

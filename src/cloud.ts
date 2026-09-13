@@ -2,12 +2,12 @@ import type {Save} from './save';
 import {normalizeItemSave,toCloudItemSave} from './item-save.mjs';
 import {fromStoredSave,toStoredSave} from './completion-save.mjs';
 
-export const CLOUD_API_URL='https://script.google.com/macros/s/AKfycbxhD26YhH_DPStnnVkwbn-qqhnyOn8GyCM4tYGw0Uzp02HF1HywH5H9ww9fe7l4ujI/exec';
+export const CLOUD_API_URL='https://script.google.com/macros/s/AKfycbwO_gVHvQQwMKz-2fgFUFneOzQzDHqedARM0HBWVUATFYaQH1R8nXUrPPLt_9p-R2CC/exec';
 const CLOUD_AUTH_KEY='doping-heroes:cloud-auth:v1';
 
 export type CloudSession={studentId:string;token:string;revision:number};
 export type CloudStudent={studentId:string;name:string;save:Save;revision:number};
-export type CloudResponse={ok:boolean;token?:string;student?:CloudStudent;stages?:boolean[];allowed?:boolean;registered?:boolean;serverTime?:string;error?:{code:string;message:string}};
+export type CloudResponse={ok:boolean;item_schema?:number;token?:string;student?:CloudStudent;stages?:boolean[];allowed?:boolean;registered?:boolean;serverTime?:string;error?:{code:string;message:string}};
 
 export class CloudError extends Error{
  code:string;response?:CloudResponse;
@@ -15,6 +15,10 @@ export class CloudError extends Error{
 }
 
 async function request(body?:Record<string,unknown>):Promise<CloudResponse>{
+ if(body?.save){
+  const server=await request();
+  if(server.item_schema!==3)throw new CloudError('ITEM_SCHEMA_MISMATCH','연결된 서버가 최신 아이템 ID를 지원하지 않습니다. Code_v7.gs를 새 버전으로 배포해 주세요. 저장은 전송하지 않았습니다.');
+ }
  // Keep the old request field during the independently deployed v4→v5 transition.
  // v5 strips it before persisting; this prevents v4 from erasing progress.
  if(body?.save)body={...body,save:{...toCloudItemSave(fromStoredSave(body.save)),fetPuzzleCompleted:(body.save as Save).puzzle_completed?.includes(10)??false}};
