@@ -26,9 +26,10 @@ test('verified login avoids pre-save GET and uses a 45-second deadline',async()=
  globalThis.fetch=async(url,options)=>{calls.push(options);return {text:async()=>JSON.stringify({ok:true,student:{save:{item_schema:3,character:{hat:'H06'},purchased:['H06']},revision:1}})};};
  try{
   await api.loadCloud('test');calls.length=0;
-  await api.saveCloud('test',{item_schema:3,character:{hat:'H06'},purchased:['H06']},1);
+  await api.saveCloud('test',{item_schema:3,character:{hat:'H06'},purchased:['H06']},1,false);
   assert.equal(calls.length,1);assert.equal(calls[0].method,'POST');
   assert.equal(JSON.parse(calls[0].body).save.character.hat,'H06');
+  assert.equal(JSON.parse(calls[0].body).includeStages,false);
   assert.ok(deadlines.every(ms=>ms===45000));
  }finally{globalThis.fetch=oldFetch;globalThis.window=oldWindow;}
 });

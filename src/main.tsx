@@ -59,7 +59,7 @@ function App(){
   for(let attempt=0;attempt<2;attempt++){
    const character=availableCharacter({...base.character,...Object.fromEntries(['outfit','shoes','hat','weapon','accessory'].map(slot=>[slot,selected[slot as keyof Character]]))},base.completed,inventoryIds(base));
    const candidate={...base,character};
-   try{const response=await saveCloud(cloudSession.token,candidate,revisionRef.current);if(!response.student)throw new Error('저장 결과를 확인하지 못했습니다. 다시 시도해 주세요.');const student=response.student;revisionRef.current=student.revision;lastSyncedRef.current=JSON.stringify(student.save);const session={...cloudSession,revision:student.revision};writeCloudSession(session);setCloudSession(session);saveRef.current=student.save;setSave(student.save);setStorageError(false);return student.save.character;}
+   try{const response=await saveCloud(cloudSession.token,candidate,revisionRef.current,false);if(!response.student)throw new Error('저장 결과를 확인하지 못했습니다. 다시 시도해 주세요.');const student=response.student;revisionRef.current=student.revision;lastSyncedRef.current=JSON.stringify(student.save);const session={...cloudSession,revision:student.revision};writeCloudSession(session);setCloudSession(session);saveRef.current=student.save;setSave(student.save);setStorageError(false);return student.save.character;}
    catch(error){if(error instanceof CloudError&&error.code==='REVISION_CONFLICT'&&error.response?.student&&attempt===0){base=error.response.student.save;revisionRef.current=error.response.student.revision;continue;}setStorageError(true);throw error;}
   }
   throw new Error('저장하지 못했습니다. 다시 시도해 주세요.');

@@ -54,7 +54,7 @@ export const registerCloud=(save:Save,pin:string)=>request({action:'register',st
 export const loginCloud=(studentId:string,pin:string)=>request({action:'login',studentId,pin});
 export const loginRootCloud=(pin:string)=>request({action:'rootLogin',pin});
 export const loadCloud=(token:string)=>request({action:'load',token});
-export const saveCloud=(token:string,save:Save,baseRevision:number)=>request({action:'save',token,save,baseRevision});
+export const saveCloud=(token:string,save:Save,baseRevision:number,includeStages=true)=>request({action:'save',token,save,baseRevision,includeStages});
 export const setCloudStage=(token:string,index:number,released:boolean)=>request({action:'setStage',token,index,released});
 
 export function readCloudSession():CloudSession|null{
