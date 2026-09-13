@@ -14,30 +14,41 @@ export class CloudError extends Error{
  constructor(code:string,message:string,response?:CloudResponse){super(message);this.name='CloudError';this.code=code;this.response=response;}
 }
 
+let serverItemSchema:number|undefined;
+let stageRequest:Promise<CloudResponse>|null=null;
+
 async function request(body?:Record<string,unknown>):Promise<CloudResponse>{
- if(body?.save){
-  const server=await request();
+ if(body?.save&&serverItemSchema!==3){
+  const server=await fetchCloudStages();
   if(server.item_schema!==3)throw new CloudError('ITEM_SCHEMA_MISMATCH','연결된 서버가 최신 아이템 ID를 지원하지 않습니다. Code_v7.gs를 새 버전으로 배포해 주세요. 저장은 전송하지 않았습니다.');
  }
  // Keep the old request field during the independently deployed v4→v5 transition.
  // v5 strips it before persisting; this prevents v4 from erasing progress.
  if(body?.save)body={...body,save:{...toCloudItemSave(fromStoredSave(body.save)),fetPuzzleCompleted:(body.save as Save).puzzle_completed?.includes(10)??false}};
- const controller=new AbortController(),timer=window.setTimeout(()=>controller.abort(),15000);
+ const controller=new AbortController(),timer=window.setTimeout(()=>controller.abort(),45000);
  try{
   const response=await fetch(CLOUD_API_URL,body?{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(body),redirect:'follow',credentials:'omit',signal:controller.signal}:{method:'GET',redirect:'follow',credentials:'omit',cache:'no-store',signal:controller.signal});
   const text=await response.text();let data:CloudResponse;
   try{data=JSON.parse(text) as CloudResponse;}catch{throw new CloudError('INVALID_RESPONSE','클라우드 저장소의 응답을 읽을 수 없습니다. Apps Script 배포 권한을 확인해 주세요.');}
+  // Read capability from the server payload before local migrations add schema 3.
+  if(data.ok){
+   if(typeof data.item_schema==='number')serverItemSchema=data.item_schema;
+   else if(data.student)serverItemSchema=data.student.save?.item_schema;
+  }
   if(data.student)data.student.save=normalizeItemSave(fromStoredSave(data.student.save));
   if(!data.ok)throw new CloudError(data.error?.code??'CLOUD_ERROR',data.error?.message??'클라우드 요청에 실패했습니다.',data);
   return data;
  }catch(error){
   if(error instanceof CloudError)throw error;
-  if(error instanceof DOMException&&error.name==='AbortError')throw new CloudError('TIMEOUT','클라우드 저장소 응답이 지연되고 있습니다. 다시 시도해 주세요.');
+  if(error instanceof DOMException&&error.name==='AbortError')throw new CloudError('TIMEOUT','45초 동안 서버 응답을 받지 못했습니다. 선택한 장비는 유지됩니다. 잠시 후 다시 저장해 주세요.');
   throw new CloudError('NETWORK_ERROR','클라우드 저장소에 연결할 수 없습니다. 인터넷 연결을 확인해 주세요.');
  }finally{window.clearTimeout(timer);}
 }
 
-export const fetchCloudStages=()=>request();
+export const fetchCloudStages=()=>{
+ if(!stageRequest)stageRequest=request().finally(()=>{stageRequest=null;});
+ return stageRequest;
+};
 export const checkCloudStudent=(studentId:string)=>request({action:'checkStudent',studentId});
 export const registerCloud=(save:Save,pin:string)=>request({action:'register',studentId:save.studentId,name:save.name,pin,save});
 export const loginCloud=(studentId:string,pin:string)=>request({action:'login',studentId,pin});
