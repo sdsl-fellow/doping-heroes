@@ -23,7 +23,7 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
    this.destination=this.add.ellipse(768,550,24,12,0xffedb0,.35).setStrokeStyle(2,0xffedb0).setVisible(false).setDepth(900);
    this.keys=this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,E,SPACE',false) as Record<string,Phaser.Input.Keyboard.Key>;
    places.forEach((p,i)=>{if(area==='adventure'){
-    this.add.image(p.x,p.y+8,'gateways',i).setOrigin(.5,1).setDisplaySize(112,112).setDepth(p.y);
+    this.add.image(p.x,p.y+8,'gateways',stageDefinitions[i].art?stageDefinitions[i].art-1:i).setOrigin(.5,1).setDisplaySize(112,112).setDepth(p.y);
     this.markers.push(this.add.text(p.x,p.y-113,stageDefinitions[i].title,{fontSize:'16px',color:'#fff3c3',backgroundColor:'#163e49dd',align:'center',wordWrap:{width:190},padding:{x:7,y:6}}).setOrigin(.5,1).setDepth(1500));
     if(i===0)this.add.image(p.x,p.y-67,'silicon-crystal').setDisplaySize(30,30).setDepth(p.y+1);
     this.add.zone(p.x,p.y-48,100,108).setInteractive({useHandCursor:true}).setDepth(1600).on('pointerdown',()=>{
@@ -47,18 +47,18 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
     const sign=(x:number,y:number,text:string)=>this.add.text(x,y,text,{fontSize:'17px',color:'#f4e9c5',stroke:'#203543',strokeThickness:3,align:'center'}).setOrigin(.5).setAlpha(.78).setDepth(100);
     sign(645,point.y-24,'← 책 읽기');
     sign(825,info.npc!.y+25,'퀴즈 ↑');
-    if(area==='stage-11')sign(825,735,'미니게임 ↓');
+    if(area==='stage-7')sign(825,735,'미니게임 ↓');
     this.book=this.add.image(point.x,point.y-36,'journey-props',3).setDisplaySize(150,150).setDepth(point.y-1);
     this.add.text(point.x,point.y-115,'낡은 책 · 읽기',{fontSize:'16px',color:'#ffe6a3',backgroundColor:'#263c36dd',padding:{x:8,y:6}}).setOrigin(.5).setDepth(1500);
     this.add.zone(point.x,point.y-35,125,145).setInteractive({useHandCursor:true}).setDepth(1601).on('pointerdown',()=>{if(live.current.active&&!this.busy)this.go(point.x,point.y,-2);});
    }
-   if(area==='stage-11'){const p=FET_GAME_POINT;
+   if(area==='stage-7'){const p=FET_GAME_POINT;
     this.add.ellipse(p.x,p.y+8,110,35,0x63dbc0,.25).setStrokeStyle(2,0xa3efd0).setDepth(p.y-1);
     this.add.text(p.x,p.y-18,'MOSFET 공정 퍼즐\n미니게임 · 터치해서 시작',{fontSize:'18px',color:'#fff3ba',backgroundColor:'#153e35ee',align:'center',padding:{x:16,y:14}}).setOrigin(.5).setDepth(1500).setInteractive({useHandCursor:true}).on('pointerdown',()=>{if(live.current.active&&!this.busy)this.go(p.x,p.y,-3);});
    }
    this.input.on('pointerdown',(p:Phaser.Input.Pointer,objects:unknown[])=>{if(!objects.length&&live.current.active){const point=this.cameras.main.getWorldPoint(p.x,p.y);this.go(point.x,point.y,null);}});
    this.input.on('pointerup',()=>this.finishRelockHold());
-   this.game.events.on('talk',()=>{if(!this.player||!live.current.active)return;if(area==='adventure'){live.current.onError('입장하려면 관문을 직접 터치하세요.');return;}if(area==='stage-11'&&Math.hypot(this.player.x-FET_GAME_POINT.x,this.player.y-FET_GAME_POINT.y)<90){live.current.onMiniGame();return;}if(stage){const b=stageBookPoint(area);if(Math.hypot(this.player.x-b.x,this.player.y-b.y)<90){this.readBook();return;}}if(area==='village'&&this.player.y>745){this.openGate();return;}const i=places.findIndex(p=>Math.hypot(this.player!.x-p.x,this.player!.y-p.y)<110);if(i>=0)interact(i);else live.current.onError('NPC를 터치하면 길을 따라 다가갑니다.');});
+   this.game.events.on('talk',()=>{if(!this.player||!live.current.active)return;if(area==='adventure'){live.current.onError('입장하려면 관문을 직접 터치하세요.');return;}if(area==='stage-7'&&Math.hypot(this.player.x-FET_GAME_POINT.x,this.player.y-FET_GAME_POINT.y)<90){live.current.onMiniGame();return;}if(stage){const b=stageBookPoint(area);if(Math.hypot(this.player.x-b.x,this.player.y-b.y)<90){this.readBook();return;}}if(area==='village'&&this.player.y>745){this.openGate();return;}const i=places.findIndex(p=>Math.hypot(this.player!.x-p.x,this.player!.y-p.y)<110);if(i>=0)interact(i);else live.current.onError('NPC를 터치하면 길을 따라 다가갑니다.');});
    this.game.events.on('navigate',(id:number)=>{const local=area==='adventure'?stageDefinitions.findIndex(s=>s.questId===id):stage?0:id;const p=places[local];if(p&&live.current.active)this.go(p.x,p.y+(area==='adventure'?0:20),area==='adventure'?null:local);});this.game.events.on('direction',(v:{x:number;y:number})=>{this.touch=v;});this.game.events.on('map-target',(p:{x:number;y:number})=>{if(live.current.active)this.go(p.x,p.y,null);});
   }
   go(x:number,y:number,npc:number|null){if(!this.player||this.busy)return;if(area==='village')y=Math.min(y,795);this.path=area==='adventure'&&npc!==null?routeToGateway(this.player.x,this.player.y,npc):route(this.player.x,this.player.y,x,y,area);this.pending=npc;const end=this.path.at(-1);if(end)this.destination?.setPosition(end.x,end.y).setVisible(true);}
@@ -124,7 +124,7 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
    const manual=!!(dx||dy);if(manual){this.path=[];this.pending=null;}else if(this.path.length){dx=this.path[0].x-this.player.x;dy=this.path[0].y-this.player.y;}
    const len=Math.hypot(dx,dy),step=manual?Math.min(delta,40)*.19:Math.min(len,Math.min(delta,40)*.19);let moving=false;
    if(len>.1){this.dir=Math.abs(dx)>Math.abs(dy)?dx>0?3:1:dy>0?2:0;const nx=this.player.x+dx/len*step,ny=this.player.y+dy/len*step;if(passable(nx,ny)){this.player.setPosition(nx,ny);moving=true;}else if(manual){if(passable(nx,this.player.y))this.player.x=nx;if(passable(this.player.x,ny))this.player.y=ny;}else this.path=[];if(!manual&&len<=step+1)this.path.shift();}
-   if(!this.path.length){this.destination?.setVisible(false);if(this.pending!==null){const i=this.pending;this.pending=null;if(i===-1){if(this.player.y>750)this.openGate();}else if(i===-2){const b=stageBookPoint(area);if(Math.hypot(this.player.x-b.x,this.player.y-b.y)<90)this.readBook();}else if(i===-3){if(area==='stage-11'&&Math.hypot(this.player.x-FET_GAME_POINT.x,this.player.y-FET_GAME_POINT.y)<90)props.onMiniGame();}else if(Math.hypot(this.player.x-places[i].x,this.player.y-places[i].y)<100)interact(i);}}
+   if(!this.path.length){this.destination?.setVisible(false);if(this.pending!==null){const i=this.pending;this.pending=null;if(i===-1){if(this.player.y>750)this.openGate();}else if(i===-2){const b=stageBookPoint(area);if(Math.hypot(this.player.x-b.x,this.player.y-b.y)<90)this.readBook();}else if(i===-3){if(area==='stage-7'&&Math.hypot(this.player.x-FET_GAME_POINT.x,this.player.y-FET_GAME_POINT.y)<90)props.onMiniGame();}else if(Math.hypot(this.player.x-places[i].x,this.player.y-places[i].y)<100)interact(i);}}
    const exiting=area==='village'?false:this.player.y<info.exit.y+30&&Math.abs(this.player.x-info.exit.x)<60;
    if(exiting){this.player.y=area==='village'?890:info.exit.y+100;this.path=[];props.onTravel();}
 

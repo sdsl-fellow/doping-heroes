@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import {catalog,catalogItem,migrateItemId,inventoryIds} from '../src/catalog.mjs';
 import {isRootAccount} from '../src/access.mjs';
-import {completionIds,fromStoredSave,toStoredSave,puzzleIds,stageQuestIds} from '../src/completion-save.mjs';
+import {completionIds,fromStoredSave,toStoredSave,puzzleIds,stageQuestIds,legacyStageQuestIds,oldToNewStage,stageList,stageIndices} from '../src/completion-save.mjs';
 import {ITEM_SCHEMA,oldCodes,swappedHats,normalizeItemSave} from '../src/item-save.mjs';
 const path='google-apps-script/Code.gs';
 const start='// BEGIN GENERATED ITEM RULES';
@@ -12,7 +12,7 @@ const block=[start,'// Generated from src/catalog.mjs. Run node scripts/sync-app
  'const migrateItemId = '+migrateItemId.toString()+';',
  'const isRootAccount = '+isRootAccount.toString()+';',
  'const ITEM_SCHEMA = '+ITEM_SCHEMA+';','const oldCodes = '+JSON.stringify(oldCodes)+';','const swappedHats = '+JSON.stringify(swappedHats)+';',normalizeItemSave.toString(),
- inventoryIds.toString(),'const stageQuestIds = '+JSON.stringify(stageQuestIds)+';',completionIds.toString(),puzzleIds.toString(),fromStoredSave.toString(),toStoredSave.toString(),end].join('\n');
+ inventoryIds.toString(),'const stageQuestIds = '+JSON.stringify(stageQuestIds)+';','const legacyStageQuestIds = '+JSON.stringify(legacyStageQuestIds)+';','const oldToNewStage = '+JSON.stringify(oldToNewStage)+';',stageList.toString(),stageIndices.toString(),completionIds.toString(),puzzleIds.toString(),fromStoredSave.toString(),toStoredSave.toString(),end].join('\n');
 const source=fs.readFileSync(path,'utf8');
 const next=source.includes(start)?source.slice(0,source.indexOf(start))+block+source.slice(source.indexOf(end)+end.length):source+'\n'+block+'\n';
 if(process.argv.includes('--check')){

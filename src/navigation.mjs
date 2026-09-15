@@ -1,5 +1,5 @@
 import {hubRoads} from './hub-roads.mjs';
-import {gatewayLocations,stageIndex} from './maps.mjs';
+import {gatewayLocations,stageIndex,stageDefinitions} from './maps.mjs';
 // Walkable corridors follow the painted plaza and bridge; water/buildings are blocked.
 const corridors=[[768,360,768,1000,55],[768,540,510,535,55],[510,535,230,475,43],[510,535,480,430,38],[480,430,390,340,26],[768,540,1000,550,52],[1000,550,1190,610,43],[1190,610,1310,590,36],[1310,590,1350,530,38]];
 function distance(x,y,a,b,c,d){const t=Math.max(0,Math.min(1,((x-a)*(c-a)+(y-b)*(d-b))/((c-a)**2+(d-b)**2)));return Math.hypot(x-a-t*(c-a),y-b-t*(d-b));}
@@ -37,11 +37,11 @@ export function route(x,y,tx,ty,area='village'){
 export const npcLocations=[{x:800,y:406},{x:298,y:492},{x:1320,y:582}];
 
 const adventureCorridors=[...hubRoads.flatMap(points=>points.slice(1).map((end,i)=>[...points[i],...end,34])),...gatewayLocations.map(p=>[p.x,p.y+25,p.x,p.y+60,60])];
-export const stageRoadHeights=[465,450,495,470,480,500,500,450,470,470,490,470];
-export const stageBookPoint=area=>({x:stageIndex(area)===9?400:250,y:stageRoadHeights[stageIndex(area)]});
+export const stageRoadHeights=stageDefinitions.map(s=>s.road);
+export const stageBookPoint=area=>({x:stageIndex(area)===5?400:250,y:stageRoadHeights[stageIndex(area)]});
 function corridorsForStage(area){
- const i=stageIndex(area),y=stageRoadHeights[i],end=i===7?470:i===9?710:i===10?920:820;
- return [[768,64,768,end,i===7?30:40],[stageBookPoint(area).x,y,1030,y,i===7?30:35]];
+ const i=stageIndex(area),y=stageRoadHeights[i],end=i===5?710:i===6?920:820;
+ return [[768,64,768,end,i>=7?48:40],[stageBookPoint(area).x,y,1030,y,i>=7?42:35]];
 }
 const adventureCells=[],cellsForStage=new Map(Array.from({length:12},(_,i)=>[`stage-${i+1}`,[]]));
 for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){

@@ -1,13 +1,13 @@
 import type {Save} from './save';
 import {normalizeItemSave,toCloudItemSave} from './item-save.mjs';
-import {fromStoredSave,toStoredSave} from './completion-save.mjs';
+import {fromStoredSave,toStoredSave,toLegacyStageSave} from './completion-save.mjs';
 
 export const CLOUD_API_URL='https://script.google.com/macros/s/AKfycbwPAuhaNGPntj3ekj32rA-qJYcEdn1Bwe3A8NdGAIbg7e8K2GS4Pp7uQBQzpLdv96LT/exec';
 const CLOUD_AUTH_KEY='doping-heroes:cloud-auth:v1';
 
 export type CloudSession={studentId:string;token:string;revision:number};
 export type CloudStudent={studentId:string;name:string;save:Save;revision:number};
-export type CloudResponse={ok:boolean;item_schema?:number;token?:string;student?:CloudStudent;stages?:boolean[];allowed?:boolean;registered?:boolean;serverTime?:string;error?:{code:string;message:string}};
+export type CloudResponse={ok:boolean;stage_layout?:number;item_schema?:number;token?:string;student?:CloudStudent;stages?:boolean[];allowed?:boolean;registered?:boolean;serverTime?:string;error?:{code:string;message:string}};
 
 export class CloudError extends Error{
  code:string;response?:CloudResponse;
@@ -15,6 +15,7 @@ export class CloudError extends Error{
 }
 
 let serverItemSchema:number|undefined;
+let serverStageLayout=2;
 let stageRequest:Promise<CloudResponse>|null=null;
 
 async function request(body?:Record<string,unknown>):Promise<CloudResponse>{
@@ -24,7 +25,7 @@ async function request(body?:Record<string,unknown>):Promise<CloudResponse>{
  }
  // Keep the old request field during the independently deployed v4→v5 transition.
  // v5 strips it before persisting; this prevents v4 from erasing progress.
- if(body?.save)body={...body,save:{...toCloudItemSave(fromStoredSave(body.save)),fetPuzzleCompleted:(body.save as Save).puzzle_completed?.includes(10)??false}};
+ if(body?.save){const current=toCloudItemSave(fromStoredSave(body.save));const payload=serverStageLayout>=3?current:toLegacyStageSave(current);body={...body,save:{...payload,fetPuzzleCompleted:payload.puzzle_completed?.includes(serverStageLayout>=3?6:10)??false}};}
  const controller=new AbortController(),timer=window.setTimeout(()=>controller.abort(),45000);
  try{
   const response=await fetch(CLOUD_API_URL,body?{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(body),redirect:'follow',credentials:'omit',signal:controller.signal}:{method:'GET',redirect:'follow',credentials:'omit',cache:'no-store',signal:controller.signal});
@@ -32,6 +33,7 @@ async function request(body?:Record<string,unknown>):Promise<CloudResponse>{
   try{data=JSON.parse(text) as CloudResponse;}catch{throw new CloudError('INVALID_RESPONSE','클라우드 저장소의 응답을 읽을 수 없습니다. Apps Script 배포 권한을 확인해 주세요.');}
   // Read capability from the server payload before local migrations add schema 3.
   if(data.ok){
+   serverStageLayout=data.stage_layout??data.student?.save?.stage_layout??serverStageLayout;
    if(typeof data.item_schema==='number')serverItemSchema=data.item_schema;
    else if(data.student)serverItemSchema=data.student.save?.item_schema;
   }

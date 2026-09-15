@@ -6,8 +6,8 @@ import {completionIds,fromStoredSave,toStoredSave} from '../src/completion-save.
 test('legacy quest IDs split without changing other progress or rewards',()=>{
  const old={completed:[0,1,2,3,14,3],readBooks:[0,11],coins:43,purchased:['C10']};
  const stored=toStoredSave(old);
- assert.deepEqual(stored,{readBooks:[0,11],coins:43,purchased:['C10'],completion_schema:2,tutorial_completed:[0,1,2],stage_completed:[0,11],puzzle_completed:[]});
- assert.deepEqual(fromStoredSave(stored),{...old,completed:[0,1,2,3,14],puzzle_completed:[]});
+ assert.deepEqual(stored,{readBooks:[0,10],coins:43,purchased:['C10'],stage_layout:3,completion_schema:3,tutorial_completed:[0,1,2],stage_completed:[0,10],puzzle_completed:[]});
+ assert.deepEqual(fromStoredSave(stored),{...old,stage_layout:3,readBooks:[0,10],completed:[0,1,2,3,14],puzzle_completed:[]});
  assert.deepEqual(toStoredSave(stored),stored);
 });
 test('new fields are authoritative, bounded and deduplicated',()=>{
@@ -27,6 +27,6 @@ test('all 32768 completion combinations survive local and Apps Script round trip
   assert.deepEqual(json.tutorial_completed,stored.tutorial_completed);
   assert.deepEqual(json.stage_completed,stored.stage_completed);
   assert.deepEqual(fromStoredSave(json).completed,completed);
-  assert.deepEqual(json.readBooks,[0,11]);
+  assert.deepEqual(json.readBooks,[0,10]);
  }
 });

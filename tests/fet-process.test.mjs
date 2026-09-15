@@ -13,6 +13,6 @@ test('only the complete intended process order succeeds, across all permutations
  for(const random of [()=>0,()=>.5,()=>.999]){const bank=shuffleSteps(random);assert.equal(new Set(bank).size,6);assert.equal(checkProcessOrder(bank).correct,false);}
 });
 test('FET minigame lies south of the quiz and can be reached and exited safely',()=>{
- const info=mapInfo('stage-11');assert.ok(FET_GAME_POINT.y>info.npc.y+100);
- for(const [from,to] of [[info.spawn,FET_GAME_POINT],[FET_GAME_POINT,info.exit]]){const path=route(from.x,from.y,to.x,to.y,'stage-11');assert.ok(path.length);let previous=from;for(const p of path){assert.ok(clearSegment(previous,p,'stage-11'));previous=p;}assert.ok(Math.hypot(previous.x-to.x,previous.y-to.y)<20);}
+ const info=mapInfo('stage-7');assert.ok(FET_GAME_POINT.y>info.npc.y+100);
+ for(const [from,to] of [[info.spawn,FET_GAME_POINT],[FET_GAME_POINT,info.exit]]){const path=route(from.x,from.y,to.x,to.y,'stage-7');assert.ok(path.length);let previous=from;for(const p of path){assert.ok(clearSegment(previous,p,'stage-7'));previous=p;}assert.ok(Math.hypot(previous.x-to.x,previous.y-to.y)<20);}
 });
