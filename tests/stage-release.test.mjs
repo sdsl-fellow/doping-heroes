@@ -34,3 +34,20 @@ test('relocking blocks the next admission but lets a student already inside fini
  assert.equal(canContinueStage(0,completed,0,false,false),true);
  assert.equal(canContinueStage(-1,completed,0,false,false),false);
 });
+
+// Exercise the actual world gate callback and admission method, not just the access helper.
+test('root taps locked gates to enter all twelve stages without publishing them',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const source=readFileSync('src/World.tsx','utf8');
+ const callback=source.match(/this\.add\.zone\(p\.x,p\.y-48,100,108\)[\s\S]*?on\('pointerdown',\(\)=>\{([\s\S]*?)\n    \}\);return;/)[1];
+ const method=source.match(/tryGateway\(index:number\)\{([\s\S]*?)\n  \}/)[1];
+ for(let i=0;i<12;i++)for(const rootAccount of [true,false]){
+  const live={current:{active:true,rootAccount,releasedStages:Array(12).fill(false),completed:[]}};
+  const p={x:100,y:200};let entered=null,blocked=null;
+  const scene={busy:false,player:{...p},enterGateway:n=>entered=n,knock(){throw Error('Entry must not publish a stage');},startRelockHold(){throw Error('Locked gate must not start relock');},go(){throw Error('Already at gate');}};
+  scene.tryGateway=new Function('live','interact','canEnterStage','return function(index){'+method+'}')(live,n=>blocked=n,canEnterStage);
+  new Function('live','p','i',callback).call(scene,live,p,i);
+  assert.equal(entered,rootAccount?i:null);assert.equal(blocked,rootAccount?null:i);
+  assert.deepEqual(live.current.releasedStages,Array(12).fill(false));
+ }
+});

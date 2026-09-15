@@ -1,5 +1,5 @@
 import {FET_GAME_POINT} from './fet-process.mjs';
-import {nextGatewayKnock} from './stage-release.mjs';
+import {canEnterStage,nextGatewayKnock} from './stage-release.mjs';
 import {useEffect,useRef} from 'react';
 import Phaser from 'phaser';
 import {Character,characterSheet,defaultCharacter} from './character';
@@ -25,11 +25,16 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
    places.forEach((p,i)=>{if(area==='adventure'){
     this.add.image(p.x,p.y+8,'gateways',stageDefinitions[i].art?stageDefinitions[i].art-1:i).setOrigin(.5,1).setDisplaySize(112,112).setDepth(p.y);
     this.markers.push(this.add.text(p.x,p.y-113,stageDefinitions[i].title,{fontSize:'16px',color:'#fff3c3',backgroundColor:'#163e49dd',align:'center',wordWrap:{width:190},padding:{x:7,y:6}}).setOrigin(.5,1).setDepth(1500));
+    this.markers[i].setInteractive({useHandCursor:true}).on('pointerdown',()=>{
+     if(!live.current.active||this.busy||!live.current.rootAccount)return;
+     if(!this.player||Math.hypot(this.player.x-p.x,this.player.y-p.y)>=85){this.go(p.x,p.y,null);return;}
+     if(!live.current.releasedStages[i])this.knock(i);else this.startRelockHold(i);
+    });
     if(i===0)this.add.image(p.x,p.y-67,'silicon-crystal').setDisplaySize(30,30).setDepth(p.y+1);
     this.add.zone(p.x,p.y-48,100,108).setInteractive({useHandCursor:true}).setDepth(1600).on('pointerdown',()=>{
      if(!live.current.active||this.busy)return;const near=this.player&&Math.hypot(this.player.x-p.x,this.player.y-p.y)<85;
      if(!near){this.go(p.x,p.y,null);return;}
-     if(live.current.rootAccount){if(!live.current.releasedStages[i])this.knock(i);else this.startRelockHold(i);return;}
+     if(live.current.rootAccount&&live.current.releasedStages[i]){this.startRelockHold(i);return;}
      this.tryGateway(i);
     });return;
    }
@@ -74,7 +79,7 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
    this.knockCount=0;this.knockIndex=-1;live.current.onReleaseStage(index);
   }
   tryGateway(index:number){
-   if(!live.current.releasedStages[index]||(!live.current.rootAccount&&!stageUnlocked(live.current.completed,index))){interact(index);return;}
+   if(!canEnterStage(live.current.completed,index,live.current.rootAccount,live.current.releasedStages[index])){interact(index);return;}
    this.enterGateway(index);
   }
   startRelockHold(index:number){
@@ -89,7 +94,7 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
    const p=gatewayLocations[index],glow=this.add.circle(p.x,p.y-48,36,0xa7f4ff,.22).setStrokeStyle(3,0xffdf8a,.85).setDepth(p.y+1);this.cameras.main.shake(this.motion(180),.002);
    const startScale=this.player.scaleX;this.dir=0;this.tweens.add({targets:glow,scale:2.1,alpha:0,duration:this.motion(1150),ease:'Sine.easeOut'});
    this.tweens.add({targets:this.label,alpha:0,y:p.y-125,duration:this.motion(850)});
-   this.tweens.add({targets:this.player,x:p.x,y:p.y-43,scaleX:.16,scaleY:.16,alpha:0,duration:this.motion(1200),ease:'Sine.easeIn',onUpdate:tween=>{if(this.player)this.player.setFrame(1+Math.floor(tween.progress*10)%8);},onComplete:()=>{glow.destroy();const stillOpen=live.current.rootAccount||(live.current.releasedStages[index]&&stageUnlocked(live.current.completed,index));if(!stillOpen){this.player?.setScale(startScale).setAlpha(1);this.label?.setAlpha(1);this.busy=false;live.current.onBusy(false);interact(index);return;}this.busy=false;live.current.onBusy(false);live.current.onEnterStage(index);}});
+   this.tweens.add({targets:this.player,x:p.x,y:p.y-43,scaleX:.16,scaleY:.16,alpha:0,duration:this.motion(1200),ease:'Sine.easeIn',onUpdate:tween=>{if(this.player)this.player.setFrame(1+Math.floor(tween.progress*10)%8);},onComplete:()=>{glow.destroy();const stillOpen=canEnterStage(live.current.completed,index,live.current.rootAccount,live.current.releasedStages[index]);if(!stillOpen){this.player?.setScale(startScale).setAlpha(1);this.label?.setAlpha(1);this.busy=false;live.current.onBusy(false);interact(index);return;}this.busy=false;live.current.onBusy(false);live.current.onEnterStage(index);}});
   }
   openGate(){
    if(this.busy||!this.player||!this.gate||!this.boat)return;
