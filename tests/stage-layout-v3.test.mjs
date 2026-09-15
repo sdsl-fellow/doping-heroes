@@ -16,7 +16,7 @@ function fixture(rows){
  const original=structuredClone(rows);let backed=false,flushed=false,released=false;
  const sheet={getLastRow:()=>rows.length+1,getParent:()=>({}),copyTo:()=>{backed=true;return {setName(){}};},getRange(r,c,n,m){return {getValues:()=>rows.slice(r-2,r-2+n).map(row=>row.slice(c-1,c-1+m)),setValues(values){assert.ok(backed);values.forEach((row,i)=>row.forEach((v,j)=>rows[r-2+i][c-1+j]=v));}};}};
  const ctx=vm.createContext({LockService:{getScriptLock:()=>({waitLock(){},releaseLock(){released=true;}})},SpreadsheetApp:{flush(){flushed=true;}}});
- vm.runInContext(fs.readFileSync('google-apps-script/Code_v10.gs','utf8'),ctx);
+ vm.runInContext(fs.readFileSync('google-apps-script/Code_v11.gs','utf8'),ctx);
  ctx.studentsSheet_=()=>sheet;ctx.koreaTimestamp_=()=> '2026-09-15 18:00:00';
  return {ctx,original,state:()=>({backed,flushed,released})};
 }
@@ -28,7 +28,8 @@ test('bulk reset clears all accounts including root while retaining non-learning
   const before=JSON.parse(original[i][6]),after=JSON.parse(rows[i][6]);
   for(const key of ['tutorial_completed','stage_completed','readBooks','puzzle_completed'])assert.deepEqual(after[key],[]);
   for(const key of ['completed','fetPuzzleCompleted'])assert.equal(key in after,false);
-  for(const key of ['character','doping','coins','type','quantities','area'])assert.deepEqual(after[key],before[key]);
+  for(const key of ['character','doping','coins','type','quantities'])assert.deepEqual(after[key],before[key]);
+  assert.equal(after.area,'village');
   assert.ok(after.purchased.includes('C03'));assert.ok(after.purchased.includes('T02'));
   assert.deepEqual(rows[i].slice(0,5),original[i].slice(0,5));assert.deepEqual(rows[i].slice(9),original[i].slice(9));assert.equal(rows[i][7],8);
  }
@@ -38,4 +39,12 @@ test('invalid JSON aborts before any account is changed and empty sheets need no
  const rows=[makeRow('22221111'),makeRow('22221112')];rows[1][6]='broken';const f=fixture(rows);
  assert.throws(()=>f.ctx.resetAllLearningProgress(),/saveJson/);assert.deepEqual(rows,f.original);assert.equal(f.state().backed,false);assert.equal(f.state().released,true);
  const empty=fixture([]);assert.match(empty.ctx.resetAllLearningProgress(),/없습니다/);
+});
+
+test('reset returns every stage and adventure account to the village spawn',()=>{
+ for(const area of ['village','adventure',...Array.from({length:12},(_,i)=>`stage-${i+1}`)]){
+  const row=makeRow('22221111');row[6]=JSON.stringify({...JSON.parse(row[6]),area});
+  const {ctx}=fixture([row]);ctx.resetAllLearningProgress();
+  assert.equal(JSON.parse(row[6]).area,'village');
+ }
 });
