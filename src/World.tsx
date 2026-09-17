@@ -1,3 +1,4 @@
+import {gatewayInteriorPoints} from './gateway-interior.mjs';
 import {FET_GAME_POINT} from './fet-process.mjs';
 import {canEnterStage,nextGatewayKnock} from './stage-release.mjs';
 import {useEffect,useRef} from 'react';
@@ -23,6 +24,8 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
    this.destination=this.add.ellipse(768,550,24,12,0xffedb0,.35).setStrokeStyle(2,0xffedb0).setVisible(false).setDepth(900);
    this.keys=this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,E,SPACE',false) as Record<string,Phaser.Input.Keyboard.Key>;
    places.forEach((p,i)=>{if(area==='adventure'){
+    const interior=gatewayInteriorPoints(i,p.x,p.y);
+    if(interior.length)this.add.graphics().fillStyle(0x090d17,1).fillPoints(interior,true).setDepth(p.y-.1);
     this.add.image(p.x,p.y+8,'gateway-'+i).setOrigin(.5,1).setDisplaySize(112,112).setDepth(p.y);
     this.markers.push(this.add.text(p.x,p.y-113,stageDefinitions[i].title,{fontSize:'16px',color:'#fff3c3',backgroundColor:'#163e49dd',align:'center',wordWrap:{width:190},padding:{x:7,y:6}}).setOrigin(.5,1).setDepth(1500));
     this.markers[i].setInteractive({useHandCursor:true}).on('pointerdown',()=>{
