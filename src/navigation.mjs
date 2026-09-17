@@ -38,10 +38,10 @@ export const npcLocations=[{x:800,y:406},{x:298,y:492},{x:1320,y:582}];
 
 const adventureCorridors=[...hubRoads.flatMap(points=>points.slice(1).map((end,i)=>[...points[i],...end,34])),...gatewayLocations.map(p=>[p.x,p.y+25,p.x,p.y+60,60])];
 export const stageRoadHeights=stageDefinitions.map(s=>s.road);
-export const stageBookPoint=area=>({x:stageIndex(area)===5?400:250,y:stageRoadHeights[stageIndex(area)]});
+export const stageBookPoint=area=>({x:stageIndex(area)===0?396:stageIndex(area)===5?400:250,y:stageIndex(area)===0?480:stageRoadHeights[stageIndex(area)]});
 function corridorsForStage(area){
  const i=stageIndex(area),y=stageRoadHeights[i],end=i===5?710:i===6?920:820;
- return [[768,64,768,end,i>=7?48:40],[stageBookPoint(area).x,y,i===0?1100:1030,y,i>=7?42:35]];
+ return [[768,64,768,end,i>=7?48:40],[i===0?250:stageBookPoint(area).x,y,i===0?1100:1030,y,i>=7?42:35]];
 }
 const adventureCells=[],cellsForStage=new Map(Array.from({length:12},(_,i)=>[`stage-${i+1}`,[]]));
 for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
