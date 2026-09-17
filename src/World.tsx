@@ -1,3 +1,4 @@
+import {playerDepth} from './player-depth.mjs';
 import {gatewayInteriorPoints} from './gateway-interior.mjs';
 import {FET_GAME_POINT} from './fet-process.mjs';
 import {canEnterStage,nextGatewayKnock} from './stage-release.mjs';
@@ -118,7 +119,7 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
   finishRelockHold(){const selected=this.relockIndex;if(selected<0)return;this.clearRelockHold();this.tryGateway(selected);}
   clearRelockHold(){this.relockTimer?.remove(false);this.relockTimer=undefined;this.relockRing?.destroy();this.relockRing=undefined;this.relockIndex=-1;}
   enterGateway(index:number){
-   if(this.busy||!this.player)return;this.busy=true;this.path=[];this.pending=null;this.touch={x:0,y:0};this.destination?.setVisible(false);live.current.onBusy(true);
+   if(this.busy||!this.player)return;this.player.setDepth(playerDepth(area,this.player.y));this.busy=true;this.path=[];this.pending=null;this.touch={x:0,y:0};this.destination?.setVisible(false);live.current.onBusy(true);
    const p=gatewayLocations[index],glow=this.add.circle(p.x,p.y-48,36,0xa7f4ff,.22).setStrokeStyle(3,0xffdf8a,.85).setDepth(p.y+1);this.cameras.main.shake(this.motion(180),.002);
    const startScale=this.player.scaleX;this.dir=0;this.tweens.add({targets:glow,scale:2.1,alpha:0,duration:this.motion(1150),ease:'Sine.easeOut'});
    this.tweens.add({targets:this.label,alpha:0,y:p.y-125,duration:this.motion(850)});
@@ -154,7 +155,7 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
   update(time:number,delta:number){
    const props=live.current,next=JSON.stringify(props.character);
    if(this.relockRing&&this.relockTimer&&this.relockIndex>=0){const p=gatewayLocations[this.relockIndex],progress=this.relockTimer.getProgress();this.relockRing.clear().lineStyle(7,0xffd87a,.95).beginPath().arc(p.x,p.y-50,48,-Math.PI/2,-Math.PI/2+Math.PI*2*progress,false).strokePath();}
-   if(next!==this.skinKey){this.skinKey=next;const token=++this.generation;this.sprite(props.character,'player-'+token,this.player?.x??spawn.x,this.player?.y??spawn.y).then(sprite=>{if(!sprite)return;if(token!==this.generation){sprite.destroy();return;}const entering=!this.player;this.player?.destroy();this.player=sprite;if(entering&&area==='adventure'){if(destination!==null){this.path=routeToGateway(sprite.x,sprite.y,destination);this.pending=null;}else if(arrival===null)this.go(768,330,null);}this.cameras.main.startFollow(sprite,true,.12,.12);if(!this.label)this.label=this.add.text(0,0,'',{fontSize:'17px',color:'#fff9e4',backgroundColor:'#223644bb',padding:{x:7,y:3}}).setOrigin(.5);}).catch(e=>props.onError(e.message));}
+   if(next!==this.skinKey){this.skinKey=next;const token=++this.generation;this.sprite(props.character,'player-'+token,this.player?.x??spawn.x,this.player?.y??spawn.y).then(sprite=>{if(!sprite)return;if(token!==this.generation){sprite.destroy();return;}const entering=!this.player;this.player?.destroy();this.player=sprite.setDepth(playerDepth(area,sprite.y));if(entering&&area==='adventure'){if(destination!==null){this.path=routeToGateway(sprite.x,sprite.y,destination);this.pending=null;}else if(arrival===null)this.go(768,330,null);}this.cameras.main.startFollow(sprite,true,.12,.12);if(!this.label)this.label=this.add.text(0,0,'',{fontSize:'17px',color:'#fff9e4',backgroundColor:'#223644bb',padding:{x:7,y:3}}).setOrigin(.5);}).catch(e=>props.onError(e.message));}
    if(!this.player)return;const tutorialDone=[0,1,2].every(id=>props.completed.includes(id));this.speech?.setVisible(tutorialDone);if(area==='village')this.markers[0]?.setVisible(!tutorialDone);this.markers.forEach((m,i)=>m.setText(area==='adventure'?(!props.releasedStages[i]?'🔐 ':props.completed.includes(stageDefinitions[i].questId)?'✓ ':stageUnlocked(props.completed,i)?'':'🔒 ')+`Stage ${i+1}.\n${stageDefinitions[i].name}`:stage?(props.completed.includes(stage.questId)?'✓':'!'):i===0?([0,1,2].every(q=>props.completed.includes(q))?'✓':'!'):i===1?'$':'◈'));
    this.label?.setPosition(this.player.x,this.player.y-108).setText(props.name).setDepth(1600);
    if(this.busy)return;
@@ -167,7 +168,7 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
    const exiting=area==='village'?false:this.player.y<info.exit.y+30&&Math.abs(this.player.x-info.exit.x)<60;
    if(exiting){this.player.y=area==='village'?890:info.exit.y+100;this.path=[];props.onTravel();}
 
-   this.player.setDepth(this.player.y).setFrame(this.dir*9+(moving?1+Math.floor(time/110)%8:0));
+   this.player.setDepth(playerDepth(area,this.player.y)).setFrame(this.dir*9+(moving?1+Math.floor(time/110)%8:0));
    if(time-this.lastUpdate>160){props.onPosition(this.player.x,this.player.y);this.lastUpdate=time;}
    if(Phaser.Input.Keyboard.JustDown(k.E)||Phaser.Input.Keyboard.JustDown(k.SPACE))this.game.events.emit('talk');
   }
