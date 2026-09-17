@@ -132,8 +132,13 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
    this.tweens.add({targets:key,x:768,y:823,duration:this.motion(600),onComplete:()=>{
     this.tweens.add({targets:key,angle:90,duration:this.motion(450),onComplete:()=>{
      key.destroy();const closed=this.add.image(768,843,'journey-props',0).setDisplaySize(200,200).setDepth(851);this.gate!.setFrame(1);this.tweens.add({targets:closed,alpha:0,duration:this.motion(500),onComplete:()=>closed.destroy()});live.current.onError('찰칵! 나무 관문이 열렸어요. 배에 탑승합니다.');
-     this.tweens.add({targets:this.player,x:768,y:965,scaleX:1.05,scaleY:1.05,delay:this.motion(450),duration:this.motion(1250),ease:'Sine.easeInOut',onUpdate:tween=>{this.player!.setDepth(this.player!.y).setFrame(19+Math.floor(tween.progress*8)%8);this.label?.setPosition(this.player!.x,this.player!.y-108);},onComplete:()=>{
-      this.player!.setScale(.92).setDepth(980).setFrame(18);this.label?.setAlpha(.75).setDepth(981);this.boat!.setDepth(979);this.gate!.setDepth(850);
+     // Keep the passenger in front of the hull throughout both walking phases.
+     this.player!.setDepth(980);this.boat!.setDepth(979);this.destination?.setVisible(false);
+     const walkFrame=()=>{this.player!.setDepth(980).setFrame(19+Math.floor(this.time.now/110)%8);};
+     this.tweens.add({targets:this.player,x:768,y:875,delay:this.motion(450),duration:this.motion(700),ease:'Linear',onUpdate:walkFrame,onComplete:()=>{
+      // Walk from the stern onto the deck; shrink continuously, without a landing snap.
+      this.tweens.add({targets:this.player,x:768,y:965,scaleX:.92,scaleY:.92,duration:this.motion(850),ease:'Sine.easeInOut',onUpdate:walkFrame,onComplete:()=>{
+      this.player!.setDepth(980).setFrame(18);this.label?.setAlpha(.75).setDepth(981);this.boat!.setDepth(979);this.gate!.setDepth(850);
       const wakes=[0,1,2].map(i=>this.add.ellipse(768,974+i*9,80+i*34,14+i*4,0xc7f4ff,.42-i*.08).setStrokeStyle(2,0xe5fbff,.55).setDepth(978));
       const foam=[this.add.circle(704,970,8,0xe5fbff,.65),this.add.circle(832,970,8,0xe5fbff,.65)].map(v=>v.setDepth(978));
       this.tweens.add({targets:this.boat,angle:{from:-2,to:2},duration:this.motion(520),yoyo:true,repeat:6,ease:'Sine.easeInOut'});
@@ -141,6 +146,7 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
       this.tweens.add({targets:foam,scale:1.8,alpha:.15,duration:this.motion(650),yoyo:true,repeat:4});
       live.current.onError('물살을 가르며 모험 대륙으로 출항합니다!');this.cameras.main.shake(this.motion(240),.0015);
       this.tweens.add({targets:[this.boat,this.player,this.label,...wakes,...foam].filter(Boolean),y:'+=450',duration:this.motion(4200),ease:'Sine.easeInOut',onComplete:()=>{live.current.onBusy(false);live.current.onTravel();}});
+      }});
      }});
     }});
    }});
