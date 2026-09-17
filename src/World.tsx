@@ -16,7 +16,7 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
 
  class Campus extends Phaser.Scene{
   player?:Phaser.GameObjects.Sprite;label?:Phaser.GameObjects.Text;markers:Phaser.GameObjects.Text[]=[];keys!:Record<string,Phaser.Input.Keyboard.Key>;path:{x:number;y:number}[]=[];pending:number|null=null;dir=2;skinKey='';generation=0;lastUpdate=0;touch={x:0,y:0};destination?:Phaser.GameObjects.Ellipse;busy=false;gate?:Phaser.GameObjects.Image;boat?:Phaser.GameObjects.Image;book?:Phaser.GameObjects.Image;speech?:Phaser.GameObjects.Container;knockIndex=-1;knockCount=0;knockDeadline=0;relockIndex=-1;relockTimer?:Phaser.Time.TimerEvent;relockRing?:Phaser.GameObjects.Graphics;
-  preload(){this.load.image('campus',info.image);this.load.spritesheet('journey-props','./journey-props.png',{frameWidth:512,frameHeight:512});if(area==='adventure'){for(const stage of stageDefinitions)this.load.image('gateway-'+stage.index,stage.gatewayImage);}this.load.on('loaderror',()=>live.current.onError('맵을 불러오지 못했습니다. 새로고침해 주세요.'));}
+  preload(){this.load.image('campus',info.image);this.load.spritesheet('journey-props','./journey-props.png',{frameWidth:512,frameHeight:512});if(area==='stage-1')this.load.image('translation-pc','./translation-pc-v1.webp');if(area==='adventure'){for(const stage of stageDefinitions)this.load.image('gateway-'+stage.index,stage.gatewayImage);}this.load.on('loaderror',()=>live.current.onError('맵을 불러오지 못했습니다. 새로고침해 주세요.'));}
   async sprite(c:Character,key:string,x:number,y:number){const sheet=await characterSheet(c);if(disposed)return;const texture=this.textures.addCanvas(key,sheet)!;for(let row=0;row<4;row++)for(let col=0;col<9;col++)texture.add(row*9+col,0,col*64,row*64,64,64);return this.add.sprite(x,y,key,18).setOrigin(.5,.95).setScale(1.7).setDepth(y);}
   create(){
    this.add.image(0,0,'campus').setOrigin(0).setDisplaySize(info.width,info.height);this.cameras.main.setBounds(0,0,info.width,info.height);this.cameras.main.setScroll(0,150);this.cameras.main.roundPixels=true;
@@ -62,8 +62,14 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
    if(area==='stage-1'){
     const p={x:1000,y:465};
     this.add.ellipse(p.x,p.y+4,88,25,0x8cdee4,.22).setDepth(p.y-1);
-    this.add.image(p.x,p.y-38,'journey-props',3).setDisplaySize(100,100).setDepth(p.y);
-    this.add.text(p.x,p.y-98,'원서 번역 퀴즈\nEN → 한국어',{fontSize:'16px',color:'#f8edbb',backgroundColor:'#183e49ee',align:'center',padding:{x:10,y:7}}).setOrigin(.5).setDepth(1500);
+    this.add.image(p.x,p.y+8,'translation-pc').setOrigin(.5,1).setDisplaySize(130,130).setDepth(p.y);
+    const english=this.add.text(p.x-29,p.y-139,'ABC',{fontSize:'21px',fontStyle:'bold',color:'#aaf7ff',stroke:'#123247',strokeThickness:4}).setOrigin(.5).setDepth(p.y+1);
+    const korean=this.add.text(p.x+29,p.y-148,'가나다',{fontSize:'20px',fontStyle:'bold',color:'#ffe6a3',stroke:'#332344',strokeThickness:4}).setOrigin(.5).setDepth(p.y+1);
+    if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+     this.tweens.add({targets:english,y:english.y-8,duration:1500,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
+     this.tweens.add({targets:korean,y:korean.y-8,duration:1800,delay:350,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
+    }
+    this.add.text(p.x,p.y-184,'원서 번역 퀴즈',{fontSize:'16px',color:'#f8edbb',backgroundColor:'#183e49ee',align:'center',padding:{x:10,y:7}}).setOrigin(.5).setDepth(1500);
     this.add.text(895,430,'번역 퀴즈 →',{fontSize:'16px',color:'#f4e9c5',stroke:'#203543',strokeThickness:3}).setOrigin(.5).setAlpha(.78).setDepth(100);
     this.add.zone(p.x,p.y-45,150,140).setInteractive({useHandCursor:true}).setDepth(1601).on('pointerdown',()=>{if(live.current.active&&!this.busy)this.go(p.x,p.y,-4);});
    }
