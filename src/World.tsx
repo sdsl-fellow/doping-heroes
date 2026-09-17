@@ -67,9 +67,9 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
     const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     // Fixed, interleaved anchors: each glyph only bobs gently in place.
     const letters=[
-     {text:'A',x:-43,y:-128},{text:'가',x:-25,y:-106},
-     {text:'B',x:-8,y:-130},{text:'나',x:11,y:-108},
-     {text:'C',x:29,y:-129},{text:'다',x:47,y:-106}
+     {text:'A',x:-30,y:-128},{text:'가',x:-18,y:-106},
+     {text:'B',x:6,y:-108},{text:'나',x:-6,y:-130},
+     {text:'C',x:18,y:-129},{text:'다',x:30,y:-106}
     ];
     letters.forEach((letter,i)=>{
      const glyph=this.add.text(p.x+letter.x,p.y+letter.y,letter.text,{fontSize:'18px',fontStyle:'bold',color:i%2===0?'#aaf7ff':'#ffe6a3',stroke:'#183247',strokeThickness:3}).setOrigin(.5).setDepth(p.y+1);
