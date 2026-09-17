@@ -60,18 +60,24 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
     this.add.zone(point.x,point.y-35,125,145).setInteractive({useHandCursor:true}).setDepth(1601).on('pointerdown',()=>{if(live.current.active&&!this.busy)this.go(point.x,point.y,-2);});
    }
    if(area==='stage-1'){
-    const p={x:1000,y:465};
-    this.add.ellipse(p.x,p.y+4,88,25,0x8cdee4,.22).setDepth(p.y-1);
-    this.add.image(p.x,p.y+8,'translation-pc').setOrigin(.5,1).setDisplaySize(130,130).setDepth(p.y);
-    const english=this.add.text(p.x-29,p.y-139,'ABC',{fontSize:'21px',fontStyle:'bold',color:'#aaf7ff',stroke:'#123247',strokeThickness:4}).setOrigin(.5).setDepth(p.y+1);
-    const korean=this.add.text(p.x+29,p.y-148,'가나다',{fontSize:'20px',fontStyle:'bold',color:'#ffe6a3',stroke:'#332344',strokeThickness:4}).setOrigin(.5).setDepth(p.y+1);
-    if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
-     this.tweens.add({targets:english,y:english.y-8,duration:1500,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
-     this.tweens.add({targets:korean,y:korean.y-8,duration:1800,delay:350,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
-    }
-    this.add.text(p.x,p.y-184,'원서 번역 퀴즈',{fontSize:'16px',color:'#f8edbb',backgroundColor:'#183e49ee',align:'center',padding:{x:10,y:7}}).setOrigin(.5).setDepth(1500);
+    // Place the terminal on the right-hand floor; approach from the existing walkable path.
+    const p={x:1140,y:450};
+    this.add.ellipse(p.x,p.y+4,70,20,0x8cdee4,.22).setDepth(p.y-1);
+    this.add.image(p.x,p.y+8,'translation-pc').setOrigin(.5,1).setDisplaySize(104,104).setDepth(p.y);
+    const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    ['A','B','C','가','나','다'].forEach((letter,i)=>{
+     const angle=-Math.PI+i*Math.PI/3;
+     const glyph=this.add.text(p.x+Math.cos(angle)*46,p.y-119+Math.sin(angle)*18,letter,{fontSize:'18px',fontStyle:'bold',color:i<3?'#aaf7ff':'#ffe6a3',stroke:'#183247',strokeThickness:3}).setOrigin(.5).setDepth(p.y+1);
+     if(!reducedMotion){
+      const phase={value:angle};
+      this.tweens.add({targets:phase,value:angle+Math.PI*2,duration:9000+i*850,repeat:-1,ease:'Linear',onUpdate:()=>{
+       glyph.setPosition(p.x+Math.cos(phase.value)*46,p.y-119+Math.sin(phase.value)*18+Math.sin(phase.value*2+i)*4);
+      }});
+     }
+    });
+    this.add.text(p.x,p.y-160,'원서 번역 퀴즈',{fontSize:'16px',color:'#f8edbb',backgroundColor:'#183e49ee',align:'center',padding:{x:10,y:7}}).setOrigin(.5).setDepth(1500);
     this.add.text(895,430,'번역 퀴즈 →',{fontSize:'16px',color:'#f4e9c5',stroke:'#203543',strokeThickness:3}).setOrigin(.5).setAlpha(.78).setDepth(100);
-    this.add.zone(p.x,p.y-45,150,140).setInteractive({useHandCursor:true}).setDepth(1601).on('pointerdown',()=>{if(live.current.active&&!this.busy)this.go(p.x,p.y,-4);});
+    this.add.zone(p.x,p.y-42,120,112).setInteractive({useHandCursor:true}).setDepth(1601).on('pointerdown',()=>{if(live.current.active&&!this.busy)this.go(1030,465,-4);});
    }
    if(area==='stage-7'){const p=FET_GAME_POINT;
     this.add.ellipse(p.x,p.y+8,110,35,0x63dbc0,.25).setStrokeStyle(2,0xa3efd0).setDepth(p.y-1);
@@ -79,7 +85,7 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
    }
    this.input.on('pointerdown',(p:Phaser.Input.Pointer,objects:unknown[])=>{if(!objects.length&&live.current.active){const point=this.cameras.main.getWorldPoint(p.x,p.y);this.go(point.x,point.y,null);}});
    this.input.on('pointerup',()=>this.finishRelockHold());
-   this.game.events.on('talk',()=>{if(!this.player||!live.current.active)return;if(area==='adventure'){live.current.onError('입장하려면 관문을 직접 터치하세요.');return;}if(area==='stage-1'&&Math.hypot(this.player.x-1000,this.player.y-465)<90){live.current.onTranslation();return;}if(area==='stage-7'&&Math.hypot(this.player.x-FET_GAME_POINT.x,this.player.y-FET_GAME_POINT.y)<90){live.current.onMiniGame();return;}if(stage){const b=stageBookPoint(area);if(Math.hypot(this.player.x-b.x,this.player.y-b.y)<90){this.readBook();return;}}if(area==='village'&&this.player.y>745){this.openGate();return;}const i=places.findIndex(p=>Math.hypot(this.player!.x-p.x,this.player!.y-p.y)<110);if(i>=0)interact(i);else live.current.onError('NPC를 터치하면 길을 따라 다가갑니다.');});
+   this.game.events.on('talk',()=>{if(!this.player||!live.current.active)return;if(area==='adventure'){live.current.onError('입장하려면 관문을 직접 터치하세요.');return;}if(area==='stage-1'&&Math.hypot(this.player.x-1030,this.player.y-465)<90){live.current.onTranslation();return;}if(area==='stage-7'&&Math.hypot(this.player.x-FET_GAME_POINT.x,this.player.y-FET_GAME_POINT.y)<90){live.current.onMiniGame();return;}if(stage){const b=stageBookPoint(area);if(Math.hypot(this.player.x-b.x,this.player.y-b.y)<90){this.readBook();return;}}if(area==='village'&&this.player.y>745){this.openGate();return;}const i=places.findIndex(p=>Math.hypot(this.player!.x-p.x,this.player!.y-p.y)<110);if(i>=0)interact(i);else live.current.onError('NPC를 터치하면 길을 따라 다가갑니다.');});
    this.game.events.on('navigate',(id:number)=>{const local=area==='adventure'?stageDefinitions.findIndex(s=>s.questId===id):stage?0:id;const p=places[local];if(p&&live.current.active)this.go(p.x,p.y+(area==='adventure'?0:20),area==='adventure'?null:local);});this.game.events.on('direction',(v:{x:number;y:number})=>{this.touch=v;});this.game.events.on('map-target',(p:{x:number;y:number})=>{if(live.current.active)this.go(p.x,p.y,null);});
   }
   go(x:number,y:number,npc:number|null){if(!this.player||this.busy)return;if(area==='village')y=Math.min(y,795);this.path=area==='adventure'&&npc!==null?routeToGateway(this.player.x,this.player.y,npc):route(this.player.x,this.player.y,x,y,area);this.pending=npc;const end=this.path.at(-1);if(end)this.destination?.setPosition(end.x,end.y).setVisible(true);}
@@ -145,7 +151,7 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
    const manual=!!(dx||dy);if(manual){this.path=[];this.pending=null;}else if(this.path.length){dx=this.path[0].x-this.player.x;dy=this.path[0].y-this.player.y;}
    const len=Math.hypot(dx,dy),step=manual?Math.min(delta,40)*.19:Math.min(len,Math.min(delta,40)*.19);let moving=false;
    if(len>.1){this.dir=Math.abs(dx)>Math.abs(dy)?dx>0?3:1:dy>0?2:0;const nx=this.player.x+dx/len*step,ny=this.player.y+dy/len*step;if(passable(nx,ny)){this.player.setPosition(nx,ny);moving=true;}else if(manual){if(passable(nx,this.player.y))this.player.x=nx;if(passable(this.player.x,ny))this.player.y=ny;}else this.path=[];if(!manual&&len<=step+1)this.path.shift();}
-   if(!this.path.length){this.destination?.setVisible(false);if(this.pending!==null){const i=this.pending;this.pending=null;if(i===-1){if(this.player.y>750)this.openGate();}else if(i===-2){const b=stageBookPoint(area);if(Math.hypot(this.player.x-b.x,this.player.y-b.y)<90)this.readBook();}else if(i===-3){if(area==='stage-7'&&Math.hypot(this.player.x-FET_GAME_POINT.x,this.player.y-FET_GAME_POINT.y)<90)props.onMiniGame();}else if(i===-4){if(area==='stage-1'&&Math.hypot(this.player.x-1000,this.player.y-465)<90)props.onTranslation();}else if(Math.hypot(this.player.x-places[i].x,this.player.y-places[i].y)<100)interact(i);}}
+   if(!this.path.length){this.destination?.setVisible(false);if(this.pending!==null){const i=this.pending;this.pending=null;if(i===-1){if(this.player.y>750)this.openGate();}else if(i===-2){const b=stageBookPoint(area);if(Math.hypot(this.player.x-b.x,this.player.y-b.y)<90)this.readBook();}else if(i===-3){if(area==='stage-7'&&Math.hypot(this.player.x-FET_GAME_POINT.x,this.player.y-FET_GAME_POINT.y)<90)props.onMiniGame();}else if(i===-4){if(area==='stage-1'&&Math.hypot(this.player.x-1030,this.player.y-465)<90)props.onTranslation();}else if(Math.hypot(this.player.x-places[i].x,this.player.y-places[i].y)<100)interact(i);}}
    const exiting=area==='village'?false:this.player.y<info.exit.y+30&&Math.abs(this.player.x-info.exit.x)<60;
    if(exiting){this.player.y=area==='village'?890:info.exit.y+100;this.path=[];props.onTravel();}
 
