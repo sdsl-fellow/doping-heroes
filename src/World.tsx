@@ -65,14 +65,16 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
     this.add.ellipse(p.x,p.y+4,70,20,0x8cdee4,.22).setDepth(p.y-1);
     this.add.image(p.x,p.y+8,'translation-pc').setOrigin(.5,1).setDisplaySize(104,104).setDepth(p.y);
     const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    ['A','B','C','가','나','다'].forEach((letter,i)=>{
-     const angle=-Math.PI+i*Math.PI/3;
-     const glyph=this.add.text(p.x+Math.cos(angle)*46,p.y-119+Math.sin(angle)*18,letter,{fontSize:'18px',fontStyle:'bold',color:i<3?'#aaf7ff':'#ffe6a3',stroke:'#183247',strokeThickness:3}).setOrigin(.5).setDepth(p.y+1);
+    // Fixed, interleaved anchors: each glyph only bobs gently in place.
+    const letters=[
+     {text:'A',x:-43,y:-128},{text:'가',x:-25,y:-106},
+     {text:'B',x:-8,y:-130},{text:'나',x:11,y:-108},
+     {text:'C',x:29,y:-129},{text:'다',x:47,y:-106}
+    ];
+    letters.forEach((letter,i)=>{
+     const glyph=this.add.text(p.x+letter.x,p.y+letter.y,letter.text,{fontSize:'18px',fontStyle:'bold',color:i%2===0?'#aaf7ff':'#ffe6a3',stroke:'#183247',strokeThickness:3}).setOrigin(.5).setDepth(p.y+1);
      if(!reducedMotion){
-      const phase={value:angle};
-      this.tweens.add({targets:phase,value:angle+Math.PI*2,duration:9000+i*850,repeat:-1,ease:'Linear',onUpdate:()=>{
-       glyph.setPosition(p.x+Math.cos(phase.value)*46,p.y-119+Math.sin(phase.value)*18+Math.sin(phase.value*2+i)*4);
-      }});
+      this.tweens.add({targets:glyph,y:glyph.y-(i%3+4),duration:1600+i*170,delay:i*230,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
      }
     });
     this.add.text(p.x,p.y-160,'원서 번역 퀴즈',{fontSize:'16px',color:'#f8edbb',backgroundColor:'#183e49ee',align:'center',padding:{x:10,y:7}}).setOrigin(.5).setDepth(1500);
