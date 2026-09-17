@@ -12,7 +12,7 @@ export const stageDefinitions=[
  {name:'기억의 영속성',questId:9,art:0,road:500},
  {name:'전력 반도체 요새',questId:14,art:0,road:500},
  {name:'첨단 패키징 공장',questId:12,art:0,road:500}
-].map((s,i)=>({...s,index:i,title:`Stage ${i+1}. ${s.name}`,area:`stage-${i+1}`}));
+].map((s,i)=>({...s,index:i,gatewayImage:`./gateways-v4/stage-${i+1}.webp`,title:`Stage ${i+1}. ${s.name}`,area:`stage-${i+1}`}));
 export const stageIndex=area=>stageDefinitions.findIndex(s=>s.area===area);
 export const stageForQuest=id=>stageDefinitions.find(s=>s.questId===id);
 export const gatewayLocations=stageDefinitions.map((s,i)=>({x:[246,584,946,1289][i%4],y:[352,558,760][Math.floor(i/4)],index:i}));

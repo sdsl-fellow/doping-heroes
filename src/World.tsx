@@ -15,7 +15,7 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
 
  class Campus extends Phaser.Scene{
   player?:Phaser.GameObjects.Sprite;label?:Phaser.GameObjects.Text;markers:Phaser.GameObjects.Text[]=[];keys!:Record<string,Phaser.Input.Keyboard.Key>;path:{x:number;y:number}[]=[];pending:number|null=null;dir=2;skinKey='';generation=0;lastUpdate=0;touch={x:0,y:0};destination?:Phaser.GameObjects.Ellipse;busy=false;gate?:Phaser.GameObjects.Image;boat?:Phaser.GameObjects.Image;book?:Phaser.GameObjects.Image;speech?:Phaser.GameObjects.Container;knockIndex=-1;knockCount=0;knockDeadline=0;relockIndex=-1;relockTimer?:Phaser.Time.TimerEvent;relockRing?:Phaser.GameObjects.Graphics;
-  preload(){this.load.image('campus',info.image);this.load.spritesheet('journey-props','./journey-props.png',{frameWidth:512,frameHeight:512});if(area==='adventure'){this.load.spritesheet('gateways','./gateways.png',{frameWidth:128,frameHeight:128});this.load.image('silicon-crystal','./silicon-crystal.png');}this.load.on('loaderror',()=>live.current.onError('맵을 불러오지 못했습니다. 새로고침해 주세요.'));}
+  preload(){this.load.image('campus',info.image);this.load.spritesheet('journey-props','./journey-props.png',{frameWidth:512,frameHeight:512});if(area==='adventure'){for(const stage of stageDefinitions)this.load.image('gateway-'+stage.index,stage.gatewayImage);}this.load.on('loaderror',()=>live.current.onError('맵을 불러오지 못했습니다. 새로고침해 주세요.'));}
   async sprite(c:Character,key:string,x:number,y:number){const sheet=await characterSheet(c);if(disposed)return;const texture=this.textures.addCanvas(key,sheet)!;for(let row=0;row<4;row++)for(let col=0;col<9;col++)texture.add(row*9+col,0,col*64,row*64,64,64);return this.add.sprite(x,y,key,18).setOrigin(.5,.95).setScale(1.7).setDepth(y);}
   create(){
    this.add.image(0,0,'campus').setOrigin(0).setDisplaySize(info.width,info.height);this.cameras.main.setBounds(0,0,info.width,info.height);this.cameras.main.setScroll(0,150);this.cameras.main.roundPixels=true;
@@ -23,14 +23,13 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
    this.destination=this.add.ellipse(768,550,24,12,0xffedb0,.35).setStrokeStyle(2,0xffedb0).setVisible(false).setDepth(900);
    this.keys=this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,E,SPACE',false) as Record<string,Phaser.Input.Keyboard.Key>;
    places.forEach((p,i)=>{if(area==='adventure'){
-    this.add.image(p.x,p.y+8,'gateways',stageDefinitions[i].art?stageDefinitions[i].art-1:i).setOrigin(.5,1).setDisplaySize(112,112).setDepth(p.y);
+    this.add.image(p.x,p.y+8,'gateway-'+i).setOrigin(.5,1).setDisplaySize(112,112).setDepth(p.y);
     this.markers.push(this.add.text(p.x,p.y-113,stageDefinitions[i].title,{fontSize:'16px',color:'#fff3c3',backgroundColor:'#163e49dd',align:'center',wordWrap:{width:190},padding:{x:7,y:6}}).setOrigin(.5,1).setDepth(1500));
     this.markers[i].setInteractive({useHandCursor:true}).on('pointerdown',()=>{
      if(!live.current.active||this.busy||!live.current.rootAccount)return;
      if(!this.player||Math.hypot(this.player.x-p.x,this.player.y-p.y)>=85){this.go(p.x,p.y,null);return;}
      if(!live.current.releasedStages[i])this.knock(i);else this.startRelockHold(i);
     });
-    if(i===0)this.add.image(p.x,p.y-67,'silicon-crystal').setDisplaySize(30,30).setDepth(p.y+1);
     this.add.zone(p.x,p.y-48,100,108).setInteractive({useHandCursor:true}).setDepth(1600).on('pointerdown',()=>{
      if(!live.current.active||this.busy)return;const near=this.player&&Math.hypot(this.player.x-p.x,this.player.y-p.y)<85;
      if(!near){this.go(p.x,p.y,null);return;}
