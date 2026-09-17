@@ -41,7 +41,7 @@ export const stageRoadHeights=stageDefinitions.map(s=>s.road);
 export const stageBookPoint=area=>({x:stageIndex(area)===5?400:250,y:stageRoadHeights[stageIndex(area)]});
 function corridorsForStage(area){
  const i=stageIndex(area),y=stageRoadHeights[i],end=i===5?710:i===6?920:820;
- return [[768,64,768,end,i>=7?48:40],[stageBookPoint(area).x,y,1030,y,i>=7?42:35]];
+ return [[768,64,768,end,i>=7?48:40],[stageBookPoint(area).x,y,i===0?1100:1030,y,i>=7?42:35]];
 }
 const adventureCells=[],cellsForStage=new Map(Array.from({length:12},(_,i)=>[`stage-${i+1}`,[]]));
 for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
