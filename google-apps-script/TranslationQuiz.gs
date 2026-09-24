@@ -1,27 +1,16 @@
-/** Stage 1 translation quiz. Included in the downloadable Code_v14.gs. */
+/** Stage 1 translation quiz. Included in the downloadable Code_v16.gs. */
 const TRANSLATION_HEADERS = ['questionId','stage','kind','english','optionA','optionB','optionC','optionD','correctOption','explanation','sourceId','sourceTitle','sourcePage','active','rewardDose','rewardCoins'];
 
 // Run from the editor after replacing Code.gs. Existing IDs/edits are never overwritten.
 function setupTranslationQuiz() {
-  const lock=LockService.getScriptLock();lock.waitLock(30000);
-  try {
-    const id=PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
-    if(!id)throw new Error('기존 게임의 setupDopingHeroes 설정이 필요합니다.');
-    const ss=SpreadsheetApp.openById(id);
-    const sheet=ss.getSheetByName('TranslationQuestions')||ss.insertSheet('TranslationQuestions');
-    if(sheet.getLastRow()===0)sheet.getRange(1,1,1,TRANSLATION_HEADERS.length).setValues([TRANSLATION_HEADERS]);
-    translationHeaderCheck_(sheet);
-    // Questions are maintained only in the private spreadsheet; no embedded seed.
-    ensureSheet_(ss,'TranslationProgress',TRANSLATION_PROGRESS_HEADERS);
-    sheet.setFrozenRows(1);SpreadsheetApp.flush();
-    return '번역 문제 시트 확인 완료. 기존 문제의 직접 수정 내용은 유지했습니다. setupReportingV13을 실행하세요.';
-  }finally{lock.releaseLock();}
+  translationReadBank_();clearTranslationQuestionCache();
+  return '학습 콘텐츠 Translation_01 확인 완료. 기존 문제는 변경하지 않았습니다.';
 }
 function translationHeaderCheck_(sheet){
   if(JSON.stringify(sheet.getRange(1,1,1,TRANSLATION_HEADERS.length).getValues()[0])!==JSON.stringify(TRANSLATION_HEADERS))throw apiError_('TRANSLATION_SCHEMA','TranslationQuestions의 열 이름과 순서를 확인하세요.');
 }
 function translationBank_(){
- const key='translation-bank-v14:'+PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+ const key='translation-bank-v16:'+PropertiesService.getScriptProperties().getProperty('CONTENT_SPREADSHEET_ID');
  try{const hit=CacheService.getScriptCache().get(key);if(hit)return JSON.parse(hit);}catch(ignored){}
  const bank=translationReadBank_(),json=JSON.stringify(bank);
  // Cache is optional; eviction or an oversized bank falls back to Sheets.
@@ -29,18 +18,17 @@ function translationBank_(){
  return bank;
 }
 function clearTranslationQuestionCache(){
- CacheService.getScriptCache().remove('translation-bank-v14:'+PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID'));
+ CacheService.getScriptCache().remove('translation-bank-v16:'+PropertiesService.getScriptProperties().getProperty('CONTENT_SPREADSHEET_ID'));
 }
 function translationReadBank_(){
-  const sheet=requiredSheet_('TranslationQuestions');translationHeaderCheck_(sheet);
-  const rows=sheet.getLastRow()>1?sheet.getRange(2,1,sheet.getLastRow()-1,TRANSLATION_HEADERS.length).getValues():[];
+  const rows=learningRows_('Translation_01',TRANSLATION_HEADERS).map(q=>TRANSLATION_HEADERS.map(h=>q[h]));
   const seen=new Set();
   return rows.map((r,i)=>{
     const q=Object.fromEntries(TRANSLATION_HEADERS.map((h,j)=>[h,r[j]]));
     if(Number(q.stage)!==1||!([true,'TRUE','true',1,'1'].includes(q.active)))return null;
     q.questionId=String(q.questionId).trim();q.correctOption=String(q.correctOption).trim().toUpperCase();
     const text=['english','optionA','optionB','optionC','optionD','explanation','sourceId','sourceTitle'];
-    if(!/^[A-Za-z0-9_-]{1,80}$/.test(q.questionId)||seen.has(q.questionId)||!['term','sentence'].includes(q.kind)||!['A','B','C','D'].includes(q.correctOption)||text.some(k=>typeof q[k]!=='string'||!q[k].trim())||new Set(['A','B','C','D'].map(k=>q['option'+k].trim())).size!==4||!Number.isInteger(Number(q.sourcePage))||Number(q.sourcePage)<1||!Number.isFinite(Number(q.rewardDose))||Number(q.rewardDose)<=0||!Number.isInteger(Number(q.rewardCoins))||Number(q.rewardCoins)<10||Number(q.rewardCoins)%10!==0)throw apiError_('TRANSLATION_QUESTION','TranslationQuestions '+(i+2)+'행의 문제 ID·보기·출처·보상을 확인하세요. 코인은 10의 배수여야 합니다.');
+    if(!/^[A-Za-z0-9_-]{1,80}$/.test(q.questionId)||seen.has(q.questionId)||!['term','sentence'].includes(q.kind)||!['A','B','C','D'].includes(q.correctOption)||text.some(k=>typeof q[k]!=='string'||!q[k].trim())||new Set(['A','B','C','D'].map(k=>q['option'+k].trim())).size!==4||!Number.isInteger(Number(q.sourcePage))||Number(q.sourcePage)<1||!Number.isFinite(Number(q.rewardDose))||Number(q.rewardDose)<=0||!Number.isInteger(Number(q.rewardCoins))||Number(q.rewardCoins)<10||Number(q.rewardCoins)%10!==0)throw apiError_('TRANSLATION_QUESTION','Translation_01 '+(i+2)+'행의 문제 ID·보기·출처·보상을 확인하세요. 코인은 10의 배수여야 합니다.');
     seen.add(q.questionId);q.rewardDose=Number(q.rewardDose);q.rewardCoins=Number(q.rewardCoins);return q;
   }).filter(Boolean);
 }
@@ -62,7 +50,7 @@ function translationQuizView_(active){
 }
 function translationAction_(request){
  const auth=verifyToken_(request.token);
- if(PropertiesService.getScriptProperties().getProperty('REPORTING_SCHEMA')!=='13')throw apiError_('REPORTING_SETUP','관리자가 Code_v14.gs의 setupReportingV13을 실행해야 합니다.');
+ if(PropertiesService.getScriptProperties().getProperty('REPORTING_SCHEMA')!=='13')throw apiError_('REPORTING_SETUP','관리자가 Code_v16.gs의 setupReportingV13을 실행해야 합니다.');
  const deferred=PropertiesService.getScriptProperties().getProperty('TRANSLATION_ASYNC_REPORTING')==='14';
  const lock=LockService.getScriptLock();lock.waitLock(10000);
  try{

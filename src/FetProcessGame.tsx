@@ -49,7 +49,7 @@ export function MosfetSection({step,on=false,animate=false}:{step:number;on?:boo
  </svg>;
 }
 
-function WorkingMosfet(){
+export function WorkingMosfet(){
  const [on,setOn]=useState(false),[auto,setAuto]=useState(()=>!window.matchMedia('(prefers-reduced-motion: reduce)').matches);
  const [reduced,setReduced]=useState(()=>window.matchMedia('(prefers-reduced-motion: reduce)').matches);
  useEffect(()=>{const media=window.matchMedia('(prefers-reduced-motion: reduce)');const change=()=>{setReduced(media.matches);if(media.matches)setAuto(false);};media.addEventListener('change',change);return()=>media.removeEventListener('change',change);},[]);
