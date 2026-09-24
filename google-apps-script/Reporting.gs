@@ -1,4 +1,4 @@
-// Included in Code_v13.gs. Do not install this file alongside the complete bundle.
+// Included in Code_v14.gs. Do not install this file alongside the complete bundle.
 const TRANSLATION_PROGRESS_HEADERS=['studentId','questionId','stage','kind','attempts','correctCount','firstCorrectAt','lastAnsweredAt','lastSelectedOption','lastCorrect','totalRewardDose','totalRewardCoins','rewardTotalsComplete','sourceId','sourcePage'];
 const IMPORTANT_AUDIT_EVENTS=['ERROR','LOGIN_FAILED','ROOT_LOGIN','STAGE_RELEASE','STAGE_RELOCK','RESET_LEARNING_PROGRESS','REPORTING_MIGRATION'];
 
@@ -143,4 +143,48 @@ function auditRequestError_(request,error){
 
 function requireRootConfiguration_(){
  if(!/^\d{6,8}$/.test(ROOT_STUDENT_ID)||!ROOT_NAME.trim())throw new Error('프로젝트 설정의 스크립트 속성에 기존 ROOT_STUDENT_ID와 ROOT_NAME을 설정하세요. 기존 관리자 계정 값을 그대로 사용해야 합니다.');
+}
+
+
+// Run once from the editor. Re-running does not create duplicate triggers.
+function setupTranslationPerformanceV14(){
+ const props=PropertiesService.getScriptProperties();
+ if(props.getProperty('REPORTING_SCHEMA')!=='13')setupReportingV13();
+ const triggers=ScriptApp.getProjectTriggers().filter(t=>t.getHandlerFunction()==='syncTranslationProgress');
+ if(!triggers.length)ScriptApp.newTrigger('syncTranslationProgress').timeBased().everyMinutes(1).create();
+ triggers.slice(1).forEach(t=>ScriptApp.deleteTrigger(t));
+ props.setProperty('TRANSLATION_ASYNC_REPORTING','14');
+ props.setProperty('TRANSLATION_REPORT_DIRTY','1');
+ clearTranslationQuestionCache();
+ syncTranslationProgress();
+ return 'v14 설정 완료: 판정·보상은 즉시 저장, 누적 집계는 1분 주기로 반영됩니다.';
+}
+function syncTranslationProgress(){
+ const props=PropertiesService.getScriptProperties();
+ if(props.getProperty('TRANSLATION_REPORT_DIRTY')!=='1')return;
+ const lock=LockService.getScriptLock();if(!lock.tryLock(1000))return;
+ try{
+  // All writers use this same lock: clearing the marker cannot lose a new answer.
+  const students=studentsSheet_(),n=students.getLastRow()-1;
+  const values=n>0?students.getRange(2,1,n,STUDENT_HEADERS.length).getValues():[];
+  const rows=[];
+  values.forEach(v=>{
+   if(!v[0])return;
+   // Fail closed on corrupt JSON; leave the marker for retry, do not erase reports.
+   const save=JSON.parse(v[STUDENT_HEADERS.indexOf('saveJson')]||'{}');
+   Object.entries(save.translation_progress?.questions||{}).forEach(([id,p])=>rows.push(progressRow_(canonicalStudentId_(v[0]),id,p)));
+  });
+  rows.sort((a,b)=>String(b[7]).localeCompare(String(a[7]))||String(a[0]).localeCompare(String(b[0]))||String(a[1]).localeCompare(String(b[1])));
+  const sheet=requiredSheet_('TranslationProgress');
+  if(JSON.stringify(sheet.getRange(1,1,1,TRANSLATION_PROGRESS_HEADERS.length).getValues()[0])!==JSON.stringify(TRANSLATION_PROGRESS_HEADERS))throw new Error('TranslationProgress 열 확인 필요');
+  const oldCount=sheet.getLastRow()-1;
+  if(rows.length){
+   if(sheet.getMaxRows()<rows.length+1)sheet.insertRowsAfter(sheet.getMaxRows(),rows.length+1-sheet.getMaxRows());
+   sheet.getRange(2,1,rows.length,2).setNumberFormat('@');sheet.getRange(2,7,rows.length,2).setNumberFormat('@');
+   sheet.getRange(2,1,rows.length,TRANSLATION_PROGRESS_HEADERS.length).setValues(rows);
+  }
+  if(oldCount>rows.length)sheet.getRange(rows.length+2,1,oldCount-rows.length,TRANSLATION_PROGRESS_HEADERS.length).clearContent();
+  SpreadsheetApp.flush();
+  props.deleteProperty('TRANSLATION_REPORT_DIRTY');
+ }finally{lock.releaseLock();}
 }

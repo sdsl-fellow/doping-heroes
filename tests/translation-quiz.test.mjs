@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import {route,walkable} from '../src/navigation.mjs';
-const source=fs.readFileSync('google-apps-script/Code_v13.gs','utf8');
+const source=fs.readFileSync('google-apps-script/Code_v14.gs','utf8');
 const bank=JSON.parse(fs.readFileSync('data/translation-stage1.json','utf8'));
 const plain=x=>JSON.parse(JSON.stringify(x));
 function fixture(){
@@ -75,4 +75,26 @@ test('setup is repeatable and never overwrites teacher edits or disables them',(
  assert.match(ctx.setupTranslationQuiz(),/확인 완료/);assert.match(ctx.setupTranslationQuiz(),/확인 완료/);assert.equal(rows.length,2);rows.push(...bank.slice(1).map(q=>headers.map(h=>q[h])));assert.equal(rows[1][3],'Teacher edited prompt');assert.equal(rows[1][13],false);
  ctx.requiredSheet_=()=>sheet;const loaded=plain(ctx.translationBank_());assert.equal(loaded.length,29);assert.ok(!loaded.some(q=>q.questionId===edited.questionId));
  rows[2][0]=rows[3][0];assert.throws(()=>ctx.translationBank_(),/행/);
+});
+
+test('v14 answers commit once without synchronous reporting; retries survive reporting outage',()=>{
+ const f=fixture(),properties=new Map([['REPORTING_SCHEMA','13'],['TRANSLATION_ASYNC_REPORTING','14']]);
+ f.ctx.PropertiesService={getScriptProperties:()=>({getProperty:k=>properties.get(k),setProperty:(k,v)=>properties.set(k,v)})};
+ f.ctx.translationLog_=()=>{throw Error('Reporting must not run in answer request');};
+ const r=f.start(),q=r.questions?.[0]||r.quiz.questions[0];
+ const a=f.answer(q.id);assert.equal(a.ok,true);assert.equal(properties.get('TRANSLATION_REPORT_DIRTY'),'1');
+ assert.equal(f.read().coins,30);const count=f.writes();f.answer(q.id,'A',r.quiz.id,4);assert.equal(f.writes(),count);
+ assert.equal(f.read().coins,30);assert.equal(f.locks(),0);
+ f.start('round-0002'); // No replay of five old summary rows on the next start.
+});
+
+test('v14 bank cache avoids Sheets reads and falls back on eviction or failure',()=>{
+ const c=vm.createContext({});vm.runInContext(source,c);let reads=0,cached=null;
+ c.PropertiesService={getScriptProperties:()=>({getProperty:()=> 'private-sheet'})};
+ c.CacheService={getScriptCache:()=>({get:()=>cached,put:(key,value,ttl)=>{assert.equal(ttl,60);cached=value;},remove:()=>{cached=null;}})};
+ c.Utilities={newBlob:s=>({getBytes:()=>Buffer.from(s)})};
+ c.translationReadBank_=()=>{reads++;return bank;};
+ assert.equal(c.translationBank_().length,30);assert.equal(c.translationBank_().length,30);assert.equal(reads,1);
+ c.clearTranslationQuestionCache();c.translationBank_();assert.equal(reads,2);
+ c.CacheService={getScriptCache(){throw Error('Cache unavailable');}};assert.equal(c.translationBank_().length,30);assert.equal(reads,3);
 });

@@ -1,4 +1,4 @@
-/** Stage 1 translation quiz. Included in the downloadable Code_v13.gs. */
+/** Stage 1 translation quiz. Included in the downloadable Code_v14.gs. */
 const TRANSLATION_HEADERS = ['questionId','stage','kind','english','optionA','optionB','optionC','optionD','correctOption','explanation','sourceId','sourceTitle','sourcePage','active','rewardDose','rewardCoins'];
 
 // Run from the editor after replacing Code.gs. Existing IDs/edits are never overwritten.
@@ -21,6 +21,17 @@ function translationHeaderCheck_(sheet){
   if(JSON.stringify(sheet.getRange(1,1,1,TRANSLATION_HEADERS.length).getValues()[0])!==JSON.stringify(TRANSLATION_HEADERS))throw apiError_('TRANSLATION_SCHEMA','TranslationQuestions의 열 이름과 순서를 확인하세요.');
 }
 function translationBank_(){
+ const key='translation-bank-v14:'+PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+ try{const hit=CacheService.getScriptCache().get(key);if(hit)return JSON.parse(hit);}catch(ignored){}
+ const bank=translationReadBank_(),json=JSON.stringify(bank);
+ // Cache is optional; eviction or an oversized bank falls back to Sheets.
+ try{if(Utilities.newBlob(json).getBytes().length<95000)CacheService.getScriptCache().put(key,json,60);}catch(ignored){}
+ return bank;
+}
+function clearTranslationQuestionCache(){
+ CacheService.getScriptCache().remove('translation-bank-v14:'+PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID'));
+}
+function translationReadBank_(){
   const sheet=requiredSheet_('TranslationQuestions');translationHeaderCheck_(sheet);
   const rows=sheet.getLastRow()>1?sheet.getRange(2,1,sheet.getLastRow()-1,TRANSLATION_HEADERS.length).getValues():[];
   const seen=new Set();
@@ -51,7 +62,8 @@ function translationQuizView_(active){
 }
 function translationAction_(request){
  const auth=verifyToken_(request.token);
- if(PropertiesService.getScriptProperties().getProperty('REPORTING_SCHEMA')!=='13')throw apiError_('REPORTING_SETUP','관리자가 Code_v13.gs의 setupReportingV13을 실행해야 합니다.');
+ if(PropertiesService.getScriptProperties().getProperty('REPORTING_SCHEMA')!=='13')throw apiError_('REPORTING_SETUP','관리자가 Code_v14.gs의 setupReportingV13을 실행해야 합니다.');
+ const deferred=PropertiesService.getScriptProperties().getProperty('TRANSLATION_ASYNC_REPORTING')==='14';
  const lock=LockService.getScriptLock();lock.waitLock(10000);
  try{
   const sheet=studentsSheet_(),row=findStudentRow_(sheet,auth.studentId);
@@ -63,11 +75,11 @@ function translationAction_(request){
   const respond=()=>({...studentResponse_(auth.studentId,save.name,save,revision,null,false),quiz:translationQuizView_(progress.active)});
   // Retry with the same round ID resumes the same snapshot and never resamples.
   if(request.action==='translationStart'&&active&&active.id===request.roundId&&active.expiresAt>Date.now())return respond();
-  if(request.action==='translationAnswer'&&active&&active.id===request.roundId&&active.results[request.questionId]){translationLog_(auth.studentId,active,request.questionId,progress.questions);return respond();}
+  if(request.action==='translationAnswer'&&active&&active.id===request.roundId&&active.results[request.questionId]){if(!deferred)translationLog_(auth.studentId,active,request.questionId,progress.questions);return respond();}
   if(Number(request.baseRevision)!==revision)return {...studentResponse_(auth.studentId,save.name,save,revision,null,false),ok:false,error:{code:'REVISION_CONFLICT',message:'저장 기록이 변경됐습니다. 최신 기록을 반영한 후 다시 제출하세요.'}};
   if(request.action==='translationStart'){
    if(!/^[A-Za-z0-9_-]{8,80}$/.test(String(request.roundId)))throw apiError_('TRANSLATION_ROUND','올바르지 않은 회차 ID입니다.');
-   if(active)Object.keys(active.results||{}).forEach(id=>translationLog_(auth.studentId,active,id,progress.questions));
+   if(active&&!deferred)Object.keys(active.results||{}).forEach(id=>translationLog_(auth.studentId,active,id,progress.questions));
    progress.active={id:request.roundId,expiresAt:Date.now()+86400000,questions:translationSample_(translationBank_()),results:{}};
   }else{
    if(!active||active.id!==request.roundId||active.expiresAt<Date.now())throw apiError_('TRANSLATION_EXPIRED','퀴즈가 만료됐거나 다른 회차를 시작했습니다. 새 회차를 시작하세요.');
@@ -83,8 +95,10 @@ function translationAction_(request){
   save.translation_progress=progress;
   // Results and rewards share one Students row write. Retried POSTs see the receipt above.
   if(JSON.stringify(toStoredSave(save)).length>MAX_SAVE_BYTES)throw apiError_('SAVE_TOO_LARGE','번역 풀이 기록의 저장 용량을 초과했습니다.');
+  // Durable dirty marker precedes the canonical commit; a failed worker can retry.
+  if(deferred&&request.action==='translationAnswer')PropertiesService.getScriptProperties().setProperty('TRANSLATION_REPORT_DIRTY','1');
   writeStudentProgress_(sheet,row,auth.studentId,save.name,save,revision+1,koreaTimestamp_(),v[at('createdAt')],v[at('pinSalt')],v[at('pinHash')]);
-  if(request.action==='translationAnswer')translationLog_(auth.studentId,progress.active,request.questionId,progress.questions);
+  if(request.action==='translationAnswer'&&!deferred)translationLog_(auth.studentId,progress.active,request.questionId,progress.questions);
   return {...studentResponse_(auth.studentId,save.name,save,revision+1,null,false),quiz:translationQuizView_(progress.active)};
  }finally{lock.releaseLock();}
 }
