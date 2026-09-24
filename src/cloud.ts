@@ -3,7 +3,7 @@ import type {Save} from './save';
 import {normalizeItemSave,toCloudItemSave} from './item-save.mjs';
 import {fromStoredSave,toStoredSave} from './completion-save.mjs';
 
-export const CLOUD_API_URL='https://script.google.com/macros/s/AKfycbwnkrmrQZNi7-UNCoys5EMuSHR9AuPChB79UUCLmI8YrQJscWAS5chXhOkyX-2MxkHs/exec';
+export const CLOUD_API_URL='https://script.google.com/macros/s/AKfycbyGf4dGKwe4hBteQkWSMRnaZzE4PTYn05xXEnTY90Y6EkEzJssJ9n0aCxQibQaE2v77/exec';
 const CLOUD_AUTH_KEY='doping-heroes:cloud-auth:v1';
 
 export type CloudSession={studentId:string;token:string;revision:number};
