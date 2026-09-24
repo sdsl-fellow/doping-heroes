@@ -1,4 +1,4 @@
-/** Stage 1 translation quiz. Included in the downloadable Code_v12.gs. */
+/** Stage 1 translation quiz. Included in the downloadable Code_v13.gs. */
 const TRANSLATION_HEADERS = ['questionId','stage','kind','english','optionA','optionB','optionC','optionD','correctOption','explanation','sourceId','sourceTitle','sourcePage','active','rewardDose','rewardCoins'];
 
 // Run from the editor after replacing Code.gs. Existing IDs/edits are never overwritten.
@@ -11,12 +11,10 @@ function setupTranslationQuiz() {
     const sheet=ss.getSheetByName('TranslationQuestions')||ss.insertSheet('TranslationQuestions');
     if(sheet.getLastRow()===0)sheet.getRange(1,1,1,TRANSLATION_HEADERS.length).setValues([TRANSLATION_HEADERS]);
     translationHeaderCheck_(sheet);
-    const ids=new Set(sheet.getLastRow()>1?sheet.getRange(2,1,sheet.getLastRow()-1,1).getValues().flat().map(String):[]);
-    const additions=TRANSLATION_SEED.filter(q=>!ids.has(q.questionId));
-    if(additions.length)sheet.getRange(sheet.getLastRow()+1,1,additions.length,TRANSLATION_HEADERS.length).setValues(additions.map(q=>TRANSLATION_HEADERS.map(h=>q[h])));
-    ensureSheet_(ss,'TranslationAttempts',TRANSLATION_ATTEMPT_HEADERS);
+    // Questions are maintained only in the private spreadsheet; no embedded seed.
+    ensureSheet_(ss,'TranslationProgress',TRANSLATION_PROGRESS_HEADERS);
     sheet.setFrozenRows(1);SpreadsheetApp.flush();
-    return additions.length+'개 번역 문제 추가 완료. 기존 문제의 직접 수정 내용은 유지했습니다.';
+    return '번역 문제 시트 확인 완료. 기존 문제의 직접 수정 내용은 유지했습니다. setupReportingV13을 실행하세요.';
   }finally{lock.releaseLock();}
 }
 function translationHeaderCheck_(sheet){
@@ -49,10 +47,12 @@ function translationPublicSave_(save){
  return {...save,translation_progress:{questions:save.translation_progress.questions||{}}};
 }
 function translationQuizView_(active){
- return {id:active.id,questions:active.questions.map(q=>({id:q.questionId,kind:q.kind,english:q.english,options:q.options})),results:active.results||{},expiresAt:active.expiresAt};
+ return {storageMode:'student-question',id:active.id,questions:active.questions.map(q=>({id:q.questionId,kind:q.kind,english:q.english,options:q.options})),results:active.results||{},expiresAt:active.expiresAt};
 }
 function translationAction_(request){
- const auth=verifyToken_(request.token),lock=LockService.getScriptLock();lock.waitLock(10000);
+ const auth=verifyToken_(request.token);
+ if(PropertiesService.getScriptProperties().getProperty('REPORTING_SCHEMA')!=='13')throw apiError_('REPORTING_SETUP','관리자가 Code_v13.gs의 setupReportingV13을 실행해야 합니다.');
+ const lock=LockService.getScriptLock();lock.waitLock(10000);
  try{
   const sheet=studentsSheet_(),row=findStudentRow_(sheet,auth.studentId);
   if(!row)throw apiError_('ACCOUNT_NOT_FOUND','계정을 찾지 못했습니다.');
@@ -63,20 +63,20 @@ function translationAction_(request){
   const respond=()=>({...studentResponse_(auth.studentId,save.name,save,revision,null,false),quiz:translationQuizView_(progress.active)});
   // Retry with the same round ID resumes the same snapshot and never resamples.
   if(request.action==='translationStart'&&active&&active.id===request.roundId&&active.expiresAt>Date.now())return respond();
-  if(request.action==='translationAnswer'&&active&&active.id===request.roundId&&active.results[request.questionId]){translationLog_(auth.studentId,active,request.questionId);return respond();}
+  if(request.action==='translationAnswer'&&active&&active.id===request.roundId&&active.results[request.questionId]){translationLog_(auth.studentId,active,request.questionId,progress.questions);return respond();}
   if(Number(request.baseRevision)!==revision)return {...studentResponse_(auth.studentId,save.name,save,revision,null,false),ok:false,error:{code:'REVISION_CONFLICT',message:'저장 기록이 변경됐습니다. 최신 기록을 반영한 후 다시 제출하세요.'}};
   if(request.action==='translationStart'){
    if(!/^[A-Za-z0-9_-]{8,80}$/.test(String(request.roundId)))throw apiError_('TRANSLATION_ROUND','올바르지 않은 회차 ID입니다.');
-   if(active)Object.keys(active.results||{}).forEach(id=>translationLog_(auth.studentId,active,id));
+   if(active)Object.keys(active.results||{}).forEach(id=>translationLog_(auth.studentId,active,id,progress.questions));
    progress.active={id:request.roundId,expiresAt:Date.now()+86400000,questions:translationSample_(translationBank_()),results:{}};
   }else{
    if(!active||active.id!==request.roundId||active.expiresAt<Date.now())throw apiError_('TRANSLATION_EXPIRED','퀴즈가 만료됐거나 다른 회차를 시작했습니다. 새 회차를 시작하세요.');
    const q=active.questions.find(q=>q.questionId===request.questionId);
    if(!q||!['A','B','C','D'].includes(request.optionId))throw apiError_('TRANSLATION_ANSWER','문제와 선택한 보기를 확인하세요.');
-   const previous=progress.questions[q.questionId]||{attempts:0,correctCount:0},correct=request.optionId===q.correctOption;
+   const previous=progress.questions[q.questionId]||{attempts:0,correctCount:0,totalRewardDose:0,totalRewardCoins:0,rewardTotalsComplete:true},correct=request.optionId===q.correctOption;
    const divisor=previous.correctCount>0?10:1,dose=correct?q.rewardDose/divisor:0,coins=correct?q.rewardCoins/divisor:0;
    const actualDose=Math.min(dose,Math.max(0,1e21-save.doping)),actualCoins=Math.min(coins,Math.max(0,1000000000-save.coins)),now=koreaTimestamp_();
-   progress.questions[q.questionId]={...previous,attempts:previous.attempts+1,correctCount:previous.correctCount+(correct?1:0),lastAnsweredAt:now,...(correct&&!previous.firstCorrectAt?{firstCorrectAt:now}:{})};
+   progress.questions[q.questionId]={...previous,attempts:previous.attempts+1,correctCount:previous.correctCount+(correct?1:0),lastAnsweredAt:now,lastSelectedOption:request.optionId,lastCorrect:correct,stage:1,kind:q.kind,sourceId:q.sourceId,sourcePage:q.sourcePage,totalRewardDose:(Number(previous.totalRewardDose)||0)+actualDose,totalRewardCoins:(Number(previous.totalRewardCoins)||0)+actualCoins,...(correct&&!previous.firstCorrectAt?{firstCorrectAt:now}:{})};
    active.results[q.questionId]={correct,selected:request.optionId,correctOption:q.correctOption,correctText:q['option'+q.correctOption],explanation:q.explanation,sourceId:q.sourceId,sourceTitle:q.sourceTitle,sourcePage:q.sourcePage,dose:actualDose,coins:actualCoins,repeat:correct&&divisor===10,answeredAt:now};
    save.doping+=actualDose;save.coins+=actualCoins;
   }
@@ -84,20 +84,9 @@ function translationAction_(request){
   // Results and rewards share one Students row write. Retried POSTs see the receipt above.
   if(JSON.stringify(toStoredSave(save)).length>MAX_SAVE_BYTES)throw apiError_('SAVE_TOO_LARGE','번역 풀이 기록의 저장 용량을 초과했습니다.');
   writeStudentProgress_(sheet,row,auth.studentId,save.name,save,revision+1,koreaTimestamp_(),v[at('createdAt')],v[at('pinSalt')],v[at('pinHash')]);
-  if(request.action==='translationAnswer')translationLog_(auth.studentId,progress.active,request.questionId);
+  if(request.action==='translationAnswer')translationLog_(auth.studentId,progress.active,request.questionId,progress.questions);
   return {...studentResponse_(auth.studentId,save.name,save,revision+1,null,false),quiz:translationQuizView_(progress.active)};
  }finally{lock.releaseLock();}
 }
 
 const TRANSLATION_ATTEMPT_HEADERS=['recordId','studentId','stage','roundId','questionId','kind','selectedOption','correctOption','correct','repeat','rewardDose','rewardCoins','answeredAt','sourceId','sourcePage'];
-function translationLog_(studentId,active,questionId){
- try{
-  const sheet=requiredSheet_('TranslationAttempts');
-  if(JSON.stringify(sheet.getRange(1,1,1,TRANSLATION_ATTEMPT_HEADERS.length).getValues()[0])!==JSON.stringify(TRANSLATION_ATTEMPT_HEADERS))throw new Error('풀이 기록 시트의 열 이름을 확인하세요.');
-  const id=studentId+':'+active.id+':'+questionId,count=sheet.getLastRow()-1;
-  if(count>0&&sheet.getRange(2,1,count,1).createTextFinder(id).matchEntireCell(true).findNext())return;
-  const r=active.results[questionId],q=active.questions.find(q=>q.questionId===questionId);
-  sheet.getRange(sheet.getLastRow()+1,1,1,TRANSLATION_ATTEMPT_HEADERS.length).setValues([[id,studentId,1,active.id,questionId,q.kind,r.selected,r.correctOption,r.correct,r.repeat,r.dose,r.coins,r.answeredAt,safeCell_(r.sourceId),r.sourcePage]]);
-  SpreadsheetApp.flush();
- }catch(error){throw apiError_('TRANSLATION_LOG_PENDING','답안과 보상은 저장됐지만 풀이 기록 시트 동기화가 지연됐습니다. 같은 답안을 다시 제출해 주세요. 보상은 중복 지급되지 않습니다.');}
-}

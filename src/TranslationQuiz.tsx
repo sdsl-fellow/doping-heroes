@@ -15,7 +15,7 @@ export function TranslationQuiz({request,onBusy}:{request:TranslationRequest;onB
    {!result&&<button className="primary" disabled={busy||!selected} onClick={()=>void run(async()=>setRound(await request('translationAnswer',{roundId:round!.id,questionId:q.id,optionId:selected})))}>{busy?'정답 확인 및 저장 중…':'정답 확인'}</button>}
    {result&&<div className="translation-feedback" role="status"><strong>{result.correct?'정답입니다!':'정답을 확인해 보세요.'}</strong><p>정답: {result.correctText}</p><p>{result.explanation}</p><p>{result.correct?`${result.repeat?'복습':'최초 정답'} 보상 · 도핑 +${scientific(result.dose)} cm⁻³ · ${result.coins}코인`:'보상 없음 · 다음 회차에서 다시 도전할 수 있습니다.'}</p><small>출처: {result.sourceTitle} · p. {result.sourcePage}</small><button className="primary" disabled={busy} onClick={()=>{setIndex(i=>i+1);setSelected('');}}>{index===round!.questions.length-1?'결과 보기':'다음 문제'}</button></div>}
   </>}
-  {finished&&<><h3>5문제 완료</h3><p>정답 {Object.values(round!.results).filter(r=>r.correct).length} / 5 · 획득 {Object.values(round!.results).reduce((n,r)=>n+r.coins,0)}코인</p><p>각 답안과 보상은 서버에 저장되었습니다.</p><button className="primary" disabled={busy} onClick={start}>{busy?'다음 회차 준비 중…':'새로운 5문제 도전'}</button></>}
+  {finished&&<><h3>5문제 완료</h3><p>정답 {Object.values(round!.results).filter(r=>r.correct).length} / 5 · 획득 {Object.values(round!.results).reduce((n,r)=>n+r.coins,0)}코인</p><p>{round!.storageMode==='student-question'?'학생별·문제별 누적 기록과 보상이 저장되었습니다.':'학습 기록과 보상은 서버에 저장되었습니다.'}</p><button className="primary" disabled={busy} onClick={start}>{busy?'다음 회차 준비 중…':'새로운 5문제 도전'}</button></>}
   {error&&<p className="translation-error" role="alert">{error}</p>}
   {busy&&<p role="status">서버 응답을 기다리고 있습니다. 같은 요청을 다시 제출해도 보상은 한 번만 지급됩니다.</p>}
  </section>;
