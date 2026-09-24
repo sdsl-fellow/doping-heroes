@@ -1,9 +1,9 @@
-// Included in Code_v16.gs. Do not install alongside the complete bundle.
+// Included in Code_v17.gs. Do not install alongside the complete bundle.
 const QUIZ_CONTENT_HEADERS=['questionId','question','optionA','optionB','optionC','optionD','correctOption','explanation','source','active','rewardDose','rewardCoins','legacyQuestId','title','dopant'];
 const EXPERIMENT_CONTENT_HEADERS=['experimentId','title','type','stepId','stepTitle','detail','hint','correctOrder','active','rewardDose','rewardCoins','source'];
 function learningSheet_(name){
  const id=PropertiesService.getScriptProperties().getProperty('CONTENT_SPREADSHEET_ID');
- if(!id)throw apiError_('CONTENT_SETUP','관리자가 Code_v16.gs의 setupLearningContentV16을 실행해주세요.');
+ if(!id)throw apiError_('CONTENT_SETUP','관리자가 Code_v17.gs의 setupLearningContentV16을 실행해주세요.');
  const sheet=SpreadsheetApp.openById(id).getSheetByName(name);
  if(!sheet)throw apiError_('CONTENT_SHEET',name+' 탭이 없습니다.');return sheet;
 }
@@ -75,6 +75,21 @@ function learningContentAction_(request){
  const sheet=studentsSheet_(),row=findStudentRow_(sheet,auth.studentId);if(!row)throw apiError_('ACCOUNT_NOT_FOUND','계정을 찾지 못했습니다.');
  const v=sheet.getRange(row,1,1,STUDENT_HEADERS.length).getValues()[0],save=parseStoredSave_(v[6],auth.studentId,String(v[1]));
  if(save.area!==(stage===0?'village':'stage-'+stage))throw apiError_('CONTENT_STAGE','해당 스테이지에서 문제를 열어주세요.');
+ if(request.kind==='tutorial'){
+  if(stage!==0)throw apiError_('CONTENT_STAGE','튜토리얼은 마을에서 열어주세요.');
+  const bank=learningQuizBank_(0);
+  const selected=[0,1,2].map(questId=>{
+   const candidates=bank.filter(q=>Number(q.legacyQuestId)===questId);
+   if(!candidates.length)throw apiError_('CONTENT_EMPTY','튜토리얼 '+(questId+1)+'번 활성 문제가 없습니다.');
+   return {questId,q:candidates[Math.floor(Math.random()*candidates.length)]};
+  });
+  const questions=selected.map(({questId,q})=>{
+   const sessionId=Utilities.getUuid();
+   cache.put('learning-session:'+sessionId,JSON.stringify({studentId:auth.studentId,kind:'quiz',question:q}),1800);
+   return {questId,sessionId,questionId:q.questionId,title:String(q.title),question:String(q.question),options:q.options};
+  });
+  return {ok:true,content:{questions}};
+ }
  const sessionId=Utilities.getUuid();let session,content;
  if(request.kind==='experiment'){
   const steps=learningExperiment_(stage);session={studentId:auth.studentId,kind:'experiment',steps};

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-const source=fs.readFileSync('google-apps-script/Code_v16.gs','utf8');
+const source=fs.readFileSync('google-apps-script/Code_v17.gs','utf8');
 function fixture(){
  const c=vm.createContext({});vm.runInContext(source,c);const props=new Map([['SPREADSHEET_ID','operations'],['CONTENT_SPREADSHEET_ID','content']]),cache=new Map(),sheets=new Map();let area='stage-1',sid='22221111',serial=0;
  c.PropertiesService={getScriptProperties:()=>({getProperty:k=>props.get(k),setProperty:(k,v)=>props.set(k,v),deleteProperty:k=>props.delete(k)})};
@@ -44,4 +44,20 @@ test('translation reads Translation_01, setup never overwrites private teacher d
 });
 test('failed setup restores content configuration without changing operational sheet',()=>{
  const f=fixture();assert.throws(()=>f.c.setupLearningContentV16(),/탭이 없습니다/);assert.equal(f.props.get('CONTENT_SPREADSHEET_ID'),'content');assert.equal(f.props.get('SPREADSHEET_ID'),'operations');
+});
+
+test('tutorial batch loads all three once and keeps answer keys in private sessions',()=>{
+ const f=fixture();f.setArea('village');
+ f.add('Tutorial',Array.from(vm.runInContext('QUIZ_CONTENT_HEADERS',f.c)),[0,1,2].map(i=>({...f.q,questionId:'t'+i,legacyQuestId:i,explanation:'private-explanation'})));
+ let reads=0;const load=f.c.learningQuizBank_;f.c.learningQuizBank_=(stage)=>{reads++;return load(stage);};
+ const r=f.c.learningContentAction_({action:'learningStart',stage:0,kind:'tutorial'});
+ assert.equal(reads,1);assert.deepEqual(Array.from(r.content.questions,q=>q.questId),[0,1,2]);
+ assert.ok(!JSON.stringify(r).includes('correctOption'));assert.ok(!JSON.stringify(r).includes('private-explanation'));
+ for(const q of r.content.questions)assert.equal(f.c.learningContentAction_({action:'learningAnswer',sessionId:q.sessionId,optionId:'B'}).content.correct,true);
+ assert.equal(reads,1);
+ const again=f.c.learningContentAction_({action:'learningStart',stage:0,kind:'tutorial'});assert.notEqual(again.content.questions[0].sessionId,r.content.questions[0].sessionId);
+});
+test('tutorial batch rejects missing slots and non-village use',()=>{
+ const f=fixture();assert.throws(()=>f.c.learningContentAction_({action:'learningStart',stage:1,kind:'tutorial'}),/마을/);
+ f.setArea('village');f.add('Tutorial',Array.from(vm.runInContext('QUIZ_CONTENT_HEADERS',f.c)),[{...f.q,legacyQuestId:0}]);assert.throws(()=>f.c.learningContentAction_({action:'learningStart',stage:0,kind:'tutorial'}),/2번/);assert.equal(f.cache.has('learning-session:round-1'),false);
 });
