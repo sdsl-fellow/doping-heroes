@@ -16,6 +16,10 @@ test('root access requires both identifiers and preserves ordinary progression',
  }
  assert.equal(validStudentId('학생','099746'),false);
  assert.equal(validStudentId('학생','20260001'),true);
+ assert.equal(validStudentId('조교','TA-01'),true);
+ assert.equal(validStudentId('특별 수강생','12345'),true);
+ assert.equal(validStudentId('학생',''),false);
+ assert.equal(validStudentId('학생','TA 01'),false);
  assert.equal(stageUnlocked([0,1,2],0),true);
  assert.equal(stageUnlocked([0,1,2],1),false);
 });

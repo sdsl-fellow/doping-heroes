@@ -454,9 +454,13 @@ function assertRosterAllowed_(studentId) {
 function rosterStudent_(studentId) {
   const sheet = rosterSheet_();
   if (sheet.getLastRow() < 2) return null;
-  const values = sheet.getRange(2, 1, sheet.getLastRow() - 1, 2).getDisplayValues();
+  const range = sheet.getRange(2, 1, sheet.getLastRow() - 1, 2);
+  const values = range.getValues();
+  const displayed = range.getDisplayValues();
   for (let index = 0; index < values.length; index += 1) {
-    if (canonicalStudentId_(values[index][0]) === studentId) return {row: index + 2, name: String(values[index][1] || '')};
+    const rawId = values[index][0];
+    const id = typeof rawId === 'number' && Number.isSafeInteger(rawId) ? rawId : displayed[index][0];
+    if (canonicalStudentId_(id) === studentId) return {row: index + 2, name: String(values[index][1] || '')};
   }
   return null;
 }
@@ -495,9 +499,9 @@ function loginFailureKey_(key) {
 }
 
 function requireStudentId_(value) {
-  const studentId = String(value || '').trim();
-  if (!/^\d{8}$/.test(studentId) && studentId !== ROOT_STUDENT_ID) {
-    throw apiError_('INVALID_STUDENT_ID', '학번은 숫자 8자리여야 합니다.');
+  const studentId = String(value || '').trim().toUpperCase();
+  if (!/^[A-Z0-9_-]{1,20}$/.test(studentId)) {
+    throw apiError_('INVALID_STUDENT_ID', '학번 또는 수강생 ID는 영문·숫자·-·_ 1~20자여야 합니다.');
   }
   return studentId;
 }
@@ -604,9 +608,13 @@ function ensureSheet_(spreadsheet, name, headers) {
 
 function findStudentRow_(sheet, studentId) {
   if (sheet.getLastRow() < 2) return 0;
-  const values = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getDisplayValues();
+  const range = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1);
+  const values = range.getValues();
+  const displayed = range.getDisplayValues();
   for (let index = 0; index < values.length; index += 1) {
-    if (canonicalStudentId_(values[index][0]) === studentId) return index + 2;
+    const rawId = values[index][0];
+    const id = typeof rawId === 'number' && Number.isSafeInteger(rawId) ? rawId : displayed[index][0];
+    if (canonicalStudentId_(id) === studentId) return index + 2;
   }
   return 0;
 }
@@ -614,7 +622,7 @@ function findStudentRow_(sheet, studentId) {
 function canonicalStudentId_(value) {
   const text = String(value || '').trim().replace(/^'/, '');
   if (text === ROOT_STUDENT_ID || text === String(Number(ROOT_STUDENT_ID))) return ROOT_STUDENT_ID;
-  return /^\d{1,8}$/.test(text) ? text.padStart(8, '0') : text;
+  return text.toUpperCase();
 }
 
 function safeCell_(value) {
