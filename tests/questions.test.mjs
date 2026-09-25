@@ -49,7 +49,7 @@ test('teacher edits timestamp only published answers and clear timestamp on with
 test('question routes do not save game state or return student records',()=>{
  const f=fixture();f.c.writeStudentProgress_=()=>{throw Error('unrelated game write');};
  assert.deepEqual(Object.keys(plain(f.create())).sort(),['ok','qa']);
- assert.equal(code,fs.readFileSync('google-apps-script/Code.gs','utf8'));
+ assert.equal(fs.readFileSync('google-apps-script/Code_v21.gs','utf8'),fs.readFileSync('google-apps-script/Code.gs','utf8'));
 });
 test('column reordering retains ownership and content; missing headers fail before writing',()=>{
  const f=fixture();[f.headers[1],f.headers[5]]=[f.headers[5],f.headers[1]];

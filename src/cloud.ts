@@ -44,11 +44,15 @@ async function request(body?:Record<string,unknown>):Promise<CloudResponse>{
   else{
    let primary:CloudResponse|undefined,secondary:CloudResponse|undefined,primaryError:unknown,secondaryError:unknown;
    try{primary=await fetchCloudJson(CLOUD_API_URL,options);}catch(error){primaryError=error;}
-   if(primary?.ok&&(primary.apiVersion??0)>=20&&primary.item_schema===3){
+   if(primary?.ok&&(primary.apiVersion??0)>=21&&primary.item_schema===3){
     activeCloudUrl=CLOUD_API_URL;data=primary;
    }else{
     try{secondary=await fetchCloudJson(CLOUD_FALLBACK_URL,options);}catch(error){secondaryError=error;}
-    if(secondary?.ok&&(secondary.apiVersion??0)>=20&&secondary.item_schema===3){
+    if(secondary?.ok&&(secondary.apiVersion??0)>=21&&secondary.item_schema===3){
+     activeCloudUrl=CLOUD_FALLBACK_URL;data=secondary;
+    }else if(primary?.ok&&(primary.apiVersion??0)>=20&&primary.item_schema===3){
+     activeCloudUrl=CLOUD_API_URL;data=primary;
+    }else if(secondary?.ok&&(secondary.apiVersion??0)>=20&&secondary.item_schema===3){
      activeCloudUrl=CLOUD_FALLBACK_URL;data=secondary;
     }else if(primary?.ok&&(primary.apiVersion??0)>=19&&primary.item_schema===3){
      activeCloudUrl=CLOUD_API_URL;data=primary;

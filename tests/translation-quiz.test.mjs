@@ -22,7 +22,7 @@ function fixture(){
 test('bank contains 9 terms / 21 sentences with unique IDs and source pages',()=>{
  assert.equal(bank.length,30);assert.equal(bank.filter(q=>q.kind==='term').length,9);assert.equal(new Set(bank.map(q=>q.questionId)).size,30);
  for(const q of bank){assert.equal(q.stage,1);assert.ok(q.sourcePage>=3&&q.sourcePage<=34);assert.equal(new Set(['A','B','C','D'].map(k=>q['option'+k])).size,4);assert.equal(q.rewardCoins%10,0);}
- assert.equal(source,fs.readFileSync('google-apps-script/Code.gs','utf8'));
+ assert.equal(fs.readFileSync('google-apps-script/Code_v21.gs','utf8'),fs.readFileSync('google-apps-script/Code.gs','utf8'));
 });
 test('round sampling has five unique questions, 1/2 terms, shuffled options and no answer leakage',()=>{
  const f=fixture();const signatures=new Set();let termCount=0;

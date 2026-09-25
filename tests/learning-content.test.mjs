@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 const source=fs.readFileSync('google-apps-script/Code_v19.gs','utf8');
-function fixture(){
- const c=vm.createContext({});vm.runInContext(source,c);const props=new Map([['SPREADSHEET_ID','operations'],['CONTENT_SPREADSHEET_ID','content']]),cache=new Map(),sheets=new Map();let area='stage-1',sid='22221111',serial=0;
+function fixture(code=source){
+ const c=vm.createContext({});vm.runInContext(code,c);const props=new Map([['SPREADSHEET_ID','operations'],['CONTENT_SPREADSHEET_ID','content']]),cache=new Map(),sheets=new Map();let area='stage-1',sid='22221111',serial=0;
  c.PropertiesService={getScriptProperties:()=>({getProperty:k=>props.get(k),setProperty:(k,v)=>props.set(k,v),deleteProperty:k=>props.delete(k)})};
  c.CacheService={getScriptCache:()=>({get:k=>cache.get(k),put:(k,v)=>cache.set(k,v),remove:k=>cache.delete(k)})};
  c.Utilities={getUuid:()=> 'round-'+(++serial),newBlob:s=>({getBytes:()=>Buffer.from(s)})};
@@ -60,4 +60,33 @@ test('tutorial batch loads all three once and keeps answer keys in private sessi
 test('tutorial batch rejects missing slots and non-village use',()=>{
  const f=fixture();assert.throws(()=>f.c.learningContentAction_({action:'learningStart',stage:1,kind:'tutorial'}),/마을/);
  f.setArea('village');f.add('Tutorial',Array.from(vm.runInContext('QUIZ_CONTENT_HEADERS',f.c)),[{...f.q,legacyQuestId:0}]);assert.throws(()=>f.c.learningContentAction_({action:'learningStart',stage:0,kind:'tutorial'}),/2번/);assert.equal(f.cache.has('learning-session:round-1'),false);
+});
+test('v21 stage batch loads every active question once and completes only after all are correct',()=>{
+ const f=fixture(fs.readFileSync('google-apps-script/Code_v21.gs','utf8'));
+ const headers=Array.from(vm.runInContext('QUIZ_CONTENT_HEADERS',f.c));
+ f.add('Quiz_01',headers,Array.from({length:5},(_,i)=>({...f.q,questionId:'q'+(i+1),question:'Question '+(i+1),rewardDose:1e12,rewardCoins:30})));
+ const batch=f.c.learningContentAction_({action:'learningStart',kind:'stageQuiz',stage:1});
+ assert.equal(batch.content.questions.length,5);
+ assert.ok(!JSON.stringify(batch).includes('correctOption'));
+ assert.ok(!JSON.stringify(batch).includes('explanation'));
+ const [first,...rest]=batch.content.questions;
+ const wrong=f.c.learningContentAction_({action:'learningAnswer',sessionId:first.sessionId,optionId:'A'});
+ assert.equal(wrong.content.correct,false);assert.equal(wrong.content.stageComplete,false);
+ const correct=f.c.learningContentAction_({action:'learningAnswer',sessionId:first.sessionId,optionId:'B'});
+ assert.equal(correct.content.solved,1);assert.equal(correct.content.stageComplete,false);
+ assert.equal(f.c.learningContentAction_({action:'learningAnswer',sessionId:first.sessionId,optionId:'B'}).content.solved,1);
+ for(const [i,q] of rest.entries()){
+  const result=f.c.learningContentAction_({action:'learningAnswer',sessionId:q.sessionId,optionId:'B'});
+  assert.equal(result.content.stageComplete,i===rest.length-1);
+  assert.equal(result.content.solved,i+2);
+  if(i===rest.length-1){assert.equal(result.content.dose,1e12);assert.equal(result.content.coins,30);}
+ }
+ f.setSid('another-student');assert.throws(()=>f.c.learningContentAction_({action:'learningAnswer',sessionId:first.sessionId,optionId:'B'}),/다른 학생/);
+});
+test('v21 a single active stage question completes after one correct answer',()=>{
+ const f=fixture(fs.readFileSync('google-apps-script/Code_v21.gs','utf8'));
+ const batch=f.c.learningContentAction_({action:'learningStart',kind:'stageQuiz',stage:1});
+ assert.equal(batch.content.questions.length,1);
+ const result=f.c.learningContentAction_({action:'learningAnswer',sessionId:batch.content.questions[0].sessionId,optionId:'B'});
+ assert.equal(result.content.stageComplete,true);
 });

@@ -45,7 +45,7 @@ test('concurrent stage polling and save verification share one GET',async()=>{
   const save=api.saveCloud('test',{item_schema:3,character:{hat:'H06'},purchased:['H06']},1);
   assert.equal(first,second);assert.equal(calls.length,1);release();
   await Promise.all([first,second,save]);
-  assert.deepEqual(calls.map(c=>c.method),['GET','POST']);
+  assert.deepEqual(calls.map(c=>c.method),['GET','GET','POST']);
  }finally{release();globalThis.fetch=oldFetch;globalThis.window=oldWindow;}
 });
 
@@ -77,8 +77,20 @@ test('v20 deployment is selected for subsequent authenticated requests',async()=
  try{
   await api.fetchCloudStages();
   await api.loadCloud('test-token');
-  assert.deepEqual(calls.map(c=>c.method),['GET','POST']);
-  assert.ok(calls.every(c=>c.url.includes('AKfycbzR9k9c')));
+  assert.deepEqual(calls.map(c=>c.method),['GET','GET','POST']);
+  assert.ok(calls[2].url.includes('AKfycbzR9k9c'));
+ }finally{globalThis.fetch=oldFetch;globalThis.window=oldWindow;}
+});
+test('v21 fallback takes priority over a reachable v20 primary before a stage batch starts',async()=>{
+ const api=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text+'\n//v21-preference').toString('base64'));
+ const oldFetch=globalThis.fetch,oldWindow=globalThis.window,calls=[];
+ globalThis.window={setTimeout,clearTimeout};
+ globalThis.fetch=async(url,options)=>{calls.push({url,method:options.method});return {text:async()=>JSON.stringify({ok:true,apiVersion:url.includes('AKfycbx2Ko65')?21:20,item_schema:3})};};
+ try{
+  const stages=await api.fetchCloudStages();assert.equal(stages.apiVersion,21);
+  await api.learningCloud('learningStart','token',{kind:'stageQuiz',stage:1});
+  assert.deepEqual(calls.map(c=>c.method),['GET','GET','POST']);
+  assert.ok(calls[2].url.includes('AKfycbx2Ko65'));
  }finally{globalThis.fetch=oldFetch;globalThis.window=oldWindow;}
 });
 
