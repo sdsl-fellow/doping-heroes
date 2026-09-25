@@ -18,20 +18,14 @@ export class CloudError extends Error{
 
 let serverItemSchema:number|undefined;
 let stageRequest:Promise<CloudResponse>|null=null;
-let endpointRequest:Promise<string>|null=null;
+let activeCloudUrl=CLOUD_FALLBACK_URL;
 
-function cloudEndpoint():Promise<string>{
- if(!endpointRequest)endpointRequest=(async()=>{
-  const controller=new AbortController(),timer=window.setTimeout(()=>controller.abort(),10000);
-  try{
-   const response=await fetch(CLOUD_API_URL,{method:'GET',redirect:'follow',credentials:'omit',cache:'no-store',signal:controller.signal});
-   if(!response.ok)return CLOUD_FALLBACK_URL;
-   const status=await response.json() as CloudResponse;
-   return status.ok&&status.apiVersion===19&&status.item_schema===3?CLOUD_API_URL:CLOUD_FALLBACK_URL;
-  }catch{return CLOUD_FALLBACK_URL;}
-  finally{window.clearTimeout(timer);}
- })();
- return endpointRequest;
+async function fetchCloudJson(url:string,options:RequestInit):Promise<CloudResponse>{
+ const response=await fetch(url,options);
+ if(response.ok===false)throw new Error('Cloud response failed');
+ const text=await response.text();
+ try{return JSON.parse(text) as CloudResponse;}
+ catch{throw new CloudError('INVALID_RESPONSE','클라우드 저장소의 응답을 읽을 수 없습니다. Apps Script 배포 권한을 확인해 주세요.');}
 }
 
 async function request(body?:Record<string,unknown>):Promise<CloudResponse>{
@@ -42,9 +36,19 @@ async function request(body?:Record<string,unknown>):Promise<CloudResponse>{
  if(body?.save)body={...body,save:toCloudItemSave(fromStoredSave(body.save))};
  const controller=new AbortController(),timer=window.setTimeout(()=>controller.abort(),45000);
  try{
-  const response=await fetch(await cloudEndpoint(),body?{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(body),redirect:'follow',credentials:'omit',signal:controller.signal}:{method:'GET',redirect:'follow',credentials:'omit',cache:'no-store',signal:controller.signal});
-  const text=await response.text();let data:CloudResponse;
-  try{data=JSON.parse(text) as CloudResponse;}catch{throw new CloudError('INVALID_RESPONSE','클라우드 저장소의 응답을 읽을 수 없습니다. Apps Script 배포 권한을 확인해 주세요.');}
+  const options:RequestInit=body?{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(body),redirect:'follow',credentials:'omit',signal:controller.signal}:{method:'GET',redirect:'follow',credentials:'omit',cache:'no-store',signal:controller.signal};
+  let data:CloudResponse;
+  if(body)data=await fetchCloudJson(activeCloudUrl,options);
+  else{
+   try{
+    const candidate=await fetchCloudJson(CLOUD_API_URL,options);
+    if(!candidate.ok||candidate.apiVersion!==19||candidate.item_schema!==3)throw new Error('Unsupported cloud deployment');
+    activeCloudUrl=CLOUD_API_URL;data=candidate;
+   }catch{
+    activeCloudUrl=CLOUD_FALLBACK_URL;
+    data=await fetchCloudJson(CLOUD_FALLBACK_URL,options);
+   }
+  }
   // Read capability from the server payload before local migrations add schema 3.
   if(data.ok){
    if(typeof data.item_schema==='number')serverItemSchema=data.item_schema;
