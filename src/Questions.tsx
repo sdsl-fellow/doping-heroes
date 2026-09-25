@@ -19,7 +19,7 @@ export function AskQuestion({token,studentId,onBusy,onBack,onList}:Props){
   try{await questionsCloud('qaCreate',token,next);setSent(true);}catch(e){setError(errorText(e));}finally{pending.current=false;setBusy(false);onBusy(false);}
  };
  return <section className="qa-panel">{sent?<><h3>질문을 등록했습니다.</h3><p>교수·조교가 답변하면 ‘내 질문·답변’에서 확인할 수 있습니다.</p><button className="primary" onClick={onList}>내 질문·답변 보기</button></>:<>
-  <p>반도체 수업에서 궁금한 내용을 남겨주세요. 질문과 답변은 본인과 교수·조교만 확인합니다.</p>
+  <p>반도체공학 교과목을 학습하며 궁금한 내용을 남겨주세요. 질문과 답변은 본인과 교수•조교만 확인합니다. 개선을 위한 제안과 응원도 환영합니다.</p>
   <form onSubmit={e=>{e.preventDefault();void send();}}>
    <label>관련 스테이지<select value={draft.stage} disabled={busy||!!draft.requestId} onChange={e=>setDraft({...draft,stage:Number(e.target.value)})}><option value={0}>일반 질문</option>{stageDefinitions.map((s,i)=><option key={i} value={i+1}>{s.title}</option>)}</select></label>
    <label>제목<input required maxLength={80} value={draft.subject} disabled={busy||!!draft.requestId} onChange={e=>setDraft({...draft,subject:e.target.value})}/></label>
