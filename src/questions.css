@@ -1,0 +1,13 @@
+.silicon-menu{display:grid;gap:10px}
+.silicon-menu-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.silicon-menu-row button{min-width:0;padding:12px 4px;font-size:clamp(11px,3.2vw,16px);white-space:nowrap}
+.silicon-menu>button{width:100%}
+.qa-panel{display:grid;gap:14px;min-width:0}
+.qa-panel form,.qa-panel label{display:grid;gap:8px}
+.qa-panel form{gap:14px}
+.qa-panel input,.qa-panel select,.qa-panel textarea{box-sizing:border-box;width:100%;min-width:0;max-width:100%;padding:12px;background:#132d3a;color:#f8efd2;border:1px solid #86aaa9;border-radius:8px;font:inherit}
+.qa-panel textarea{resize:vertical}
+.qa-card{padding:16px;border:1px solid #86aaa9;border-radius:12px;overflow-wrap:anywhere}
+.qa-card h3{margin:8px 0}
+.qa-text{white-space:pre-wrap;overflow-wrap:anywhere}
+.qa-answer{border-top:1px solid #86aaa9;padding-top:14px;margin-top:16px}

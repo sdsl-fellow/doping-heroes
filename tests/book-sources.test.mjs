@@ -25,7 +25,7 @@ test('material 2 can be read first and does not complete material 1',()=>{
  assert.equal(grantBookReward(both,0,()=>0,'invented-source'),both);
 });
 test('server round trip preserves independent source records and migrates legacy saves',()=>{
- const code=fs.readFileSync('google-apps-script/Code_v18.gs','utf8'),c=vm.createContext({});vm.runInContext(code,c);
+ const code=fs.readFileSync('google-apps-script/Code_v19.gs','utf8'),c=vm.createContext({});vm.runInContext(code,c);
  const normalize=s=>JSON.parse(JSON.stringify(c.normalizeSave_(s,'22221111','테스트')));
  assert.deepEqual(normalize({...initial(),readBooks:[0]}).readBookSources,[first]);
  const once=grantBookReward(initial(),0,()=>0,second),saved=normalize(toStoredSave(once));
