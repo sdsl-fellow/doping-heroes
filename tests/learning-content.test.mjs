@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-const source=fs.readFileSync('google-apps-script/Code_v17.gs','utf8');
+const source=fs.readFileSync('google-apps-script/Code_v18.gs','utf8');
 function fixture(){
  const c=vm.createContext({});vm.runInContext(source,c);const props=new Map([['SPREADSHEET_ID','operations'],['CONTENT_SPREADSHEET_ID','content']]),cache=new Map(),sheets=new Map();let area='stage-1',sid='22221111',serial=0;
  c.PropertiesService={getScriptProperties:()=>({getProperty:k=>props.get(k),setProperty:(k,v)=>props.set(k,v),deleteProperty:k=>props.delete(k)})};

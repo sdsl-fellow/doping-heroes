@@ -5,7 +5,7 @@ type ReadingSource = {
 };
 
 // Append future PDFs as separate sources with stable IDs; keep existing sources in order.
-// Reading rewards remain once per stage, independent of how many PDFs are included.
+// Each source has its own completion record and one-time reading reward.
 export const stage1ReadingSources:ReadingSource[]=[{
  id:'SE01-CRYSTAL-2026',
  title:'[SE] 01. Crystal Properties and Growth of Semiconductor',

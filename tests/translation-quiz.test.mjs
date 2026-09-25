@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import {route,walkable} from '../src/navigation.mjs';
-const source=fs.readFileSync('google-apps-script/Code_v17.gs','utf8');
+const source=fs.readFileSync('google-apps-script/Code_v18.gs','utf8');
 const bank=JSON.parse(fs.readFileSync('data/translation-stage1.json','utf8'));
 const plain=x=>JSON.parse(JSON.stringify(x));
 function fixture(){

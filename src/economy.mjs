@@ -1,3 +1,4 @@
+import {bookSources,firstBookSource,hasReadSource} from './book-progress.mjs';
 import {stageForQuest,stageUnlocked} from './maps.mjs';
 import {isRootAccount} from './access.mjs';
 import {isConsumable,catalogItem} from './catalog.mjs';
@@ -30,7 +31,8 @@ function awardLevelLoot(before,after,random){
 
 
 export const bookDose=index=>stageDose(index)*.02;
-export function grantBookReward(s,index,random=Math.random){
- if(!stageUnlocked(s.completed,index,isRootAccount(s))||(s.readBooks??[]).includes(index))return s;
- return awardLevelLoot(s,{...s,readBooks:[...(s.readBooks??[]),index],doping:addDopants(s.doping,bookDose(index))},random);
+export function grantBookReward(s,index,random=Math.random,sourceId=firstBookSource(index)){
+ const allowed=index===0?[firstBookSource(0),'SE02-ATOMS-2026']:[firstBookSource(index)];
+ if(!allowed.includes(sourceId)||!stageUnlocked(s.completed,index,isRootAccount(s))||hasReadSource(s,index,sourceId))return s;
+ return awardLevelLoot(s,{...s,readBookSources:[...bookSources(s),sourceId],readBooks:[...new Set([...(s.readBooks??[]),index])],doping:addDopants(s.doping,bookDose(index))},random);
 }

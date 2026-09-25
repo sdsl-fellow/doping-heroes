@@ -1,3 +1,4 @@
+import {bookSources} from './book-progress.mjs';
 import {stageDefinitions} from './maps.mjs';
 export const stageQuestIds=stageDefinitions.map(s=>s.questId);
 export function stageList(values){return [...new Set((Array.isArray(values)?values:[]).filter(n=>Number.isInteger(n)&&n>=0&&n<12))].sort((a,b)=>a-b);}
@@ -13,7 +14,7 @@ export function puzzleIds(save){return stageList(save?.puzzle_completed);}
 export function fromStoredSave(save){
  if(!save||typeof save!=='object')return save;
  const {tutorial_completed,stage_completed,fetPuzzleCompleted,completion_schema,...rest}=save;
- return {...rest,stage_layout:3,readBooks:stageList(save.readBooks),completed:completionIds(save),puzzle_completed:puzzleIds(save)};
+ return {...rest,stage_layout:3,readBooks:stageList(save.readBooks),readBookSources:bookSources(save),completed:completionIds(save),puzzle_completed:puzzleIds(save)};
 }
 export function toStoredSave(save){
  if(!save||typeof save!=='object')return save;

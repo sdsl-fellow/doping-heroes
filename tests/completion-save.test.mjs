@@ -6,8 +6,8 @@ import {completionIds,fromStoredSave,toStoredSave} from '../src/completion-save.
 test('runtime quest IDs serialize without changing other progress or rewards',()=>{
  const old={completed:[0,1,2,3,14,3],readBooks:[0,11],coins:43,purchased:['C10']};
  const stored=toStoredSave(old);
- assert.deepEqual(stored,{readBooks:[0,11],coins:43,purchased:['C10'],stage_layout:3,completion_schema:3,tutorial_completed:[0,1,2],stage_completed:[0,10],puzzle_completed:[]});
- assert.deepEqual(fromStoredSave(stored),{...old,stage_layout:3,readBooks:[0,11],completed:[0,1,2,3,14],puzzle_completed:[]});
+ assert.deepEqual(stored,{readBooks:[0,11],coins:43,purchased:['C10'],stage_layout:3,readBookSources:['SE01-CRYSTAL-2026','STAGE-12-BOOK-1'],completion_schema:3,tutorial_completed:[0,1,2],stage_completed:[0,10],puzzle_completed:[]});
+ assert.deepEqual(fromStoredSave(stored),{...old,stage_layout:3,readBookSources:['SE01-CRYSTAL-2026','STAGE-12-BOOK-1'],readBooks:[0,11],completed:[0,1,2,3,14],puzzle_completed:[]});
  assert.deepEqual(toStoredSave(stored),stored);
 });
 test('new fields are authoritative, bounded and deduplicated',()=>{
