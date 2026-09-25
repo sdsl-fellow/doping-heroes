@@ -54,7 +54,7 @@ export const stage1ReadingSources:ReadingSource[]=[{
  ]
 }, {
   "id": "SE02-ATOMS-2026",
-  "title": "[SE] 02. Atoms and Electrons(1)",
+  "title": "[SE] 02. Atoms and Electrons",
   "label": "자료 2 · 원자와 전자",
   "pages": [
     {
