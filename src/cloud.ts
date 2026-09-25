@@ -3,7 +3,8 @@ import type {Save} from './save';
 import {normalizeItemSave,toCloudItemSave} from './item-save.mjs';
 import {fromStoredSave,toStoredSave} from './completion-save.mjs';
 
-export const CLOUD_API_URL='https://script.google.com/macros/s/AKfycbwt_pMjxNTJ20FV1n2QbFbXKtejRhAncvmuJNYAZFjeqwT4zE6WVAgzrIXhYqGHGRxq/exec';
+export const CLOUD_API_URL='https://script.google.com/macros/s/AKfycbx2Ko65hQfbZ9OpcnzDjiQ_y28YMHc9bbDaPXnuaLo3DCQadNXgkGIj3s5dHuiTssVz/exec';
+const CLOUD_FALLBACK_URL='https://script.google.com/macros/s/AKfycbwt_pMjxNTJ20FV1n2QbFbXKtejRhAncvmuJNYAZFjeqwT4zE6WVAgzrIXhYqGHGRxq/exec';
 const CLOUD_AUTH_KEY='doping-heroes:cloud-auth:v1';
 
 export type CloudSession={studentId:string;token:string;revision:number};
@@ -17,6 +18,21 @@ export class CloudError extends Error{
 
 let serverItemSchema:number|undefined;
 let stageRequest:Promise<CloudResponse>|null=null;
+let endpointRequest:Promise<string>|null=null;
+
+function cloudEndpoint():Promise<string>{
+ if(!endpointRequest)endpointRequest=(async()=>{
+  const controller=new AbortController(),timer=window.setTimeout(()=>controller.abort(),10000);
+  try{
+   const response=await fetch(CLOUD_API_URL,{method:'GET',redirect:'follow',credentials:'omit',cache:'no-store',signal:controller.signal});
+   if(!response.ok)return CLOUD_FALLBACK_URL;
+   const status=await response.json() as CloudResponse;
+   return status.ok&&status.apiVersion===19&&status.item_schema===3?CLOUD_API_URL:CLOUD_FALLBACK_URL;
+  }catch{return CLOUD_FALLBACK_URL;}
+  finally{window.clearTimeout(timer);}
+ })();
+ return endpointRequest;
+}
 
 async function request(body?:Record<string,unknown>):Promise<CloudResponse>{
  if(body?.save&&serverItemSchema!==3){
@@ -26,7 +42,7 @@ async function request(body?:Record<string,unknown>):Promise<CloudResponse>{
  if(body?.save)body={...body,save:toCloudItemSave(fromStoredSave(body.save))};
  const controller=new AbortController(),timer=window.setTimeout(()=>controller.abort(),45000);
  try{
-  const response=await fetch(CLOUD_API_URL,body?{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(body),redirect:'follow',credentials:'omit',signal:controller.signal}:{method:'GET',redirect:'follow',credentials:'omit',cache:'no-store',signal:controller.signal});
+  const response=await fetch(await cloudEndpoint(),body?{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(body),redirect:'follow',credentials:'omit',signal:controller.signal}:{method:'GET',redirect:'follow',credentials:'omit',cache:'no-store',signal:controller.signal});
   const text=await response.text();let data:CloudResponse;
   try{data=JSON.parse(text) as CloudResponse;}catch{throw new CloudError('INVALID_RESPONSE','클라우드 저장소의 응답을 읽을 수 없습니다. Apps Script 배포 권한을 확인해 주세요.');}
   // Read capability from the server payload before local migrations add schema 3.
