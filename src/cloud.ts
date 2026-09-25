@@ -42,7 +42,7 @@ async function request(body?:Record<string,unknown>):Promise<CloudResponse>{
   else{
    try{
     const candidate=await fetchCloudJson(CLOUD_API_URL,options);
-    if(!candidate.ok||candidate.apiVersion!==19||candidate.item_schema!==3)throw new Error('Unsupported cloud deployment');
+    if(!candidate.ok||(candidate.apiVersion??0)<19||candidate.item_schema!==3)throw new Error('Unsupported cloud deployment');
     activeCloudUrl=CLOUD_API_URL;data=candidate;
    }catch{
     activeCloudUrl=CLOUD_FALLBACK_URL;

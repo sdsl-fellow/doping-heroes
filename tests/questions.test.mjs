@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-const code=fs.readFileSync('google-apps-script/Code_v19.gs','utf8');
+const code=fs.readFileSync('google-apps-script/Code_v20.gs','utf8');
 const plain=x=>JSON.parse(JSON.stringify(x));
 function fixture(){
  const c=vm.createContext({console});vm.runInContext(code,c);

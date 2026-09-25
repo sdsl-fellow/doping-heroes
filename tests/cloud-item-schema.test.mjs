@@ -49,7 +49,6 @@ test('concurrent stage polling and save verification share one GET',async()=>{
  }finally{release();globalThis.fetch=oldFetch;globalThis.window=oldWindow;}
 });
 
-
 test('inaccessible v19 deployment keeps login and saves on the working endpoint',async()=>{
  const api=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text+'\n//fallback-test').toString('base64'));
  const oldFetch=globalThis.fetch,oldWindow=globalThis.window,calls=[];
@@ -64,5 +63,21 @@ test('inaccessible v19 deployment keeps login and saves on the working endpoint'
   assert.deepEqual(calls.map(c=>c.method),['GET','GET','POST']);
   assert.ok(calls[1].url.includes('AKfycbwt_pMjx'));
   assert.equal(calls[2].url,calls[1].url);
+ }finally{globalThis.fetch=oldFetch;globalThis.window=oldWindow;}
+});
+
+test('v20 deployment is selected for subsequent authenticated requests',async()=>{
+ const api=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text+'\n//v20-test').toString('base64'));
+ const oldFetch=globalThis.fetch,oldWindow=globalThis.window,calls=[];
+ globalThis.window={setTimeout,clearTimeout};
+ globalThis.fetch=async(url,options)=>{
+  calls.push({url,method:options.method});
+  return {text:async()=>JSON.stringify({ok:true,apiVersion:20,item_schema:3})};
+ };
+ try{
+  await api.fetchCloudStages();
+  await api.loadCloud('test-token');
+  assert.deepEqual(calls.map(c=>c.method),['GET','POST']);
+  assert.ok(calls.every(c=>c.url.includes('AKfycbx2Ko65')));
  }finally{globalThis.fetch=oldFetch;globalThis.window=oldWindow;}
 });

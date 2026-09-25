@@ -8,7 +8,7 @@ type Props={token:string;studentId:string;onBusy:(busy:boolean)=>void;onBack:()=
 type Draft={subject:string;question:string;stage:number;requestId:string};
 const emptyDraft=():Draft=>({subject:'',question:'',stage:0,requestId:''});
 function loadDraft(key:string):Draft{try{const d=JSON.parse(sessionStorage.getItem(key)||'null');return d&&typeof d.subject==='string'&&typeof d.question==='string'&&Number.isInteger(d.stage)&&typeof d.requestId==='string'?d:emptyDraft();}catch{return emptyDraft();}}
-const errorText=(e:unknown)=>e instanceof CloudError&&e.code==='TIMEOUT'?'서버 응답이 지연되고 있습니다. 질문은 유지됩니다. 다시 시도해주세요.':e instanceof CloudError&&e.code==='UNKNOWN_ACTION'?'질문 기능 준비 중입니다. 관리자가 Code_v19.gs를 배포해주세요.':e instanceof Error?e.message:'연결을 확인하고 다시 시도해주세요.';
+const errorText=(e:unknown)=>e instanceof CloudError&&e.code==='TIMEOUT'?'서버 응답이 지연되고 있습니다. 질문은 유지됩니다. 다시 시도해주세요.':e instanceof CloudError&&e.code==='UNKNOWN_ACTION'?'질문 기능 준비 중입니다. 관리자가 Code_v20.gs를 배포해주세요.':e instanceof Error?e.message:'연결을 확인하고 다시 시도해주세요.';
 export function AskQuestion({token,studentId,onBusy,onBack,onList}:Props){
  const key='doping-heroes:question-draft:'+studentId;
  const [draft,setDraft]=useState(()=>loadDraft(key)),[busy,setBusy]=useState(false),[error,setError]=useState(''),[sent,setSent]=useState(false);
