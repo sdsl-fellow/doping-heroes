@@ -5,6 +5,10 @@
 .qa-panel{display:grid;gap:14px;min-width:0}
 .qa-panel form,.qa-panel label{display:grid;gap:8px}
 .qa-panel form{gap:14px}
+.qa-category{margin:0;padding:0;border:0;min-width:0}
+.qa-category legend{padding:0;margin-bottom:8px}
+.qa-category-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.qa-category-options button{min-width:0;padding:10px 4px;white-space:nowrap;font-size:clamp(12px,3.2vw,16px)}
 .qa-panel input,.qa-panel select,.qa-panel textarea{box-sizing:border-box;width:100%;min-width:0;max-width:100%;padding:12px;background:#132d3a;color:#f8efd2;border:1px solid #86aaa9;border-radius:8px;font:inherit}
 .qa-panel textarea{resize:vertical}
 .qa-card{padding:16px;border:1px solid #86aaa9;border-radius:12px;overflow-wrap:anywhere}

@@ -23,7 +23,7 @@ export function AskQuestion({token,studentId,onBusy,onBack,onList}:Props){
  return <section className="qa-panel">{sent?<><h3>질문을 등록했습니다.</h3><p>교수·조교가 답변하면 ‘내 질문·답변’에서 확인할 수 있습니다.</p><button className="primary" onClick={onList}>내 질문·답변 보기</button></>:<>
   <p>반도체공학 교과목을 학습하며 궁금한 내용을 남겨주세요. 질문과 답변은 본인과 교수•조교만 확인합니다. 개선을 위한 제안과 응원도 환영합니다.</p>
   <form onSubmit={e=>{e.preventDefault();void send();}}>
-   <label>분류<select value={draft.category} disabled={busy||!!draft.requestId} onChange={e=>setDraft({...draft,category:e.target.value as QuestionCategory})}>{categories.map(category=><option key={category} value={category}>{category}</option>)}</select></label>
+   <fieldset className="qa-category"><legend>분류</legend><div className="qa-category-options">{categories.map(category=><button type="button" key={category} aria-pressed={draft.category===category} disabled={busy||!!draft.requestId} onClick={()=>setDraft({...draft,category})}>{category}</button>)}</div></fieldset>
    <label>제목<input required maxLength={80} value={draft.subject} disabled={busy||!!draft.requestId} onChange={e=>setDraft({...draft,subject:e.target.value})}/></label>
    <label>질문 내용<textarea required maxLength={2000} rows={6} value={draft.question} disabled={busy||!!draft.requestId} placeholder="어떤 부분이 궁금한지 구체적으로 적어주세요." onChange={e=>setDraft({...draft,question:e.target.value})}/></label>
    <small>{draft.question.length} / 2,000자</small>
