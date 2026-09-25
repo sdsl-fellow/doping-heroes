@@ -55,13 +55,13 @@ test('inaccessible v19 deployment keeps login and saves on the working endpoint'
  globalThis.window={setTimeout,clearTimeout};
  globalThis.fetch=async(url,options)=>{
   calls.push({url,method:options.method});
-  return {text:async()=>url.includes('AKfycbzR9k9c')?'<html>Google login</html>':JSON.stringify({ok:true,apiVersion:18,item_schema:3})};
+  return {text:async()=>url.includes('AKfycbzg6-Hfx')?'<html>Google login</html>':JSON.stringify({ok:true,apiVersion:18,item_schema:3})};
  };
  try{
   await api.fetchCloudStages();
   await api.loadCloud('test-token');
   assert.deepEqual(calls.map(c=>c.method),['GET','GET','POST']);
-  assert.ok(calls[1].url.includes('AKfycbx2Ko65'));
+  assert.ok(calls[1].url.includes('AKfycbzR9k9c'));
   assert.equal(calls[2].url,calls[1].url);
  }finally{globalThis.fetch=oldFetch;globalThis.window=oldWindow;}
 });
@@ -78,19 +78,19 @@ test('v20 deployment is selected for subsequent authenticated requests',async()=
   await api.fetchCloudStages();
   await api.loadCloud('test-token');
   assert.deepEqual(calls.map(c=>c.method),['GET','GET','POST']);
-  assert.ok(calls[2].url.includes('AKfycbzR9k9c'));
+  assert.ok(calls[2].url.includes('AKfycbzg6-Hfx'));
  }finally{globalThis.fetch=oldFetch;globalThis.window=oldWindow;}
 });
 test('v21 fallback takes priority over a reachable v20 primary before a stage batch starts',async()=>{
  const api=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text+'\n//v21-preference').toString('base64'));
  const oldFetch=globalThis.fetch,oldWindow=globalThis.window,calls=[];
  globalThis.window={setTimeout,clearTimeout};
- globalThis.fetch=async(url,options)=>{calls.push({url,method:options.method});return {text:async()=>JSON.stringify({ok:true,apiVersion:url.includes('AKfycbx2Ko65')?21:20,item_schema:3})};};
+ globalThis.fetch=async(url,options)=>{calls.push({url,method:options.method});return {text:async()=>JSON.stringify({ok:true,apiVersion:url.includes('AKfycbzR9k9c')?21:20,item_schema:3})};};
  try{
   const stages=await api.fetchCloudStages();assert.equal(stages.apiVersion,21);
   await api.learningCloud('learningStart','token',{kind:'stageQuiz',stage:1});
   assert.deepEqual(calls.map(c=>c.method),['GET','GET','POST']);
-  assert.ok(calls[2].url.includes('AKfycbx2Ko65'));
+  assert.ok(calls[2].url.includes('AKfycbzR9k9c'));
  }finally{globalThis.fetch=oldFetch;globalThis.window=oldWindow;}
 });
 
@@ -100,13 +100,13 @@ test('special roster ID uses the v20 deployment even when the other URL serves v
  globalThis.window={setTimeout,clearTimeout};
  globalThis.fetch=async(url,options)=>{
   calls.push({url,method:options.method});
-  return {text:async()=>JSON.stringify({ok:true,apiVersion:url.includes('AKfycbx2Ko65')?20:19,item_schema:3,allowed:true})};
+  return {text:async()=>JSON.stringify({ok:true,apiVersion:url.includes('AKfycbzR9k9c')?20:19,item_schema:3,allowed:true})};
  };
  try{
   const response=await api.checkCloudStudent('TA-01');
   assert.equal(response.allowed,true);
   assert.deepEqual(calls.map(c=>c.method),['GET','GET','POST']);
-  assert.ok(calls[2].url.includes('AKfycbx2Ko65'));
+  assert.ok(calls[2].url.includes('AKfycbzR9k9c'));
  }finally{globalThis.fetch=oldFetch;globalThis.window=oldWindow;}
 });
 
