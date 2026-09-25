@@ -39,7 +39,7 @@ test('concurrent stage polling and save verification share one GET',async()=>{
  const oldFetch=globalThis.fetch,oldWindow=globalThis.window;const calls=[];let release;
  const gate=new Promise(resolve=>{release=resolve;});
  globalThis.window={setTimeout,clearTimeout};
- globalThis.fetch=async(url,options)=>{calls.push(options);if(options.method==='GET')await gate;return {text:async()=>JSON.stringify({ok:true,apiVersion:19,item_schema:3})};};
+ globalThis.fetch=async(url,options)=>{calls.push(options);if(options.method==='GET')await gate;return {text:async()=>JSON.stringify({ok:true,apiVersion:20,item_schema:3})};};
  try{
   const first=api.fetchCloudStages(),second=api.fetchCloudStages();
   const save=api.saveCloud('test',{item_schema:3,character:{hat:'H06'},purchased:['H06']},1);
@@ -79,5 +79,32 @@ test('v20 deployment is selected for subsequent authenticated requests',async()=
   await api.loadCloud('test-token');
   assert.deepEqual(calls.map(c=>c.method),['GET','POST']);
   assert.ok(calls.every(c=>c.url.includes('AKfycbx2Ko65')));
+ }finally{globalThis.fetch=oldFetch;globalThis.window=oldWindow;}
+});
+
+test('special roster ID uses the v20 deployment even when the other URL serves v19',async()=>{
+ const api=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text+'\n//roster-v20-test').toString('base64'));
+ const oldFetch=globalThis.fetch,oldWindow=globalThis.window,calls=[];
+ globalThis.window={setTimeout,clearTimeout};
+ globalThis.fetch=async(url,options)=>{
+  calls.push({url,method:options.method});
+  return {text:async()=>JSON.stringify({ok:true,apiVersion:url.includes('AKfycbwt_pMjx')?20:19,item_schema:3,allowed:true})};
+ };
+ try{
+  const response=await api.checkCloudStudent('TA-01');
+  assert.equal(response.allowed,true);
+  assert.deepEqual(calls.map(c=>c.method),['GET','GET','POST']);
+  assert.ok(calls[2].url.includes('AKfycbwt_pMjx'));
+ }finally{globalThis.fetch=oldFetch;globalThis.window=oldWindow;}
+});
+
+test('special roster ID never posts to an eight-digit-only server',async()=>{
+ const api=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text+'\n//roster-legacy-test').toString('base64'));
+ const oldFetch=globalThis.fetch,oldWindow=globalThis.window,calls=[];
+ globalThis.window={setTimeout,clearTimeout};
+ globalThis.fetch=async(url,options)=>{calls.push(options.method);return {text:async()=>JSON.stringify({ok:true,apiVersion:19,item_schema:3})};};
+ try{
+  await assert.rejects(api.checkCloudStudent('TA-01'),error=>error.code==='ROSTER_VERSION');
+  assert.deepEqual(calls,['GET','GET']);
  }finally{globalThis.fetch=oldFetch;globalThis.window=oldWindow;}
 });

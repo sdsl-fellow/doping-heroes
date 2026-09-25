@@ -19,6 +19,8 @@ export class CloudError extends Error{
 let serverItemSchema:number|undefined;
 let stageRequest:Promise<CloudResponse>|null=null;
 let activeCloudUrl=CLOUD_FALLBACK_URL;
+let activeCloudVersion=0;
+let endpointResolved=false;
 
 async function fetchCloudJson(url:string,options:RequestInit):Promise<CloudResponse>{
  const response=await fetch(url,options);
@@ -38,17 +40,27 @@ async function request(body?:Record<string,unknown>):Promise<CloudResponse>{
  try{
   const options:RequestInit=body?{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(body),redirect:'follow',credentials:'omit',signal:controller.signal}:{method:'GET',redirect:'follow',credentials:'omit',cache:'no-store',signal:controller.signal};
   let data:CloudResponse;
-  if(body)data=await fetchCloudJson(activeCloudUrl,options);
+  if(body||endpointResolved)data=await fetchCloudJson(activeCloudUrl,options);
   else{
-   try{
-    const candidate=await fetchCloudJson(CLOUD_API_URL,options);
-    if(!candidate.ok||(candidate.apiVersion??0)<19||candidate.item_schema!==3)throw new Error('Unsupported cloud deployment');
-    activeCloudUrl=CLOUD_API_URL;data=candidate;
-   }catch{
-    activeCloudUrl=CLOUD_FALLBACK_URL;
-    data=await fetchCloudJson(CLOUD_FALLBACK_URL,options);
+   let primary:CloudResponse|undefined,secondary:CloudResponse|undefined,primaryError:unknown,secondaryError:unknown;
+   try{primary=await fetchCloudJson(CLOUD_API_URL,options);}catch(error){primaryError=error;}
+   if(primary?.ok&&(primary.apiVersion??0)>=20&&primary.item_schema===3){
+    activeCloudUrl=CLOUD_API_URL;data=primary;
+   }else{
+    try{secondary=await fetchCloudJson(CLOUD_FALLBACK_URL,options);}catch(error){secondaryError=error;}
+    if(secondary?.ok&&(secondary.apiVersion??0)>=20&&secondary.item_schema===3){
+     activeCloudUrl=CLOUD_FALLBACK_URL;data=secondary;
+    }else if(primary?.ok&&(primary.apiVersion??0)>=19&&primary.item_schema===3){
+     activeCloudUrl=CLOUD_API_URL;data=primary;
+    }else if(secondary){
+     activeCloudUrl=CLOUD_FALLBACK_URL;data=secondary;
+    }else if(primary){
+     activeCloudUrl=CLOUD_API_URL;data=primary;
+    }else throw secondaryError??primaryError;
    }
+   activeCloudVersion=data.apiVersion??0;endpointResolved=true;
   }
+  if(!body)activeCloudVersion=data.apiVersion??0;
   // Read capability from the server payload before local migrations add schema 3.
   if(data.ok){
    if(typeof data.item_schema==='number')serverItemSchema=data.item_schema;
@@ -68,7 +80,13 @@ export const fetchCloudStages=()=>{
  if(!stageRequest)stageRequest=request().finally(()=>{stageRequest=null;});
  return stageRequest;
 };
-export const checkCloudStudent=(studentId:string)=>request({action:'checkStudent',studentId});
+export const checkCloudStudent=async(studentId:string)=>{
+ if(studentId!=='099746'&&!/^\d{8}$/.test(studentId)){
+  await fetchCloudStages();
+  if(activeCloudVersion<20)throw new CloudError('ROSTER_VERSION','현재 연결된 서버가 8자리 외의 수강생 ID를 지원하지 않습니다. 게임이 사용하는 Apps Script 배포를 Code_v20.gs의 새 버전으로 갱신하고 새로고침해 주세요.');
+ }
+ return request({action:'checkStudent',studentId});
+};
 export const registerCloud=(save:Save,pin:string)=>request({action:'register',studentId:save.studentId,name:save.name,pin,save});
 export const loginCloud=(studentId:string,pin:string)=>request({action:'login',studentId,pin});
 export const loginRootCloud=(pin:string)=>request({action:'rootLogin',pin});
