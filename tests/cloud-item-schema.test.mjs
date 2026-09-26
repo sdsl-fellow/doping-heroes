@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
 const built=await build({entryPoints:['src/cloud.ts'],bundle:true,write:false,format:'esm',platform:'node'});
-const {saveCloud}=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
+const {saveCloud,CLOUD_API_URL}=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
 test('old deployment cannot receive a save; v7 receives H07 without reversing it',async()=>{
  const oldFetch=globalThis.fetch,oldWindow=globalThis.window;
  const calls=[];let schema=2;
@@ -55,7 +55,7 @@ test('inaccessible v19 deployment keeps login and saves on the working endpoint'
  globalThis.window={setTimeout,clearTimeout};
  globalThis.fetch=async(url,options)=>{
   calls.push({url,method:options.method});
-  return {text:async()=>url.includes('AKfycbzFmy7KP')?'<html>Google login</html>':JSON.stringify({ok:true,apiVersion:18,item_schema:3})};
+  return {text:async()=>url===CLOUD_API_URL?'<html>Google login</html>':JSON.stringify({ok:true,apiVersion:18,item_schema:3})};
  };
  try{
   await api.fetchCloudStages();
@@ -78,7 +78,7 @@ test('v20 deployment is selected for subsequent authenticated requests',async()=
   await api.fetchCloudStages();
   await api.loadCloud('test-token');
   assert.deepEqual(calls.map(c=>c.method),['GET','GET','POST']);
-  assert.ok(calls[2].url.includes('AKfycbzFmy7KP'));
+  assert.equal(calls[2].url,CLOUD_API_URL);
  }finally{globalThis.fetch=oldFetch;globalThis.window=oldWindow;}
 });
 test('v21 fallback takes priority over a reachable v20 primary before a stage batch starts',async()=>{
