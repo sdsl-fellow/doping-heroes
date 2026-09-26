@@ -1,5 +1,6 @@
 import {catalogItem} from './catalog.mjs';
 import {faceFit} from './face-fit.mjs';
+import {paintAnimalClothing} from './animal-clothing';
 import type {Character} from './character';
 type Art=HTMLCanvasElement;
 export type Gear=Partial<Record<'outfit'|'shoes'|'hat'|'weapon'|'accessory',Art>>;
@@ -79,12 +80,7 @@ export function paintCatalogEquipment(ctx:CanvasRenderingContext2D,c:Character,g
   if(animal){
    const raw=canvas(64,64),rc=raw.getContext('2d')!;rc.drawImage(ctx.canvas,f*64,r*64,64,64,0,0,64,64);
    if(g.outfit){
-    const vest=canvas(64,64),vc=vest.getContext('2d')!;vc.imageSmoothingEnabled=false;
-    // Fit a vest to the torso, leaving the face, tail and lower legs exposed.
-    vc.save();vc.beginPath();if(side){vc.moveTo(27,35+b);vc.lineTo(43,35+b);vc.lineTo(44,47+b);vc.lineTo(27,48+b);}else if(r===0){vc.rect(25,33+b,15,18);}else{vc.rect(25,dog?44+b:45+b,14,8);}vc.closePath();vc.clip();
-    texture(vc,g.outfit,side?26:24,side?34+b:r===0?33+b:43+b,side?20:17,side?16:r===0?19:12);vc.restore();
-    vc.globalCompositeOperation='destination-in';vc.drawImage(raw,0,0);ctx.drawImage(vest,0,0);
-    if(r===0)ctx.drawImage(raw,29,43+b,7,10,29,43+b,7,10);
+    paintAnimalClothing(ctx,raw,catalogItem(c.outfit)!.id,c.species,r,b);
    }
    if(g.shoes){
     const pixels=rc.getImageData(0,0,64,64).data;
