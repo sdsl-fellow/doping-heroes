@@ -1,7 +1,7 @@
 import {useEffect,useRef,useState} from 'react';
 import {MosfetSection,WorkingMosfet} from './FetProcessGame';
 import {scientific} from './progression.mjs';
-export type ContentData={questions?:ContentData[];questId?:number;questionId?:string;batchId?:string;sessionId?:string;title?:string;question?:string;options?:{id:string;text:string}[];steps?:{id:string;title:string;detail:string}[];correct?:boolean;stageComplete?:boolean;solved?:number;total?:number;explanation?:string;dose?:number;coins?:number;index?:number;message?:string};
+export type ContentData={questions?:ContentData[];questId?:number;questionId?:string;batchId?:string;sessionId?:string;title?:string;question?:string;questionType?:'choice'|'numeric';answerScale?:number;answerUnit?:string;commonInstruction?:string;options?:{id:string;text:string}[];steps?:{id:string;title:string;detail:string}[];correct?:boolean;stageComplete?:boolean;solved?:number;total?:number;explanation?:string;dose?:number;coins?:number;index?:number;message?:string};
 export type ContentRequest=(action:'learningStart'|'learningAnswer',args:Record<string,unknown>)=>Promise<ContentData>;
 export function LearningQuiz({request,stage,questId,onCorrect,onBusy,practice=false}:{request:ContentRequest;stage:number;questId:number;onCorrect?:(r:ContentData)=>void;onBusy:(busy:boolean)=>void;practice?:boolean}){
  const [data,setData]=useState<ContentData|null>(null),[choice,setChoice]=useState(''),[feedback,setFeedback]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false),[done,setDone]=useState(false),[retry,setRetry]=useState(0);

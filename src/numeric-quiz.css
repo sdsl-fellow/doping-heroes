@@ -1,0 +1,5 @@
+.numeric-quiz-instruction{padding:12px;border:1px solid #8bafa9;border-radius:8px;background:#163a43;font-size:14px;line-height:1.65}
+.numeric-quiz-answer{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:16px 0 22px}
+.numeric-quiz-answer>span:first-child{width:100%;font-size:14px;color:#d6e3dd}
+.numeric-quiz-answer input{width:110px;min-height:44px;padding:8px 10px;border:1px solid #8bafa9;border-radius:7px;background:#102e39;color:#fdf4d9;font-size:18px}
+.numeric-quiz-answer>span:last-child{white-space:nowrap;font-size:15px}
