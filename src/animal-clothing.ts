@@ -122,6 +122,18 @@ export function paintAnimalClothing(ctx:CanvasRenderingContext2D,raw:HTMLCanvasE
  }
  if(id==='C07')dot(g,side?38:35,back?43:47,p.light,2);
  g.restore();
+ if(!back){
+  // Reveal the original face after all collars, sleeves and decorations.
+  // This runs in the mirrored/animated frame so it also protects right-facing walks.
+  g.globalCompositeOperation='destination-out';
+  const face=side
+   ?cat?[[0,0],[27,0],[29,33],[32,36],[31,41],[29,43],[0,43]]
+       :[[0,0],[27,0],[30,31],[34,36],[33,40],[30,44],[0,44]]
+   :cat?[[27,0],[37,0],[40,34],[39,40],[38,45],[27,45],[25,41],[25,34]]
+       :[[21,0],[43,0],[45,36],[41,41],[39,45],[25,45],[23,41],[19,36]];
+  poly(g,face,'#000');
+  g.globalCompositeOperation='source-over';
+ }
  if(back&&!cat){
   // Cut a shaped tail opening. The underlying sprite supplies only the tail fur.
   g.globalCompositeOperation='destination-out';
