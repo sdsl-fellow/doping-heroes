@@ -25,7 +25,7 @@ export const migrateItemId=id=>catalogItem({'ember-boots':'lab-shoes','moon-swor
 export const consumableIds=['T03','T04','T05'];
 export const isConsumable=id=>consumableIds.includes(id);
 export const itemDescription=item=>isConsumable(item.id)?(item.id==='T03'?'사용 시 현재 경험치 구간의 10% 증가':`사용 시 ${item.id==='T04'?'n형':'p형'} 시료로 전환하고 경험치 구간의 20% 증가`):item.id==='T01'?'첫걸음 완료 후 남쪽 관문을 여는 열쇠':item.id==='T02'?'각 스테이지에서 읽고 경험치를 받는 강의 노트':item.slot==='tool'?'수집용 연구 도구 · 추가 효과 없음':'외형 장비 · 능력치 추가 없음';
-export const shopCatalog=catalog.filter(item=>item.price!==null).map(item=>({...item,description:itemDescription(item)}));
+export const shopCatalog=catalog.filter(item=>item.price!==null).map(item=>({...item,price:item.price*3,description:itemDescription(item)}));
 export function inventoryIds(s){
  const base=(s.purchased??[]).map(migrateItemId).filter(id=>catalogItem(id));
  if(isRootAccount(s))return catalog.map(i=>i.id);
