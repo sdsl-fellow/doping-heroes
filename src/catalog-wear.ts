@@ -41,7 +41,11 @@ export function paintCatalogLayer(ctx:CanvasRenderingContext2D,path:string,c:Cha
   ctx.clearRect(0,0,576,256);
   for(let r=0;r<4;r++)for(let f=0;f<9;f++){
    ctx.save();ctx.translate(f*64,r*64+bob(r,f));const side=r===1||r===3;
-   const points=side?[[29,35],[31,35],[32,38],[35,38],[36,35],[38,35],[36,45],[29,45]]:[[26,35],[29,35],[30,r===0?37:38],[34,r===0?37:38],[35,35],[38,35],[37,45],[27,45]];
+   const points=c.gender==='female'
+    ?side?[[27,32],[31,32],[32,35],[35,35],[36,32],[39,32],[38,47],[27,47]]
+      :[[24,32],[29,32],[30,r===0?34:35],[34,r===0?34:35],[35,32],[40,32],[38,40],[38,47],[26,47],[26,40]]
+    :side?[[29,35],[31,35],[32,38],[35,38],[36,35],[38,35],[36,45],[29,45]]
+      :[[26,35],[29,35],[30,r===0?37:38],[34,r===0?37:38],[35,35],[38,35],[37,45],[27,45]];
    ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();ctx.fillStyle='#f5f6f8';ctx.fill();ctx.strokeStyle='#cbd2dc';ctx.lineWidth=1;ctx.stroke();ctx.restore();
   }
  }else if(path.startsWith('torso/')&&g.outfit){
