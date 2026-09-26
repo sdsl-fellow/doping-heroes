@@ -15,5 +15,6 @@
 }
 .inventory-save{display:flex;align-items:center;gap:10px;margin:8px 0 12px;flex-wrap:wrap}
 .inventory-save>button{min-width:100px;min-height:40px;padding:6px 16px}
+.catalog-shop .shop-grid button{min-width:0;padding:8px 4px;font-size:13px;white-space:nowrap}
 .inventory-save>small{font-size:11px;color:#c7dcd5}
 @media(min-width:701px){.inventory .inventory-grid button{min-height:0;padding:6px!important;gap:3px}.inventory .inventory-grid .catalog-icon{width:88px;height:54px;margin:0 auto}}
