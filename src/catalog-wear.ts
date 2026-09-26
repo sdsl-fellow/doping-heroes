@@ -1,6 +1,6 @@
 import {catalogItem} from './catalog.mjs';
 import {faceFit} from './face-fit.mjs';
-import {paintAnimalClothing} from './animal-clothing';
+import {paintAnimalClothing} from './animal-clothing.ts';
 import type {Character} from './character';
 type Art=HTMLCanvasElement;
 export type Gear=Partial<Record<'outfit'|'shoes'|'hat'|'weapon'|'accessory',Art>>;
