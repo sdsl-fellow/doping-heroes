@@ -13,6 +13,7 @@ import {weeklyQuests} from './adventure';
 import {mapInfo,stageIndex,stageDefinitions,gatewayLocations,arrivalPoint,stageUnlocked} from './maps.mjs';
 import type {Save} from './save';
 import {npcLocations,adventureLocations,route,walkable,routeToGateway,stageBookPoint} from './navigation.mjs';
+import {stage1ReadingSources} from './stage1-reading';
 export function World({rootAccount,releasedStages,character,name,completed,area,arrival,destination,active,onTalk,onBook,onTranslation,onExperiment,onMiniGame,onBusy,onTravel,onReleaseStage,onRequestRelock,onEnterStage,onPosition,onError}:{rootAccount:boolean;releasedStages:boolean[];character:Character;name:string;completed:number[];area:Save['area'];arrival:number|null;destination:number|null;active:boolean;onBook:()=>void;onTranslation:()=>void;onExperiment:()=>void;onMiniGame:()=>void;onBusy:(busy:boolean)=>void;onTravel:()=>void;onReleaseStage:(index:number)=>void;onRequestRelock:(index:number)=>void;onEnterStage:(index:number)=>void;onTalk:(i:number)=>void;onPosition:(x:number,y:number)=>void;onError:(text:string)=>void}){
  const root=useRef<HTMLDivElement>(null),live=useRef({rootAccount,releasedStages,character,name,completed,area,arrival,destination,active,onTalk,onBook,onTranslation,onExperiment,onMiniGame,onBusy,onTravel,onReleaseStage,onRequestRelock,onEnterStage,onPosition,onError});live.current={rootAccount,releasedStages,character,name,completed,area,arrival,destination,active,onTalk,onBook,onTranslation,onExperiment,onMiniGame,onBusy,onTravel,onReleaseStage,onRequestRelock,onEnterStage,onPosition,onError};
  useEffect(()=>{
@@ -21,7 +22,7 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
 
  class Campus extends Phaser.Scene{
   player?:Phaser.GameObjects.Sprite;label?:Phaser.GameObjects.Text;markers:Phaser.GameObjects.Text[]=[];keys!:Record<string,Phaser.Input.Keyboard.Key>;path:{x:number;y:number}[]=[];pending:number|null=null;dir=2;skinKey='';generation=0;lastUpdate=0;touch={x:0,y:0};destination?:Phaser.GameObjects.Ellipse;busy=false;gate?:Phaser.GameObjects.Image;boat?:Phaser.GameObjects.Image;book?:Phaser.GameObjects.Image;speech?:Phaser.GameObjects.Container;knockIndex=-1;knockCount=0;knockDeadline=0;relockIndex=-1;relockTimer?:Phaser.Time.TimerEvent;relockRing?:Phaser.GameObjects.Graphics;
-  preload(){this.load.image('campus',info.image);this.load.spritesheet('journey-props','./journey-props.png',{frameWidth:512,frameHeight:512});if(stage){this.load.image('translation-pc','./translation-pc-v1.webp');this.load.image('experiment-table','./experiment-table-pixel-v1.png');}if(area==='adventure'){for(const stage of stageDefinitions)this.load.image('gateway-'+stage.index,stage.gatewayImage);}this.load.on('loaderror',()=>live.current.onError('맵을 불러오지 못했습니다. 새로고침해 주세요.'));}
+  preload(){this.load.image('campus',info.image);this.load.spritesheet('journey-props','./journey-props.png',{frameWidth:512,frameHeight:512});if(stage){this.load.image('translation-pc','./translation-pc-v1.webp');this.load.image('experiment-table','./experiment-table-pixel-v1.png');this.load.image('book-table-one','./book-table-one-v1.png');this.load.image('book-table-two','./book-table-two-v1.png');}if(area==='adventure'){for(const stage of stageDefinitions)this.load.image('gateway-'+stage.index,stage.gatewayImage);}this.load.on('loaderror',()=>live.current.onError('맵을 불러오지 못했습니다. 새로고침해 주세요.'));}
   async sprite(c:Character,key:string,x:number,y:number){const sheet=await characterSheet(c);if(disposed)return;const texture=this.textures.addCanvas(key,sheet)!;for(let row=0;row<4;row++)for(let col=0;col<9;col++)texture.add(row*9+col,0,col*64,row*64,64,64);return this.add.sprite(x,y,key,18).setOrigin(.5,.95).setScale(1.7).setDepth(y);}
   create(){
    this.add.image(0,0,'campus').setOrigin(0).setDisplaySize(info.width,info.height);this.cameras.main.setBounds(0,0,info.width,info.height);this.cameras.main.setScroll(0,150);this.cameras.main.roundPixels=true;
@@ -62,9 +63,10 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
     sign(645,point.y-24,'← 책 읽기');
     sign(895,point.y-24,'번역 퀴즈 →');
     sign(stageProps[index].experimentSign.x,stageProps[index].experimentSign.y,'실험 과제\n↓');
-    this.book=this.add.image(point.x,point.y-36,'journey-props',3).setDisplaySize(150,150).setDepth(point.y-1);
-    this.add.text(point.x,point.y-115,'낡은 책 · 읽기',{fontSize:'16px',color:'#ffe6a3',backgroundColor:'#263c36dd',padding:{x:8,y:6}}).setOrigin(.5).setDepth(1500);
-    this.add.zone(point.x,point.y-35,125,145).setInteractive({useHandCursor:true}).setDepth(1601).on('pointerdown',()=>{if(live.current.active&&!this.busy)this.go(point.x,point.y,-2);});
+    const books=index===0?stage1ReadingSources.length:1;
+    this.book=this.add.image(point.x,point.y+8,books>1?'book-table-two':'book-table-one').setOrigin(.5,1).setDisplaySize(124,114).setDepth(point.y-1);
+    this.add.text(point.x,point.y-130,'낡은 책 · 읽기',{fontSize:'16px',color:'#ffe6a3',backgroundColor:'#263c36dd',padding:{x:8,y:6}}).setOrigin(.5).setDepth(1500);
+    this.add.zone(point.x,point.y-49,132,126).setInteractive({useHandCursor:true}).setDepth(1601).on('pointerdown',()=>{if(live.current.active&&!this.busy)this.go(point.x,point.y,-2);});
    }
    if(area==='stage-1'){
     // Place the terminal on the right-hand floor; approach from the existing walkable path.
@@ -124,7 +126,7 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
   go(x:number,y:number,npc:number|null){if(!this.player||this.busy)return;if(area==='village')y=Math.min(y,795);this.path=area==='adventure'&&npc!==null?routeToGateway(this.player.x,this.player.y,npc):route(this.player.x,this.player.y,x,y,area);this.pending=npc;const end=this.path.at(-1);if(end)this.destination?.setPosition(end.x,end.y).setVisible(true);}
   readBook(){
    if(this.busy||!this.book)return;this.busy=true;this.path=[];this.player?.setFrame(this.dir*9);live.current.onBusy(true);
-   const texture=this.textures.get('journey-props');if(!texture.has('book-cover'))texture.add('book-cover',0,706,626,127,138);const lifted=this.add.image(this.book.x+4,this.book.y-6,'journey-props','book-cover').setDisplaySize(36,39).setDepth(1800);this.tweens.add({targets:lifted,y:lifted.y-55,scaleX:.65,scaleY:.65,duration:this.motion(450),ease:'Sine.easeOut',onComplete:()=>{lifted.destroy();this.busy=false;live.current.onBusy(false);live.current.onBook();}});
+   const texture=this.textures.get('journey-props');if(!texture.has('book-cover'))texture.add('book-cover',0,706,626,127,138);const lifted=this.add.image(this.book.x+14,this.book.y-75,'journey-props','book-cover').setDisplaySize(36,39).setDepth(1800);this.tweens.add({targets:lifted,y:lifted.y-55,scaleX:.65,scaleY:.65,duration:this.motion(450),ease:'Sine.easeOut',onComplete:()=>{lifted.destroy();this.busy=false;live.current.onBusy(false);live.current.onBook();}});
   }
   motion(duration:number){return window.matchMedia('(prefers-reduced-motion: reduce)').matches?1:duration;}
   knock(index:number){
