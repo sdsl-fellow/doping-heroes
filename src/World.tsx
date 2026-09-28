@@ -130,6 +130,52 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
    g.fillStyle(0x8c9fa3).fillRect(-73,-32,6,26).fillRect(67,-32,6,26);
    g.lineStyle(2,0xe3eff0,.85).strokeRect(-80,-107,160,7).strokeRect(-84,-57,168,22);
    g.fillStyle(0xdce8e7).fillRect(42,-100,19,13);
+   // Matching 60×32 instruments sit at the same height on the existing shelf.
+   g.fillStyle(0x0d2530).fillRect(-64,-102,60,32);
+   g.lineStyle(1,0xa6b9ba).strokeRect(-64,-102,60,32);
+   g.fillStyle(0x07181d).fillRect(-59,-97,37,20);
+   g.lineStyle(1,0x668885).strokeRect(-59,-97,37,20);
+   const trace=[[-56,-85],[-50,-85],[-46,-91],[-41,-79],[-36,-88],[-31,-85],[-26,-85]];
+   g.lineStyle(1.6,0x5ef2a5).beginPath().moveTo(trace[0][0],trace[0][1]);
+   for(const [px,py] of trace.slice(1))g.lineTo(px,py);
+   g.strokePath();
+   g.fillStyle(0x41866e).fillRect(-56,-76,30,1);
+   g.fillStyle(0x9baeb2).fillCircle(-14,-91,2);
+   g.fillStyle(0xe2bd67).fillCircle(-14,-81,2);
+   g.fillStyle(0x3b4f58).fillRect(-65,-70,62,2);
+
+   g.fillStyle(0x293d4b).fillRect(8,-102,60,32);
+   g.lineStyle(1,0xabc1c3).strokeRect(8,-102,60,32);
+   g.fillStyle(0x091e2a).fillRect(13,-97,32,15);
+   g.lineStyle(1,0x5d8da2).strokeRect(13,-97,32,15);
+   g.fillStyle(0x6de8f6).fillRect(17,-91,24,4);
+   g.fillStyle(0xff8b6e).fillCircle(50,-81,2);
+   g.fillStyle(0x1b2228).fillCircle(61,-81,2);
+   g.fillStyle(0xaebdc1).fillCircle(53,-92,2.5);
+   g.fillStyle(0x455a67).fillRect(7,-70,62,2);
+
+   // Leads run from the instrument ports to the three PCB pads.
+   const lead=(points:number[][],color:number,width:number)=>{
+    const [start,control1,control2,end]=points;
+    g.lineStyle(width,color).beginPath().moveTo(start[0],start[1]);
+    for(let i=1;i<=24;i++){
+     const t=i/24,u=1-t;
+     g.lineTo(u*u*u*start[0]+3*u*u*t*control1[0]+3*u*t*t*control2[0]+t*t*t*end[0],u*u*u*start[1]+3*u*u*t*control1[1]+3*u*t*t*control2[1]+t*t*t*end[1]);
+    }
+    g.strokePath();
+   };
+   lead([[50,-81],[71,-65],[53,-59],[23,-59]],0xde6d4e,1.8);
+   lead([[61,-81],[80,-54],[38,-45],[12,-60]],0x23384c,1.8);
+   lead([[-14,-81],[-17,-62],[-25,-54],[-14,-61]],0xe2bd67,1.5);
+   g.fillStyle(0x31886b).fillPoints([{x:-27,y:-63},{x:10,y:-69},{x:33,y:-58},{x:-3,y:-52}],true);
+   g.lineStyle(1,0xa3dfb6).strokePoints([{x:-27,y:-63},{x:10,y:-69},{x:33,y:-58},{x:-3,y:-52}],true);
+   g.lineStyle(1.1,0xb8d699).beginPath().moveTo(-19,-61).lineTo(-7,-61).lineTo(2,-65).lineTo(17,-60).strokePath();
+   g.lineStyle(1.1,0xd9bb6c).beginPath().moveTo(-10,-57).lineTo(4,-57).lineTo(15,-62).lineTo(25,-59).strokePath();
+   g.fillStyle(0xe2bd67).fillCircle(-14,-61,3.5);
+   g.fillStyle(0x23384c).fillCircle(12,-60,3.5);
+   g.fillStyle(0xde6d4e).fillCircle(23,-59,3.5);
+   g.fillStyle(0x153c40).fillRect(-6,-62,8,5);
+   g.lineStyle(1,0xb1c5ac).strokeRect(-6,-62,8,5);
    return g;
   }
   go(x:number,y:number,npc:number|null){if(!this.player||this.busy)return;if(area==='village')y=Math.min(y,795);this.path=area==='adventure'&&npc!==null?routeToGateway(this.player.x,this.player.y,npc):route(this.player.x,this.player.y,x,y,area);this.pending=npc;const end=this.path.at(-1);if(end)this.destination?.setPosition(end.x,end.y).setVisible(true);}
