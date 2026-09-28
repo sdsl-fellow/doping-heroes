@@ -17,6 +17,8 @@
 .bond-complete{stroke:#b4bec8}
 .si-measurements line,.si-measurements path{stroke:#ffe3a5;stroke-width:2;fill:none;stroke-linecap:round}
 .si-measurements text{fill:#fff0cb;font-size:15px;font-weight:700;paint-order:stroke;stroke:#163447;stroke-width:3}
+.si-cell-measurement line{stroke:#ffe3a5;stroke-width:1.8;stroke-linecap:round}
+.si-cell-measurement text{fill:#fff0cb;font-size:16px;font-weight:700;paint-order:stroke;stroke:#163447;stroke-width:3}
 .si-extract{display:block;margin:8px auto 0;min-height:44px;border:1px solid #a6e7d5;color:#e4fff7;background:#27545c}
 .si-atom.si-neighbor circle:first-child{fill:url(#si-orange);stroke:#ffd096}
 .si-outline.si-neighbor circle:first-child{fill:#f9aa4a1c;stroke:#ffc488;stroke-dasharray:6 5}

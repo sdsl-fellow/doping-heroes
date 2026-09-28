@@ -34,7 +34,8 @@ export function projectAtom(p){
 }
 const origin=projectAtom(missingAtoms[0]);
 export const clusterSites=missingAtoms.map(p=>{const v=projectAtom(p);return {x:v.x-origin.x,y:v.y-origin.y};});
-export const siliconBondLengthNm=0.543*Math.sqrt(missingAtoms[0].reduce((d,v,i)=>d+(v-missingAtoms[1][i])**2,0));
+export const siliconLatticeConstantNm=0.543;
+export const siliconBondLengthNm=siliconLatticeConstantNm*Math.sqrt(missingAtoms[0].reduce((d,v,i)=>d+(v-missingAtoms[1][i])**2,0));
 const a=missingAtoms[1].map((v,i)=>v-missingAtoms[0][i]);
 const b=missingAtoms[2].map((v,i)=>v-missingAtoms[0][i]);
 export const siliconBondAngleDeg=Math.acos(dot(a,b)/(Math.hypot(...a)*Math.hypot(...b)))*180/Math.PI;

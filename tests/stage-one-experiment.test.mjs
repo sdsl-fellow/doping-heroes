@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {route,walkable} from '../src/navigation.mjs';
 import {STAGE_ONE_EXPERIMENT_POINT} from '../src/stage-one-experiment.mjs';
 import {missingStageExperiments} from '../src/stage-experiments.mjs';
-import {clusterSites,cubeEdges,latticeAtoms,latticeBonds,missingAtoms,projectAtom,siliconBondLengthNm,siliconBondAngleDeg} from '../src/diamond-lattice.mjs';
+import {clusterSites,cubeEdges,latticeAtoms,latticeBonds,missingAtoms,projectAtom,siliconBondLengthNm,siliconBondAngleDeg,siliconLatticeConstantNm} from '../src/diamond-lattice.mjs';
 import {mapInfo,stageDefinitions} from '../src/maps.mjs';
 
 test('Stage 1 experiment is reachable down the center path and gates only Stage 1',()=>{
@@ -34,6 +34,7 @@ test('diamond cube has tetrahedral nearest-neighbor bonds and a five-site vacanc
  assert.ok(clusterSites.every(site=>Number.isFinite(site.x)&&Number.isFinite(site.y)));
  assert.ok(projectAtom(missingAtoms[0]).x>0);
  assert.equal(siliconBondLengthNm.toFixed(3),'0.235');
+ assert.equal(siliconLatticeConstantNm.toFixed(3),'0.543');
  assert.equal(siliconBondAngleDeg.toFixed(2),'109.47');
 });
 

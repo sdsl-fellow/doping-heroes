@@ -1,5 +1,5 @@
 import {useRef,useState,type PointerEvent} from 'react';
-import {clusterSites,missingAtoms,projectAtom,siliconBondLengthNm,siliconBondAngleDeg} from './diamond-lattice.mjs';
+import {clusterSites,missingAtoms,projectAtom,siliconBondLengthNm,siliconBondAngleDeg,siliconLatticeConstantNm} from './diamond-lattice.mjs';
 import './stage-one-experiment.css';
 
 type Point={x:number;y:number};
@@ -26,9 +26,31 @@ function Cluster({x,y,angle=0,outline=false,scale=1}:{x:number;y:number;angle?:n
 }
 function DiamondCube({completed}:{completed:boolean}){
  const center=projectAtom(missingAtoms[0]);
+ // Bottom-left unit-cell edge runs from (0, 0, 0) to (1, 0, 0): one lattice constant.
+ const edge=[[0,0,0],[1,0,0]].map(atom=>{
+  const p=projectAtom(atom);
+  return {x:socket.x+p.x-center.x,y:socket.y+p.y-center.y};
+ });
+ const dx=edge[1].x-edge[0].x,dy=edge[1].y-edge[0].y,length=Math.hypot(dx,dy);
+ const normal={x:-dy/length,y:dx/length};
+ const shifted=(p:Point,distance:number)=>({x:p.x+normal.x*distance,y:p.y+normal.y*distance});
+ const left=shifted(edge[0],22),right=shifted(edge[1],22);
+ const label=shifted({x:(edge[0].x+edge[1].x)/2,y:(edge[0].y+edge[1].y)/2},47);
  return <g aria-label="면심입방 격자와 1/4, 1/4, 1/4 위치의 Si 원자: 내부 원자마다 정사면체 결합 네 개">
   <image href={completed?'./diamond-cell-complete.png':'./diamond-cell-vacancy.png'} x={socket.x-center.x} y={socket.y-center.y} width="360" height="270" pointerEvents="none"/>
   {!completed&&<Cluster x={socket.x} y={socket.y} outline/>}
+  <g className="si-cell-measurement" pointerEvents="none" aria-label={`실리콘 다이아몬드 입방 격자의 격자 상수 ${siliconLatticeConstantNm.toFixed(3)} 나노미터`}>
+   <line x1={left.x} y1={left.y} x2={right.x} y2={right.y}/>
+   {edge.map((p,i)=>{
+    const foot=i?right:left;
+    const near=shifted(p,10),far=shifted(p,27);
+    return <g key={i}>
+     <line x1={near.x} y1={near.y} x2={far.x} y2={far.y}/>
+     <line x1={foot.x-normal.x*5} y1={foot.y-normal.y*5} x2={foot.x+normal.x*5} y2={foot.y+normal.y*5}/>
+    </g>;
+   })}
+   <text x={label.x} y={label.y} textAnchor="middle">a = {siliconLatticeConstantNm.toFixed(3)} nm</text>
+  </g>
  </g>;
 }
 function AssemblyMeasurements(){
@@ -46,7 +68,7 @@ function AssemblyMeasurements(){
   <line x1={sites[0].x-tick.x/2} y1={sites[0].y-tick.y/2} x2={sites[0].x+tick.x*1.5} y2={sites[0].y+tick.y*1.5}/>
   <path d={`M${first.x} ${first.y} A${radius} ${radius} 0 0 ${sweep} ${last.x} ${last.y}`}/>
   <text x="105" y="216">{siliconBondLengthNm.toFixed(3)} nm</text>
-  <text x="250" y="243" textAnchor="middle">{siliconBondAngleDeg.toFixed(2)}° (3D)</text>
+  <text x="250" y="243" textAnchor="middle">{siliconBondAngleDeg.toFixed(2)}°</text>
  </g>;
 }
 
