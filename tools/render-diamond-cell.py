@@ -166,6 +166,20 @@ EDGE_RADIUS = 0.0068
 MAT_ATOM = 0
 MAT_BOND = 1
 MAT_EDGE = 2
+MAT_ORANGE = 3
+
+# The restored five-site cluster: one red center and its four orange neighbors.
+missing = np.array(
+    [
+        [0.75, 0.25, 0.75],
+        [0.5, 0.0, 0.5],
+        [0.5, 0.5, 1.0],
+        [1.0, 0.0, 1.0],
+        [1.0, 0.5, 0.5],
+    ],
+    dtype=np.float64,
+)
+orange_neighbors = missing[1:]
 
 sphere_centers = atoms
 sphere_radii = np.full(
@@ -273,6 +287,7 @@ BASE_COLOR = np.array(
         [0.55, 0.018, 0.035],  # glossy ruby-red Si atom
         [0.48, 0.51, 0.56],        # silver bond
         [0.015, 0.20, 0.90],       # blue edge
+        [0.87, 0.23, 0.018],       # glossy orange restored neighbor
     ],
     dtype=np.float64,
 )
@@ -282,6 +297,7 @@ DIFFUSE = np.array(
         0.72,
         0.72,
         0.68,
+        0.72,
     ],
     dtype=np.float64,
 )
@@ -291,6 +307,7 @@ SPECULAR = np.array(
         1.10,
         1.10,
         0.85,
+        1.10,
     ],
     dtype=np.float64,
 )
@@ -300,6 +317,7 @@ SHININESS = np.array(
         130.0,
         92.0,
         76.0,
+        130.0,
     ],
     dtype=np.float64,
 )
@@ -309,6 +327,7 @@ AMBIENT = np.array(
         0.14,
         0.12,
         0.10,
+        0.14,
     ],
     dtype=np.float64,
 )
@@ -466,7 +485,8 @@ def render_unit_cell(output_path="/content/diamond_unit_cell_glossy_transparent.
             update = t < nearest_t
             nearest_t[update] = t[update]
             nearest_normal[update] = normal[update]
-            nearest_material[update] = MAT_ATOM
+            is_restored_neighbor = np.any(np.all(np.isclose(orange_neighbors, center), axis=1))
+            nearest_material[update] = MAT_ORANGE if is_restored_neighbor else MAT_ATOM
 
         # bond / edge intersections
         for start, end, radius, material_id in cylinders:
@@ -527,7 +547,7 @@ def render_unit_cell(output_path="/content/diamond_unit_cell_glossy_transparent.
                     * light_intensity[None, :]
                 )
 
-            atom_hits = materials == MAT_ATOM
+            atom_hits = (materials == MAT_ATOM) | (materials == MAT_ORANGE)
             if np.any(atom_hits):
                 rim = np.clip(
                     1.0
@@ -583,7 +603,6 @@ def render_unit_cell(output_path="/content/diamond_unit_cell_glossy_transparent.
 # ============================================================
 
 rendered_image = render_unit_cell(str(Path(__file__).resolve().parents[1] / "public/diamond-cell-complete.png"))
-missing = np.array([[0.75,0.25,0.75],[0.5,0,0.5],[0.5,0.5,1.0],[1.0,0,1.0],[1.0,0.5,0.5]])
 retained = ~np.any(np.all(np.isclose(sphere_centers[:,None,:],missing[None,:,:]),axis=2),axis=1)
 sphere_centers=sphere_centers[retained]
 sphere_radii=sphere_radii[retained]
