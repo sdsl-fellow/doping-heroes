@@ -1,0 +1,1 @@
+export const STAGE_ONE_EXPERIMENT_POINT={x:768,y:892};
