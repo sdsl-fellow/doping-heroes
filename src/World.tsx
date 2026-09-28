@@ -2,6 +2,8 @@ import {playerDepth} from './player-depth.mjs';
 import {gatewayInteriorPoints} from './gateway-interior.mjs';
 import {FET_GAME_POINT} from './fet-process.mjs';
 import {STAGE_ONE_EXPERIMENT_POINT} from './stage-one-experiment.mjs';
+import {stageProps} from './stage-props.mjs';
+import {stageNpcCostumes} from './stage-npc-costumes.mjs';
 import {canEnterStage,nextGatewayKnock} from './stage-release.mjs';
 import {useEffect,useRef} from 'react';
 import Phaser from 'phaser';
@@ -19,7 +21,7 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
 
  class Campus extends Phaser.Scene{
   player?:Phaser.GameObjects.Sprite;label?:Phaser.GameObjects.Text;markers:Phaser.GameObjects.Text[]=[];keys!:Record<string,Phaser.Input.Keyboard.Key>;path:{x:number;y:number}[]=[];pending:number|null=null;dir=2;skinKey='';generation=0;lastUpdate=0;touch={x:0,y:0};destination?:Phaser.GameObjects.Ellipse;busy=false;gate?:Phaser.GameObjects.Image;boat?:Phaser.GameObjects.Image;book?:Phaser.GameObjects.Image;speech?:Phaser.GameObjects.Container;knockIndex=-1;knockCount=0;knockDeadline=0;relockIndex=-1;relockTimer?:Phaser.Time.TimerEvent;relockRing?:Phaser.GameObjects.Graphics;
-  preload(){this.load.image('campus',info.image);this.load.spritesheet('journey-props','./journey-props.png',{frameWidth:512,frameHeight:512});if(area==='stage-1')this.load.image('translation-pc','./translation-pc-v1.webp');if(area==='adventure'){for(const stage of stageDefinitions)this.load.image('gateway-'+stage.index,stage.gatewayImage);}this.load.on('loaderror',()=>live.current.onError('맵을 불러오지 못했습니다. 새로고침해 주세요.'));}
+  preload(){this.load.image('campus',info.image);this.load.spritesheet('journey-props','./journey-props.png',{frameWidth:512,frameHeight:512});if(stage)this.load.image('translation-pc','./translation-pc-v1.webp');if(area==='adventure'){for(const stage of stageDefinitions)this.load.image('gateway-'+stage.index,stage.gatewayImage);}this.load.on('loaderror',()=>live.current.onError('맵을 불러오지 못했습니다. 새로고침해 주세요.'));}
   async sprite(c:Character,key:string,x:number,y:number){const sheet=await characterSheet(c);if(disposed)return;const texture=this.textures.addCanvas(key,sheet)!;for(let row=0;row<4;row++)for(let col=0;col<9;col++)texture.add(row*9+col,0,col*64,row*64,64,64);return this.add.sprite(x,y,key,18).setOrigin(.5,.95).setScale(1.7).setDepth(y);}
   create(){
    this.add.image(0,0,'campus').setOrigin(0).setDisplaySize(info.width,info.height);this.cameras.main.setBounds(0,0,info.width,info.height);this.cameras.main.setScroll(0,150);this.cameras.main.roundPixels=true;
@@ -44,7 +46,7 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
     });return;
    }
    if(area==='village'&&i===0)doctorSprite().then(canvas=>{if(disposed)return;this.textures.addCanvas('dr-silicon',canvas);this.add.image(p.x,p.y,'dr-silicon').setOrigin(.5,.95).setScale(1.7).setDepth(p.y);}).catch(e=>live.current.onError(e.message));
-   else{const c={...defaultCharacter,gender:i===2?'female':'male',body:i===1?'sturdy':'agile',hair:i===0?'bangs':i===1?'bedhead':'bob',hairColor:i===0?'#dae0e5':i===1?'#77452f':'#b298d1',outfitColor:i===0?'#e6e9e5':i===1?'#438674':'#695c98'} as Character;this.sprite(c,'npc-'+i,p.x,p.y).catch(e=>live.current.onError(e.message));}
+   else{const c={...defaultCharacter,...(stage?stageNpcCostumes[index]:{gender:i===2?'female':'male',body:i===1?'sturdy':'agile',hair:i===0?'bangs':i===1?'bedhead':'bob',hairColor:i===0?'#dae0e5':i===1?'#77452f':'#b298d1',outfitColor:i===0?'#e6e9e5':i===1?'#438674':'#695c98'})} as Character;this.sprite(c,'npc-'+i,p.x,p.y).catch(e=>live.current.onError(e.message));}
    this.markers.push(this.add.text(p.x,p.y-109,'!',{fontFamily:'sans-serif',fontStyle:'bold',fontSize:'32px',color:'#ffe895',stroke:'#263145',strokeThickness:6}).setOrigin(.5).setDepth(1500).setVisible(!(area==='village'&&i===2)));this.add.text(p.x,p.y+5,names[i],{fontSize:'16px',color:'#fff8dd',backgroundColor:'#152c36cc',padding:{x:8,y:4}}).setOrigin(.5,0).setDepth(1500);if(area==='village'&&i===2)return;this.add.zone(p.x,p.y-40,100,120).setInteractive({useHandCursor:true}).setDepth(1600).on('pointerdown',()=>{if(live.current.active)this.go(p.x,p.y+20,i);});});
    if(area==='village')for(const t of [{x:230,y:420,text:'도너 상점'},{x:1330,y:485,text:'실리콘 결정 동굴'}])this.add.text(t.x,t.y,t.text,{fontSize:'20px',color:'#fff4d4',stroke:'#1a3547',strokeThickness:6}).setOrigin(.5).setDepth(1500);
    this.add.text(info.exit.x,area==='village'?725:135,area==='village'?'↓ 나무 관문 · 터치해서 열기':stage?'↑ 모험 대륙으로 돌아가기':'↑ 세미 마을로 돌아가기',{fontSize:'18px',color:'#fff4d4',backgroundColor:'#193d43dd',padding:{x:12,y:10}}).setOrigin(.5).setDepth(1500).setInteractive().on('pointerdown',()=>{if(live.current.active)this.go(info.exit.x,area==='village'?795:info.exit.y,null);});
@@ -58,9 +60,8 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
     // World-space signposts stay on the actual paths as the camera moves.
     const sign=(x:number,y:number,text:string)=>this.add.text(x,y,text,{fontSize:'17px',color:'#f4e9c5',stroke:'#203543',strokeThickness:3,align:'center'}).setOrigin(.5).setAlpha(.78).setDepth(100);
     sign(645,point.y-24,'← 책 읽기');
-    if(area==='stage-1')sign(895,point.y-24,'번역 퀴즈 →');
-    if(area==='stage-1')sign(768,point.y+100,'실험과제\n↓');
-    if(area==='stage-7')sign(825,735,'미니게임 ↓');
+    sign(895,point.y-24,'번역 퀴즈 →');
+    sign(stageProps[index].experimentSign.x,stageProps[index].experimentSign.y,'실험과제\n↓');
     this.book=this.add.image(point.x,point.y-36,'journey-props',3).setDisplaySize(150,150).setDepth(point.y-1);
     this.add.text(point.x,point.y-115,'낡은 책 · 읽기',{fontSize:'16px',color:'#ffe6a3',backgroundColor:'#263c36dd',padding:{x:8,y:6}}).setOrigin(.5).setDepth(1500);
     this.add.zone(point.x,point.y-35,125,145).setInteractive({useHandCursor:true}).setDepth(1601).on('pointerdown',()=>{if(live.current.active&&!this.busy)this.go(point.x,point.y,-2);});
@@ -93,6 +94,18 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
     this.experimentTable(experiment.x,experiment.y);
     this.add.text(experiment.x,experiment.y-92,'실험과제',{fontSize:'16px',color:'#fff0bc',backgroundColor:'#203e49ee',padding:{x:10,y:7}}).setOrigin(.5).setDepth(1500);
     this.add.zone(experiment.x,experiment.y-42,100,85).setInteractive({useHandCursor:true}).setDepth(1601).on('pointerdown',()=>{if(live.current.active&&!this.busy)this.go(experiment.x,experiment.y,-4);});
+   }
+   if(stage&&area!=='stage-1'){
+    const {pc,experiment}=stageProps[index];
+    this.add.ellipse(pc.x,pc.y+4,70,20,0x8cdee4,.22).setDepth(pc.y-1);
+    this.add.image(pc.x,pc.y+8,'translation-pc').setOrigin(.5,1).setDisplaySize(104,104).setDepth(pc.y);
+    this.add.text(pc.x,pc.y-142,'원서 번역 퀴즈 · 준비 중',{fontSize:'16px',color:'#f8edbb',backgroundColor:'#183e49ee',align:'center',padding:{x:10,y:7}}).setOrigin(.5).setDepth(1500);
+    this.add.zone(pc.x,pc.y-42,120,112).setInteractive({useHandCursor:true}).setDepth(1601).on('pointerdown',()=>{if(live.current.active)live.current.onError('이 스테이지의 원서 번역 퀴즈는 준비 중입니다.');});
+    if(area!=='stage-7'){
+     this.experimentTable(experiment.x,experiment.y);
+     this.add.text(experiment.x,experiment.y-92,'실험과제 · 준비 중',{fontSize:'16px',color:'#fff0bc',backgroundColor:'#203e49ee',padding:{x:10,y:7}}).setOrigin(.5).setDepth(1500);
+     this.add.zone(experiment.x,experiment.y-42,100,85).setInteractive({useHandCursor:true}).setDepth(1601).on('pointerdown',()=>{if(live.current.active)live.current.onError('이 스테이지의 실험과제는 준비 중입니다.');});
+    }
    }
    if(area==='stage-7'){const p=FET_GAME_POINT;
     this.experimentTable(p.x,p.y);

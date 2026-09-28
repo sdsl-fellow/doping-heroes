@@ -37,7 +37,6 @@ test('diamond cube has tetrahedral nearest-neighbor bonds and a five-site vacanc
  assert.equal(siliconBondAngleDeg.toFixed(2),'109.47');
 });
 
-test('Lumi stands at the Stage 1 crossroads, without moving NPCs in other stages',()=>{
- assert.deepEqual(mapInfo('stage-1').npc,{x:768,y:stageDefinitions[0].road});
- assert.deepEqual(mapInfo('stage-2').npc,{x:768,y:570});
+test('stage guides stand at their crossroads with room for the southern sign',()=>{
+ for(const stage of stageDefinitions)assert.deepEqual(mapInfo(stage.area).npc,{x:768,y:stage.road});
 });
