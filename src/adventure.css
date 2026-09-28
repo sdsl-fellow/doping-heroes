@@ -1,0 +1,68 @@
+.doping-range{display:flex;align-items:center;gap:8px;font-size:14px;min-width:0;margin:5px 0}.doping-range progress{flex:1;min-width:36px;width:100%;height:12px;accent-color:#eed486}.doping-range span{white-space:nowrap}
+.player-status{min-width:220px}.player-status>div>strong{font-size:16px}.player-status b{font-size:15px}.top-left{max-width:440px}.player-status small{display:block;line-height:1.6}
+.weekly-journal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.weekly-journal article{margin:0}
+.shop-grid,.crystal-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.shop-grid article,.crystal-results article{padding:18px;border:1px solid #6c8881;border-radius:12px;background:#183c42}.shop-grid h3,.crystal-results h3{margin-top:0}.shop-grid p{font-size:14px}.shop-balance{font-weight:700;color:#ffe092}.shop-grid button{width:100%}.crystal-results strong{font-size:20px;color:#ffe092}
+.cave-slider{display:block;width:100%;height:48px;accent-color:#e3c579}.region-marker{position:absolute;transform:translate(-50%,-50%);background:#193b42e8;color:#fff1bc;min-height:44px;border:1px solid #cbbb7c;padding:4px 8px;font-size:14px}.map-image.large-map{position:relative}.sigma strong{font-size:clamp(22px,5vw,36px)}
+@media(max-width:700px){.top-left{left:10px;top:10px;max-width:calc(100vw - 20px)}.player-status{min-width:0;flex:1}.top-left .portrait{width:60px;height:60px}.top-left .portrait canvas{width:60px!important;height:60px!important}.player-status b{font-size:14px}.world-title{display:none}.weekly-journal,.shop-grid,.crystal-results{grid-template-columns:1fr}.region-marker{min-width:44px;min-height:44px;font-size:12px;padding:2px}.top-right{top:140px}.quest-tracker{display:none}.welcome-ribbon{top:auto;bottom:125px;max-width:60vw;font-size:14px}.bottom-menu button{min-width:48px}}
+@media(max-width:420px){.top-left .portrait{display:none}.player-status{padding:6px}.top-right{top:135px}.minimap{max-width:118px}.region-marker{font-size:12px}}
+.inventory-preview{display:flex;align-items:center;gap:16px}.inventory-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.inventory-grid button{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 6px;min-height:130px}.inventory-grid img{image-rendering:pixelated;object-fit:contain}.inventory-grid strong{font-size:14px;overflow-wrap:anywhere}.inventory-grid small{font-size:14px}.empty-equipment{display:grid;place-items:center;width:56px;height:56px;font-size:28px}.inventory fieldset{margin-top:18px}.bottom-menu button{min-width:50px}
+@media(max-width:600px){.bottom-menu{max-width:calc(100vw - 16px);overflow-x:auto}.bottom-menu button{min-width:48px;padding:8px 4px;font-size:12px}.inventory-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.item-icon{display:block;width:64px;height:64px;flex-shrink:0;background-repeat:no-repeat;image-rendering:pixelated}
+/* Keep the top gateway labels clear of the HUD. */
+@media(min-width:1001px){
+ .top-right{display:flex;flex-direction:row-reverse;align-items:flex-start;gap:12px;width:auto;top:14px;right:14px}
+ .top-right .minimap{width:205px;flex:0 0 205px}
+ .top-right .quest-tracker{position:static;width:235px;max-height:180px;overflow-y:auto;margin:0;box-sizing:border-box}
+}
+@media(max-width:1250px){.world-title{display:none}}
+@media(max-width:1000px){
+ .top-right{top:max(8px,env(safe-area-inset-top));right:8px;width:112px;display:block}
+ .top-right .minimap{width:112px;max-width:112px;padding:3px}
+ .top-right .quest-tracker{display:none}
+ .top-right .minimap>span{font-size:12px;line-height:1.3;padding:3px;display:block}
+ .top-right .minimap small{display:none}
+ .top-left{top:max(8px,env(safe-area-inset-top));left:8px;max-width:calc(100vw - 136px);box-sizing:border-box}
+ .top-left .portrait{display:none}
+ .top-left .player-status{min-width:0;padding:5px}
+ .top-left .player-status>div{gap:3px;flex-wrap:wrap}
+ .top-left .player-status b{font-size:13px}
+ .top-left .player-status small{font-size:12px}
+ .top-left .doping-range{gap:4px;font-size:12px}
+}
+
+/* Implantation reward and roomy continent HUD. */
+.implant-animation{margin:12px auto;max-width:400px;padding:12px;border:1px solid #74c9d766;border-radius:16px;background:#102936;color:#e3f8ff;text-align:center}
+.implant-animation canvas{display:block;width:100%;max-width:360px;height:auto;margin:auto;image-rendering:pixelated;border-radius:12px}
+.implant-phase{color:#a4eaff;font-weight:800;min-height:24px}
+.implant-stats p{margin:6px 0;font-size:14px}.implant-stats strong{display:block;color:#ffe0a0}.implant-animation small{font-size:11px;color:#bad3d8}.reward-level{text-align:center;font-weight:800;color:#866225}
+@media(min-width:1001px){
+ .top-right .minimap{width:266.5px;flex:0 0 266.5px;height:221px;box-sizing:border-box;display:flex;flex-direction:column}
+ .top-right .minimap .map-image{width:100%;flex:1;min-height:0}
+ .top-right .quest-tracker{width:380px;height:221px;max-height:none;overflow:visible;display:flex;flex-direction:column;padding:8px;box-sizing:border-box}
+ .top-right .quest-tracker button{font-size:14px;line-height:1.25;min-height:0;flex:1;padding:3px 0;gap:6px}
+ .top-right .quest-tracker button>span:nth-child(2){flex:1;min-width:0;overflow-wrap:anywhere}
+ .top-right .quest-tracker .tracker-heading{flex:0 0 32px;font-size:16px}
+}
+@media(min-width:1001px) and (max-width:1250px){.top-left{max-width:calc(100vw - 700px)}.top-left .portrait{display:none}.top-left .player-status{min-width:0}.top-left .player-status>div{flex-wrap:wrap}}
+@media(max-width:1500px){.world-title{display:none}}
+@media(max-width:1000px){
+ .bottom-left{bottom:calc(96px + env(safe-area-inset-bottom));left:14px}
+ .bottom-left>small{display:none}
+ .talk-button{bottom:calc(100px + env(safe-area-inset-bottom))}
+ .welcome-ribbon{top:auto;bottom:calc(220px + env(safe-area-inset-bottom));max-width:calc(100vw - 32px);width:max-content;box-sizing:border-box;font-size:12px;line-height:1.4;padding:6px 12px}
+}
+
+.implant-animation .reward-level{margin:12px 0 0;color:#ffe0a0;font-size:18px}
+.item-reveal{margin:16px 0;padding:18px;border:2px solid #e8c878;border-radius:16px;background:radial-gradient(ellipse at top,#82652c,#173c46 70%);text-align:center}.item-reveal h3{color:#ffe7a0}.loot-cards{display:flex;flex-wrap:wrap;justify-content:center;gap:12px}.loot-cards article{display:flex;flex-direction:column;align-items:center;gap:8px;max-width:180px;padding:12px;background:#173c46;border:1px solid #ffe1a0;border-radius:12px;animation:loot-arrive .8s backwards;box-shadow:0 0 22px #ffd36d55}.loot-cards small{color:#bde9cd}.loot-cards .item-icon{animation:loot-shine 1.4s ease-in-out 2}.silicon-library details{margin:10px 0;padding:14px;border:1px solid #799997;border-radius:8px}.silicon-library summary{cursor:pointer;min-height:28px;font-weight:700}.silicon-library p{margin:12px 0 0}.stage-number{font-size:13px!important;min-width:26px!important;min-height:26px!important;padding:3px!important;width:26px;height:26px;border-radius:50%!important}.mini-stage-number{position:absolute;transform:translate(-50%,-50%);padding:0;min-width:15px;min-height:15px;width:15px;height:15px;font-size:10px;line-height:15px;border-radius:50%;background:#123d49;color:#fff3bd;pointer-events:none}.stage-number:disabled,.mini-stage-number:disabled{opacity:.65;background:#38414a}.minimap{cursor:pointer}
+@keyframes loot-arrive{0%{opacity:0;transform:translateY(-35px) scale(.4) rotate(-12deg)}65%{opacity:1;transform:translateY(5px) scale(1.08)}100%{transform:none}}@keyframes loot-shine{50%{filter:drop-shadow(0 0 10px #ffdb7b);transform:translateY(-4px)}}
+@media(prefers-reduced-motion:reduce){.loot-cards article,.loot-cards .item-icon{animation:none}}
+
+.implant-phase.hot,.temperature.hot{color:#ffb078;text-shadow:0 0 14px #ff5328aa}
+.implant-chamber{position:relative}.temperature{position:absolute;right:5px;top:16px;display:grid;gap:8px;width:90px;padding:10px 5px;background:#102936df;border:1px solid currentColor;border-radius:8px;color:#bdefff;font-size:12px}.temperature strong{font-size:16px;font-variant-numeric:tabular-nums;white-space:nowrap}.temperature meter{width:100%;height:12px;accent-color:#ff7438}.temperature.hot{background:#521d16ed}
+.item-reveal.embedded{border:0;background:none;padding:14px 0 0;margin:12px 0 0;border-top:1px solid #e8c87866;border-radius:0;box-shadow:none}.item-reveal.embedded .loot-cards article{max-width:145px;padding:10px}.item-reveal.embedded p{font-size:14px;margin:12px 0 0}
+.lecture-book{padding:18px;border:3px solid #8c6036;border-radius:8px;background:#e8d6a5;color:#382818;box-shadow:inset 12px 0 18px #67441d33;animation:book-open .45s ease-out}.lecture-book p{color:#49361f}.book-stage{font-weight:bold;border-bottom:1px solid #92734d;padding-bottom:12px}.book-page{min-height:240px;animation:book-open .3s ease-out}.book-page small{font-size:14px;color:#755229}.book-page h3{margin-top:20px;font-size:22px}.lecture-book nav{display:flex;align-items:center;justify-content:space-between;gap:12px}.lecture-book button{color:#fff3d5}.lecture-book nav span{white-space:nowrap}.cinematic-shield{position:absolute;inset:0;z-index:2000;cursor:wait}
+@keyframes book-open{from{opacity:0;transform:perspective(800px) rotateY(-12deg) translateY(10px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.lecture-book,.book-page,.loot-cards article,.loot-cards .item-icon{animation:none}}
+
+.silicon-speech{position:relative;background:#fff3cf;color:#443421;border:2px solid #997244;border-radius:18px;padding:20px 24px;margin:12px 0 28px;font-size:20px;font-weight:700;line-height:1.6}.silicon-speech:after{content:"";position:absolute;bottom:-12px;left:28px;width:20px;height:20px;background:#fff3cf;border-right:2px solid #997244;border-bottom:2px solid #997244;transform:rotate(45deg)}.book-reward,.book-complete{margin:18px 0 0;font-size:14px}.lecture-book>.primary{margin-top:18px;width:100%}
