@@ -3,4 +3,6 @@ dist/
 .sites-runtime/
 .env
 .env.local
+data/translation-stage1.csv
+data/translation-stage1.json
 public/campus.png
