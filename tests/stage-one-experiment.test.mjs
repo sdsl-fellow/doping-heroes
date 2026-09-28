@@ -8,7 +8,7 @@ import {mapInfo,stageDefinitions} from '../src/maps.mjs';
 
 test('Stage 1 experiment is reachable down the center path and gates only Stage 1',()=>{
  const target=STAGE_ONE_EXPERIMENT_POINT;
- assert.ok(target.y>=890&&target.y<=930);
+ assert.equal(target.y,837);
  assert.equal(walkable(target.x,target.y,'stage-1'),true);
  const path=route(768,210,target.x,target.y,'stage-1');
  assert.ok(path.length);assert.ok(path.every(p=>walkable(p.x,p.y,'stage-1')));

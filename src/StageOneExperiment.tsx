@@ -33,21 +33,20 @@ function DiamondCube({completed}:{completed:boolean}){
 }
 function AssemblyMeasurements(){
  const a={x:sites[0].x-center.x,y:sites[0].y-center.y};
- const b={x:sites[1].x-center.x,y:sites[1].y-center.y};
- const c={x:sites[2].x-center.x,y:sites[2].y-center.y};
+ const b={x:sites[3].x-center.x,y:sites[3].y-center.y};
  const unit=(p:Point)=>({x:p.x/Math.hypot(p.x,p.y),y:p.y/Math.hypot(p.x,p.y)});
- const u=unit(a),v=unit(b),w=unit(c),radius=36;
+ const u=unit(a),v=unit(b),radius=36;
  const tick={x:-u.y*12,y:u.x*12};
- const first={x:center.x+v.x*radius,y:center.y+v.y*radius};
- const last={x:center.x+w.x*radius,y:center.y+w.y*radius};
- const sweep=((Math.atan2(w.y,w.x)-Math.atan2(v.y,v.x)+2*Math.PI)%(2*Math.PI))<Math.PI?1:0;
+ const first={x:center.x+u.x*radius,y:center.y+u.y*radius};
+ const last={x:center.x+v.x*radius,y:center.y+v.y*radius};
+ const sweep=((Math.atan2(v.y,v.x)-Math.atan2(u.y,u.x)+2*Math.PI)%(2*Math.PI))<Math.PI?1:0;
  return <g className="si-measurements" pointerEvents="none" aria-label={`Si–Si 원자간 거리 ${siliconBondLengthNm.toFixed(3)} 나노미터, 삼차원 결합각 ${siliconBondAngleDeg.toFixed(2)} 도`}>
   <line x1={center.x+tick.x} y1={center.y+tick.y} x2={sites[0].x+tick.x} y2={sites[0].y+tick.y}/>
   <line x1={center.x-tick.x/2} y1={center.y-tick.y/2} x2={center.x+tick.x*1.5} y2={center.y+tick.y*1.5}/>
   <line x1={sites[0].x-tick.x/2} y1={sites[0].y-tick.y/2} x2={sites[0].x+tick.x*1.5} y2={sites[0].y+tick.y*1.5}/>
   <path d={`M${first.x} ${first.y} A${radius} ${radius} 0 0 ${sweep} ${last.x} ${last.y}`}/>
   <text x="105" y="216">{siliconBondLengthNm.toFixed(3)} nm</text>
-  <text x="327" y="137">{siliconBondAngleDeg.toFixed(2)}° (3D)</text>
+  <text x="250" y="243" textAnchor="middle">{siliconBondAngleDeg.toFixed(2)}° (3D)</text>
  </g>;
 }
 
