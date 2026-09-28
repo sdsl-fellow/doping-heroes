@@ -21,7 +21,7 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
 
  class Campus extends Phaser.Scene{
   player?:Phaser.GameObjects.Sprite;label?:Phaser.GameObjects.Text;markers:Phaser.GameObjects.Text[]=[];keys!:Record<string,Phaser.Input.Keyboard.Key>;path:{x:number;y:number}[]=[];pending:number|null=null;dir=2;skinKey='';generation=0;lastUpdate=0;touch={x:0,y:0};destination?:Phaser.GameObjects.Ellipse;busy=false;gate?:Phaser.GameObjects.Image;boat?:Phaser.GameObjects.Image;book?:Phaser.GameObjects.Image;speech?:Phaser.GameObjects.Container;knockIndex=-1;knockCount=0;knockDeadline=0;relockIndex=-1;relockTimer?:Phaser.Time.TimerEvent;relockRing?:Phaser.GameObjects.Graphics;
-  preload(){this.load.image('campus',info.image);this.load.spritesheet('journey-props','./journey-props.png',{frameWidth:512,frameHeight:512});if(stage)this.load.image('translation-pc','./translation-pc-v1.webp');if(area==='adventure'){for(const stage of stageDefinitions)this.load.image('gateway-'+stage.index,stage.gatewayImage);}this.load.on('loaderror',()=>live.current.onError('맵을 불러오지 못했습니다. 새로고침해 주세요.'));}
+  preload(){this.load.image('campus',info.image);this.load.spritesheet('journey-props','./journey-props.png',{frameWidth:512,frameHeight:512});if(stage){this.load.image('translation-pc','./translation-pc-v1.webp');this.load.image('experiment-table','./experiment-table-pixel-v1.png');}if(area==='adventure'){for(const stage of stageDefinitions)this.load.image('gateway-'+stage.index,stage.gatewayImage);}this.load.on('loaderror',()=>live.current.onError('맵을 불러오지 못했습니다. 새로고침해 주세요.'));}
   async sprite(c:Character,key:string,x:number,y:number){const sheet=await characterSheet(c);if(disposed)return;const texture=this.textures.addCanvas(key,sheet)!;for(let row=0;row<4;row++)for(let col=0;col<9;col++)texture.add(row*9+col,0,col*64,row*64,64,64);return this.add.sprite(x,y,key,18).setOrigin(.5,.95).setScale(1.7).setDepth(y);}
   create(){
    this.add.image(0,0,'campus').setOrigin(0).setDisplaySize(info.width,info.height);this.cameras.main.setBounds(0,0,info.width,info.height);this.cameras.main.setScroll(0,150);this.cameras.main.roundPixels=true;
@@ -61,7 +61,7 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
     const sign=(x:number,y:number,text:string)=>this.add.text(x,y,text,{fontSize:'17px',color:'#f4e9c5',stroke:'#203543',strokeThickness:3,align:'center'}).setOrigin(.5).setAlpha(.78).setDepth(100);
     sign(645,point.y-24,'← 책 읽기');
     sign(895,point.y-24,'번역 퀴즈 →');
-    sign(stageProps[index].experimentSign.x,stageProps[index].experimentSign.y,'실험과제\n↓');
+    sign(stageProps[index].experimentSign.x,stageProps[index].experimentSign.y,'실험 과제\n↓');
     this.book=this.add.image(point.x,point.y-36,'journey-props',3).setDisplaySize(150,150).setDepth(point.y-1);
     this.add.text(point.x,point.y-115,'낡은 책 · 읽기',{fontSize:'16px',color:'#ffe6a3',backgroundColor:'#263c36dd',padding:{x:8,y:6}}).setOrigin(.5).setDepth(1500);
     this.add.zone(point.x,point.y-35,125,145).setInteractive({useHandCursor:true}).setDepth(1601).on('pointerdown',()=>{if(live.current.active&&!this.busy)this.go(point.x,point.y,-2);});
@@ -92,8 +92,8 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
     }});
     const experiment=STAGE_ONE_EXPERIMENT_POINT;
     this.experimentTable(experiment.x,experiment.y);
-    this.add.text(experiment.x,experiment.y-92,'실험과제',{fontSize:'16px',color:'#fff0bc',backgroundColor:'#203e49ee',padding:{x:10,y:7}}).setOrigin(.5).setDepth(1500);
-    this.add.zone(experiment.x,experiment.y-42,100,85).setInteractive({useHandCursor:true}).setDepth(1601).on('pointerdown',()=>{if(live.current.active&&!this.busy)this.go(experiment.x,experiment.y,-4);});
+    this.add.text(experiment.x,experiment.y-108,'실험 과제',{fontSize:'16px',color:'#fff0bc',backgroundColor:'#203e49ee',padding:{x:10,y:7}}).setOrigin(.5).setDepth(1500);
+    this.add.zone(experiment.x,experiment.y-45,120,100).setInteractive({useHandCursor:true}).setDepth(1601).on('pointerdown',()=>{if(live.current.active&&!this.busy)this.go(experiment.x,experiment.y,-4);});
    }
    if(stage&&area!=='stage-1'){
     const {pc,experiment}=stageProps[index];
@@ -103,14 +103,14 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
     this.add.zone(pc.x,pc.y-42,120,112).setInteractive({useHandCursor:true}).setDepth(1601).on('pointerdown',()=>{if(live.current.active)live.current.onError('이 스테이지의 원서 번역 퀴즈는 준비 중입니다.');});
     if(area!=='stage-7'){
      this.experimentTable(experiment.x,experiment.y);
-     this.add.text(experiment.x,experiment.y-92,'실험과제 · 준비 중',{fontSize:'16px',color:'#fff0bc',backgroundColor:'#203e49ee',padding:{x:10,y:7}}).setOrigin(.5).setDepth(1500);
-     this.add.zone(experiment.x,experiment.y-42,100,85).setInteractive({useHandCursor:true}).setDepth(1601).on('pointerdown',()=>{if(live.current.active)live.current.onError('이 스테이지의 실험과제는 준비 중입니다.');});
+     this.add.text(experiment.x,experiment.y-108,'실험 과제 · 준비 중',{fontSize:'16px',color:'#fff0bc',backgroundColor:'#203e49ee',padding:{x:10,y:7}}).setOrigin(.5).setDepth(1500);
+     this.add.zone(experiment.x,experiment.y-45,120,100).setInteractive({useHandCursor:true}).setDepth(1601).on('pointerdown',()=>{if(live.current.active)live.current.onError('이 스테이지의 실험 과제는 준비 중입니다.');});
     }
    }
    if(area==='stage-7'){const p=FET_GAME_POINT;
     this.experimentTable(p.x,p.y);
-    this.add.text(p.x,p.y-92,'MOSFET 공정 퍼즐\n실험과제 · 터치해서 시작',{fontSize:'17px',color:'#fff3ba',backgroundColor:'#153e35ee',align:'center',padding:{x:10,y:7}}).setOrigin(.5).setDepth(1500);
-    this.add.zone(p.x,p.y-42,100,85).setInteractive({useHandCursor:true}).setDepth(1601).on('pointerdown',()=>{if(live.current.active&&!this.busy)this.go(p.x,p.y,-3);});
+    this.add.text(p.x,p.y-120,'MOSFET 공정 퍼즐\n실험 과제 · 터치해서 시작',{fontSize:'17px',color:'#fff3ba',backgroundColor:'#153e35ee',align:'center',padding:{x:10,y:7}}).setOrigin(.5).setDepth(1500);
+    this.add.zone(p.x,p.y-45,120,100).setInteractive({useHandCursor:true}).setDepth(1601).on('pointerdown',()=>{if(live.current.active&&!this.busy)this.go(p.x,p.y,-3);});
    }
    this.input.on('pointerdown',(p:Phaser.Input.Pointer,objects:unknown[])=>{if(!objects.length&&live.current.active){const point=this.cameras.main.getWorldPoint(p.x,p.y);this.go(point.x,point.y,null);}});
    this.input.on('pointerup',()=>this.finishRelockHold());
@@ -118,65 +118,8 @@ export function World({rootAccount,releasedStages,character,name,completed,area,
    this.game.events.on('navigate',(id:number)=>{const local=area==='adventure'?stageDefinitions.findIndex(s=>s.questId===id):stage?0:id;const p=places[local];if(p&&live.current.active)this.go(p.x,p.y+(area==='adventure'?0:20),area==='adventure'?null:local);});this.game.events.on('direction',(v:{x:number;y:number})=>{this.touch=v;});this.game.events.on('map-target',(p:{x:number;y:number})=>{if(live.current.active)this.go(p.x,p.y,null);});
   }
   experimentTable(x:number,y:number){
-   // Compact metal lab bench with the raised instrument shelf from the reference.
-   const g=this.add.graphics().setPosition(x,y).setScale(.5).setDepth(y-27);
-   g.fillStyle(0x091b26,.34).fillEllipse(0,3,184,26);
-   g.fillStyle(0x82959a).fillRect(-73,-103,7,70).fillRect(66,-103,7,70);
-   g.fillStyle(0xb0bcbf).fillRect(-80,-107,160,7);
-   g.fillStyle(0x64777d).fillRect(-82,-54,7,54).fillRect(75,-54,7,54);
-   g.fillStyle(0x8b9da0).fillRect(-84,-57,168,22); // Solid front apron, not an empty frame.
-   g.fillStyle(0xc2cfd0).fillPoints([{x:-84,y:-57},{x:-66,y:-68},{x:84,y:-68},{x:84,y:-57}],true);
-   g.fillStyle(0x596c71).fillRect(-84,-37,168,5);
-   g.fillStyle(0x8c9fa3).fillRect(-73,-32,6,26).fillRect(67,-32,6,26);
-   g.lineStyle(2,0xe3eff0,.85).strokeRect(-80,-107,160,7).strokeRect(-84,-57,168,22);
-   g.fillStyle(0xdce8e7).fillRect(42,-100,19,13);
-   // Matching 60×32 instruments sit at the same height on the existing shelf.
-   g.fillStyle(0x0d2530).fillRect(-64,-102,60,32);
-   g.lineStyle(1,0xa6b9ba).strokeRect(-64,-102,60,32);
-   g.fillStyle(0x07181d).fillRect(-59,-97,37,20);
-   g.lineStyle(1,0x668885).strokeRect(-59,-97,37,20);
-   const trace=[[-56,-85],[-50,-85],[-46,-91],[-41,-79],[-36,-88],[-31,-85],[-26,-85]];
-   g.lineStyle(1.6,0x5ef2a5).beginPath().moveTo(trace[0][0],trace[0][1]);
-   for(const [px,py] of trace.slice(1))g.lineTo(px,py);
-   g.strokePath();
-   g.fillStyle(0x41866e).fillRect(-56,-76,30,1);
-   g.fillStyle(0x9baeb2).fillCircle(-14,-91,2);
-   g.fillStyle(0xe2bd67).fillCircle(-14,-81,2);
-   g.fillStyle(0x3b4f58).fillRect(-65,-70,62,2);
-
-   g.fillStyle(0x293d4b).fillRect(8,-102,60,32);
-   g.lineStyle(1,0xabc1c3).strokeRect(8,-102,60,32);
-   g.fillStyle(0x091e2a).fillRect(13,-97,32,15);
-   g.lineStyle(1,0x5d8da2).strokeRect(13,-97,32,15);
-   g.fillStyle(0x6de8f6).fillRect(17,-91,24,4);
-   g.fillStyle(0xff8b6e).fillCircle(50,-81,2);
-   g.fillStyle(0x1b2228).fillCircle(61,-81,2);
-   g.fillStyle(0xaebdc1).fillCircle(53,-92,2.5);
-   g.fillStyle(0x455a67).fillRect(7,-70,62,2);
-
-   // Leads run from the instrument ports to the three PCB pads.
-   const lead=(points:number[][],color:number,width:number)=>{
-    const [start,control1,control2,end]=points;
-    g.lineStyle(width,color).beginPath().moveTo(start[0],start[1]);
-    for(let i=1;i<=24;i++){
-     const t=i/24,u=1-t;
-     g.lineTo(u*u*u*start[0]+3*u*u*t*control1[0]+3*u*t*t*control2[0]+t*t*t*end[0],u*u*u*start[1]+3*u*u*t*control1[1]+3*u*t*t*control2[1]+t*t*t*end[1]);
-    }
-    g.strokePath();
-   };
-   lead([[50,-81],[71,-65],[53,-59],[23,-59]],0xde6d4e,1.8);
-   lead([[61,-81],[80,-54],[38,-45],[12,-60]],0x23384c,1.8);
-   lead([[-14,-81],[-17,-62],[-25,-54],[-14,-61]],0xe2bd67,1.5);
-   g.fillStyle(0x31886b).fillPoints([{x:-27,y:-63},{x:10,y:-69},{x:33,y:-58},{x:-3,y:-52}],true);
-   g.lineStyle(1,0xa3dfb6).strokePoints([{x:-27,y:-63},{x:10,y:-69},{x:33,y:-58},{x:-3,y:-52}],true);
-   g.lineStyle(1.1,0xb8d699).beginPath().moveTo(-19,-61).lineTo(-7,-61).lineTo(2,-65).lineTo(17,-60).strokePath();
-   g.lineStyle(1.1,0xd9bb6c).beginPath().moveTo(-10,-57).lineTo(4,-57).lineTo(15,-62).lineTo(25,-59).strokePath();
-   g.fillStyle(0xe2bd67).fillCircle(-14,-61,3.5);
-   g.fillStyle(0x23384c).fillCircle(12,-60,3.5);
-   g.fillStyle(0xde6d4e).fillCircle(23,-59,3.5);
-   g.fillStyle(0x153c40).fillRect(-6,-62,8,5);
-   g.lineStyle(1,0xb1c5ac).strokeRect(-6,-62,8,5);
-   return g;
+   // The same transparent pixel-art bench is used for every stage experiment.
+   return this.add.image(x,y,'experiment-table').setOrigin(.5,1).setDisplaySize(110,90).setDepth(y-27);
   }
   go(x:number,y:number,npc:number|null){if(!this.player||this.busy)return;if(area==='village')y=Math.min(y,795);this.path=area==='adventure'&&npc!==null?routeToGateway(this.player.x,this.player.y,npc):route(this.player.x,this.player.y,x,y,area);this.pending=npc;const end=this.path.at(-1);if(end)this.destination?.setPosition(end.x,end.y).setVisible(true);}
   readBook(){
