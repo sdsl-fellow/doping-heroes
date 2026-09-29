@@ -38,6 +38,7 @@
 .implant-stats p{margin:6px 0;font-size:14px}.implant-stats strong{display:block;color:#ffe0a0}.implant-animation small{font-size:11px;color:#bad3d8}.reward-level{text-align:center;font-weight:800;color:#866225}
 @media(min-width:1001px){
  .top-right .minimap{width:266.5px;flex:0 0 266.5px;height:221px;box-sizing:border-box;display:flex;flex-direction:column}
+ .top-right .bgm-controls{left:278.5px;top:221px}
  .top-right .minimap .map-image{width:100%;flex:1;min-height:0}
  .top-right .quest-tracker{width:380px;height:221px;max-height:none;overflow:visible;display:flex;flex-direction:column;padding:8px;box-sizing:border-box}
  .top-right .quest-tracker button{font-size:14px;line-height:1.25;min-height:0;flex:1;padding:3px 0;gap:6px}
