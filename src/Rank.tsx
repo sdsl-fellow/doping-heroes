@@ -26,12 +26,25 @@ export function Rank({token}:{token:string}){
   </>}
  </section>;
 }
+function RankMedal({rank}:{rank:number}){
+ const medal=[
+  {label:'금메달',fill:'#f5c84c',edge:'#a66a17',shine:'#fff0a6'},
+  {label:'은메달',fill:'#cbd6df',edge:'#6e8293',shine:'#f4f8fc'},
+  {label:'동메달',fill:'#cf8b59',edge:'#87502d',shine:'#ffd4ab'},
+ ][rank-1];
+ if(!medal)return null;
+ return <svg className="rank-medal" viewBox="0 0 32 38" role="img" aria-label={medal.label}>
+  <path d="M6 1h8l5 15-7 4z" fill="#e76b65"/><path d="M18 1h8l-6 19-7-4z" fill="#6aa6df"/>
+  <circle cx="16" cy="24" r="12" fill={medal.fill} stroke={medal.edge} strokeWidth="2"/>
+  <circle cx="16" cy="24" r="9" fill="none" stroke={medal.shine}/>
+  <path d="m16 17 2 4 4.5.7-3.2 3.2.7 4.5-4-2.1-4 2.1.7-4.5-3.2-3.2L14 21z" fill={medal.shine}/>
+ </svg>;
+}
 function RankRow({entry}:{entry:RankEntry}){
  const character=useMemo(()=>validCharacter(entry.character),[entry.character]);
  return <article className={'rank-row'+(entry.isMe?' rank-me':'')}>
-  <strong className={'rank-place'+(entry.rank<=3?' rank-medal':'')}>{entry.rank}<small>위</small></strong>
+  <div className="rank-place"><RankMedal rank={entry.rank}/><strong>{entry.rank}<small>위</small></strong></div>
   <Avatar character={character} size={56}/>
-  <div className="rank-person"><strong>{entry.name}{entry.isMe&&<small>나</small>}</strong><span>{entry.type}형 · Lv. {sigmaLabel(conductivity(entry.doping,entry.type))} S/cm</span></div>
-  <div className="rank-dose"><strong>{doseLabel(entry.doping)}</strong><small>cm⁻³</small></div>
+  <div className="rank-person"><strong>{entry.name}{entry.isMe&&<small>나</small>}</strong><span>Lv. {sigmaLabel(conductivity(entry.doping,entry.type))} S/cm</span><span className="rank-dose">{entry.type}형 · {doseLabel(entry.doping)} cm⁻³</span></div>
  </article>;
 }
