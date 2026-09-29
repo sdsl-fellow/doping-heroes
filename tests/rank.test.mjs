@@ -59,3 +59,22 @@ test('invalid or uncreated saves do not appear on the board',()=>{
  const f=fixture();f.data[4][6]='broken json';f.data[5][6]='{}';f.data[6][2]=NaN;
  assert.equal(f.context.rankSnapshot_(headers,f.data,'099746').entries.length,9);
 });
+
+test('public names follow the approved masking rules including single letters and English',()=>{
+ const f=fixture();
+ for(const [name,expected] of [['봄','봄'],['A','A'],['민수','민*'],['김민수','김민*'],['세미영웅','세미**'],['Alice','Al***'],['Michael','Mi****'],['아주긴캐릭터이름','아주****'],[' 김 민 수 ','김민*'],['김민수','김민*']]){
+  assert.equal(f.context.rankMaskedName_(name),expected);
+ }
+});
+
+test('cached raw names are masked in responses without changing stored data',()=>{
+ const f=fixture();f.data[4][6]=JSON.stringify({name:'김민수',character:{species:'dog'}});
+ const before=JSON.stringify(f.data);
+ for(let i=0;i<2;i++){
+  const response=f.context.rankAction_({});
+  assert.ok(response.rank.entries.some(entry=>entry.name==='김민*'));
+  assert.ok(!JSON.stringify(response).includes('김민수'));
+ }
+ assert.equal(JSON.stringify(f.data),before);
+ assert.equal(f.reads(),1);
+});
