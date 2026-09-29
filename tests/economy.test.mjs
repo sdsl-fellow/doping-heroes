@@ -69,28 +69,30 @@ test('book completion awards two percent once and persists across reload',()=>{
 });
 
 
-test('each ampoule can be purchased once per character, including after use and reload',()=>{
- for(const id of ['T04','T05']){
-  const item={id,price:60},before={...start(),coins:300,type:'n'};
-  const bought=purchase(before,item);
-  assert.equal(bought.coins,240);assert.equal(bought.quantities[id],1);
-  assert.equal(purchase(bought,item),bought);
-  const used=useConsumable(bought,id,()=>0),restored=JSON.parse(JSON.stringify(used));
-  assert.equal(restored.quantities[id],0);assert.equal(purchase(restored,item),restored);
-  const other=purchase(restored,{id:id==='T04'?'T05':'T04',price:60});
-  assert.equal(other.coins,180);
-  assert.equal(purchase({...start(),coins:60},item).quantities[id],1);
- }
-});
-test('existing ampoule purchases or stock block repurchase without deleting stock',()=>{
- for(const id of ['T04','T05']){
-  for(const s of [{...start(),coins:300,purchased:[id],quantities:{[id]:0}},{...start(),coins:300,quantities:{[id]:3}}]){
-   assert.equal(purchase(s,{id,price:60}),s);
+
+test('consumables double prices per item and must be used before repurchase',()=>{
+ for(const id of ['T03','T04','T05']){
+  const item={id,price:id==='T03'?30:60};let s={...start(),coins:10000,type:'n'};
+  for(let count=0;count<4;count++){
+   const before=s.coins;s=purchase(s,item);
+   assert.equal(before-s.coins,item.price*2**count);
+   assert.equal(s.purchaseCounts[id],count+1);
+   assert.equal(s.quantities[id],1);assert.equal(purchase(s,item),s);
+   s=JSON.parse(JSON.stringify(useConsumable(s,id,()=>0)));
+   assert.equal(s.quantities[id],0);
   }
  }
 });
-test('ordinary dopant packs remain repeatable purchases',()=>{
- const item={id:'T03',price:30};let s={...start(),coins:90};
- s=purchase(s,item);s=purchase(s,item);
- assert.equal(s.coins,30);assert.equal(s.quantities.T03,2);
+test('legacy purchases start at zero while all existing stock must be used first',()=>{
+ const item={id:'T04',price:60};let s={...start(),coins:1000,purchased:['T04'],quantities:{T04:2}};
+ assert.equal(purchase(s,item),s);s=useConsumable(s,'T04');assert.equal(purchase(s,item),s);
+ s=useConsumable(s,'T04');const next=purchase(s,item);
+ assert.equal(next.coins,940);assert.equal(next.purchaseCounts.T04,1);
+});
+test('donor purchases do not increase acceptor price and unaffordable purchases change nothing',()=>{
+ let s=purchase({...start(),coins:200},{id:'T04',price:60});
+ s=purchase(s,{id:'T05',price:60});assert.equal(s.coins,80);
+ s=useConsumable(s,'T04');assert.equal(purchase(s,{id:'T04',price:60}),s);
+ const overflow={...start(),coins:1e9,purchaseCounts:{T03:2000}};
+ assert.equal(purchase(overflow,{id:'T03',price:30}),overflow);
 });

@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import {catalog,catalogItem,migrateItemId,inventoryIds} from '../src/catalog.mjs';
 import {completionIds,fromStoredSave,toStoredSave,puzzleIds,stageQuestIds,stageList} from '../src/completion-save.mjs';
 import {ITEM_SCHEMA,oldCodes,swappedHats,normalizeItemSave} from '../src/item-save.mjs';
-const path='google-apps-script/Code.gs';
+const path='google-apps-script/Code_v25_Stage2.gs';
 const start='// BEGIN GENERATED ITEM RULES';
 const end='// END GENERATED ITEM RULES';
 const block=[start,'// Generated from src/catalog.mjs. Run node scripts/sync-apps-script-items.mjs.',
