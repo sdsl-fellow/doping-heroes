@@ -16,10 +16,11 @@ export async function doctorSprite():Promise<HTMLCanvasElement>{
  pixel('#c4d6d8',24,49,4,3);pixel('#c4d6d8',36,49,4,3);
  pixel('#d1ad65',28,37,1,10);pixel('#d1ad65',35,37,1,10);
  pixel('#69c6dc',32,40,1,2);
- // Keep the cheeks and chin silver while leaving the nose and mouth visible.
- pixel('#a0adb0',27,31,3,4);pixel('#eef0e8',28,31,2,3);
- pixel('#a0adb0',35,31,3,4);pixel('#eef0e8',35,31,2,3);
- pixel('#d6dfdd',29,35,7,2);pixel('#f5f4e8',30,36,5,2);
+ // Taper the silver sideburns into a rounded chin, keeping the face clear.
+ pixel('#8d9b9f',27,31,1,3);pixel('#c7d2d1',28,32,1,3);pixel('#f0f0e7',29,33,1,2);
+ pixel('#8d9b9f',37,31,1,3);pixel('#c7d2d1',36,32,1,3);pixel('#f0f0e7',35,33,1,2);
+ pixel('#c7d2d1',29,35,1,2);pixel('#dce3dd',30,36,5,2);pixel('#c7d2d1',35,35,1,2);
+ pixel('#f4f3e8',31,37,3,1);pixel('#a9b6b4',29,33,1,1);pixel('#a9b6b4',35,33,1,1);
  pixel('#ffe1be',30,29,5,6);
  pixel('#c18d74',32,30,1,2);pixel('#f9d1ab',32,29,1,1);
  pixel('#c9d3d2',29,33,2,1);pixel('#c9d3d2',35,33,2,1);
