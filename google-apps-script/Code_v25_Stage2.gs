@@ -104,6 +104,7 @@ function doPost(e) {
       case 'learningAnswer': return jsonOutput_(learningContentAction_(request));
       case 'qaCreate':
       case 'qaList': return jsonOutput_(questionsAction_(request));
+      case 'rank': return jsonOutput_(rankAction_(request));
       case 'setStage': return jsonOutput_(setStage_(request));
       default: throw apiError_('UNKNOWN_ACTION', '지원하지 않는 요청입니다.');
     }
@@ -1514,4 +1515,56 @@ function questionsEditedV19(e){
    sheet.getRange(row,table.head.indexOf('answeredAt')+1).setNumberFormat('@').setValue(timestamp);
   }
  }finally{lock.releaseLock();}
+}
+
+// Rank preview is available only to a server-verified root account.
+// Sheet IDs and authentication fields never leave the server.
+function rankAction_(request) {
+ const auth=verifyToken_(request.token);
+ if(auth.role!=='root'||auth.studentId!==ROOT_STUDENT_ID)throw apiError_('FORBIDDEN','Rank는 현재 관리자 검토 중입니다.');
+ const props=PropertiesService.getScriptProperties();
+ const key='rank-admin-v1:'+props.getProperty('SPREADSHEET_ID')+':'+ROOT_STUDENT_ID;
+ const cache=CacheService.getScriptCache();
+ let snapshot;
+ try{const raw=cache.get(key);if(raw)snapshot=JSON.parse(raw);}catch(_){}
+ if(!snapshot||!Array.isArray(snapshot.entries)||!Number.isFinite(snapshot.createdAt)||Date.now()-snapshot.createdAt>=60000){
+  const sheet=studentsSheet_(),width=sheet.getLastColumn();
+  const headers=sheet.getRange(1,1,1,width).getValues()[0].map(v=>String(v).trim());
+  const rows=sheet.getLastRow()>1?sheet.getRange(2,1,sheet.getLastRow()-1,width).getValues():[];
+  snapshot=rankSnapshot_(headers,rows,ROOT_STUDENT_ID);
+  const serialized=JSON.stringify(snapshot);
+  // CacheService entries have a 100 KB limit; skip caching oversized cohorts.
+  try{if(Utilities.newBlob(serialized).getBytes().length<95000)cache.put(key,serialized,60);}catch(_){}
+ }
+ const publicEntry=entry=>({rank:entry.rank,name:entry.name,doping:entry.doping,type:entry.type,character:entry.character,isMe:entry.studentId===auth.studentId});
+ const mine=snapshot.entries.find(entry=>entry.studentId===auth.studentId);
+ return {ok:true,rank:{entries:snapshot.entries.slice(0,10).map(publicEntry),myRank:mine?publicEntry(mine):null,excluded:auth.studentId===ROOT_STUDENT_ID||snapshot.excludedIds.includes(auth.studentId),total:snapshot.entries.length,updatedAt:new Date(snapshot.createdAt).toISOString()}};
+}
+
+function rankSnapshot_(headers,rows,rootId) {
+ const required=['studentId','name','doping','type','saveJson','rankExcluded'];
+ if(required.some(key=>headers.filter(h=>h===key).length!==1))throw apiError_('RANK_SCHEMA','순위 집계에 필요한 Students 열을 확인해 주세요.');
+ const at=key=>headers.indexOf(key),seen=new Set(),excludedIds=[],entries=[];
+ const characterKeys=['gender','species','body','shoes','hat','weapon','hair','hairColor','skin','outfit','outfitColor','accessory'];
+ rows.forEach(row=>{
+  const studentId=canonicalStudentId_(row[at('studentId')]);
+  if(!studentId||seen.has(studentId))return;
+  seen.add(studentId);
+  const excluded=row[at('rankExcluded')];
+  if(studentId===rootId||excluded===true||excluded===1||String(excluded).trim().toUpperCase()==='TRUE'){
+   excludedIds.push(studentId);return;
+  }
+  const doping=Number(row[at('doping')]);
+  if(!Number.isFinite(doping)||doping<1e13||doping>1e21)return;
+  let save;try{save=JSON.parse(String(row[at('saveJson')]||'{}'));}catch(_){return;}
+  if(!save||!save.character||typeof save.character!=='object'||Array.isArray(save.character))return;
+  const name=String(save.name||row[at('name')]||'').trim().slice(0,20);
+  if(!name)return;
+  const character={};
+  characterKeys.forEach(key=>{const value=save.character[key];if(typeof value==='string'&&value.length<=40)character[key]=value;});
+  entries.push({studentId,name,doping,type:row[at('type')]==='p'?'p':'n',character});
+ });
+ entries.sort((a,b)=>b.doping-a.doping||a.studentId.localeCompare(b.studentId));
+ entries.forEach((entry,index)=>{entry.rank=index&&entries[index-1].doping===entry.doping?entries[index-1].rank:index+1;});
+ return {entries,excludedIds,createdAt:Date.now()};
 }
