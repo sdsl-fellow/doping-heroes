@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {catalog,migrateItemId} from '../src/catalog.mjs';
-import {normalizeItemSave} from '../src/item-save.mjs';
+import {normalizeItemSave,toCloudItemSave} from '../src/item-save.mjs';
 test('every item uses its permanent display code as its canonical ID',()=>{
  for(const item of catalog){
   assert.match(item.id,/^[CFHWAT]\d{2}$/);
@@ -19,4 +19,10 @@ test('old local and cloud saves migrate equipment, ownership and quantities loss
  assert.equal(next.coins,100);assert.deepEqual(next.completed,[0]);assert.deepEqual(next.readBooks,[0]);
  assert.equal(JSON.stringify(old),snapshot);
  assert.deepEqual(normalizeItemSave(next),next);
+});
+
+test('dopant lifetime purchase count survives item normalization',()=>{
+ const save={item_schema:3,character:{},purchased:['T03'],quantities:{T03:0},purchaseCounts:{T03:3}};
+ assert.equal(toCloudItemSave(save).purchaseCounts.T03,3);
+ assert.equal(normalizeItemSave({item_schema:3,character:{},purchased:['T03'],quantities:{T03:2}}).purchaseCounts.T03,0);
 });

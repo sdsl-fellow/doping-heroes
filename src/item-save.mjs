@@ -19,7 +19,7 @@ export function normalizeItemSave(save){
   const id=convert(key);
   if(catalogItem(id))quantities[id]=Math.max(quantities[id]??0,Number.isInteger(value)?Math.max(0,Math.min(9999,value)):0);
  }
- return {...save,item_schema:ITEM_SCHEMA,character,purchased:[...new Set((save.purchased??[]).map(convert).filter(id=>catalogItem(id)))],quantities};
+ return {...save,item_schema:ITEM_SCHEMA,character,purchased:[...new Set((save.purchased??[]).map(convert).filter(id=>catalogItem(id)))],quantities,purchaseCounts:Object.fromEntries(['T03','T04','T05'].map(id=>[id,Number.isSafeInteger(save.purchaseCounts?.[id])?Math.max(0,save.purchaseCounts[id]):0]))};
 }
 
 // Runtime IDs are already schema 3; never downgrade IDs on the wire.

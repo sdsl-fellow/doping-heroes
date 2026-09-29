@@ -14,7 +14,7 @@ test('requested ordering retains each original artwork and ascending purchase pr
 });
 test('all old footwear and hats migrate once, preserving ownership through schema 3 server writes',()=>{
  const context=vm.createContext({});
- const source=fs.readFileSync('google-apps-script/Code.gs','utf8');
+ const source=fs.readFileSync('google-apps-script/Code_v25_Stage2.gs','utf8');
  vm.runInContext(source.slice(source.indexOf('// BEGIN GENERATED ITEM RULES')),context);
  for(const [prefix,names] of Object.entries(oldNames))for(const [index,name] of names.entries()){
   const old=prefix+String(index+1).padStart(2,'0'),slot=prefix==='F'?'shoes':'hat';
