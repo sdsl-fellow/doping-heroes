@@ -6,16 +6,20 @@ import {stageNpcCostumes} from '../src/stage-npc-costumes.mjs';
 import {catalogItem} from '../src/catalog.mjs';
 import {route,walkable,stageBookPoint} from '../src/navigation.mjs';
 
-test('all twelve stages have reachable east terminals, south benches and distinct themed costumes',()=>{
+test('all twelve stages have equally distant, reachable books, terminals and tasks',()=>{
  assert.equal(stageProps.length,12);
  assert.equal(stageNpcCostumes.length,12);
  const outfits=new Set();
  for(const stage of stageDefinitions){
-  const {pc,pcApproach,experiment,experimentSign}=stageProps[stage.index];
+  const {book,pc,pcApproach,experiment,experimentSign}=stageProps[stage.index];
+  const distance=point=>Math.hypot(point.x-768,point.y-stage.road);
+  assert.deepEqual(stageBookPoint(stage.area),book);
+  assert.ok(Math.abs(distance(book)-distance(experiment))<1,`${stage.area} book distance`);
+  assert.ok(Math.abs(distance(pc)-distance(experiment))<1,`${stage.area} PC distance`);
   assert.ok(pc.x>pcApproach.x&&pc.x<1200);
   assert.ok(experiment.y>stage.road+180);
   assert.ok(experimentSign.y>stage.road+35&&experimentSign.y<experiment.y-90);
-  for(const point of [pcApproach,experiment]){
+  for(const point of [book,pcApproach,experiment]){
    assert.ok(walkable(point.x,point.y,stage.area),`${stage.area} target off path`);
    assert.deepEqual(route(768,210,point.x,point.y,stage.area).at(-1),point);
   }
