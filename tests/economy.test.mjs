@@ -94,3 +94,21 @@ test('ordinary dopant packs remain repeatable purchases',()=>{
  s=purchase(s,item);s=purchase(s,item);
  assert.equal(s.coins,30);assert.equal(s.quantities.T03,2);
 });
+
+test('dopant pack has three lifetime purchases, including after every use and reload',()=>{
+ const item={id:'T03',price:30};let s={...start(),coins:120};
+ for(let count=1;count<=3;count++){
+  s=purchase(s,item);assert.equal(s.purchaseCounts.T03,count);
+  assert.equal(s.quantities.T03,1);
+  s=JSON.parse(JSON.stringify(useConsumable(s,'T03')));
+  assert.equal(s.quantities.T03,0);
+ }
+ assert.equal(s.coins,30);
+ assert.equal(purchase(s,item),s);
+ assert.equal(purchase({...s,purchaseCounts:{T03:1}},item).purchaseCounts.T03,2);
+});
+test('legacy dopant stock gives a minimum recorded purchase count',()=>{
+ const item={id:'T03',price:30};
+ assert.equal(purchase({...start(),coins:100,purchased:['T03'],quantities:{T03:2}},item).purchaseCounts.T03,3);
+ assert.equal(purchase({...start(),coins:100,purchased:['T03'],quantities:{T03:3}},item).coins,100);
+});

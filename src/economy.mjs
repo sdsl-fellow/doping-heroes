@@ -2,7 +2,7 @@ import {bookSources,firstBookSource,hasReadSource} from './book-progress.mjs';
 import {stageForQuest,stageUnlocked} from './maps.mjs';
 import {missingStageExperiments} from './stage-experiments.mjs';
 import {isRootAccount} from './access.mjs';
-import {isConsumable,catalogItem,purchaseLimitReached} from './catalog.mjs';
+import {isConsumable,catalogItem,purchaseLimitReached,dopantPurchaseCount} from './catalog.mjs';
 import {rollLevelLoot} from './loot.mjs';
 import {addDopants,progress,MAX_DOPING,stageDose} from './progression.mjs';
 export const bridgeUnlocked=s=>[0,1,2].every(i=>s.completed.includes(i));
@@ -15,7 +15,7 @@ export function grantReward(s,q,random=Math.random){
 export function purchase(s,item,alreadyOwned=false,random=Math.random){
  if(!Number.isFinite(item.price)||item.price<0||alreadyOwned||purchaseLimitReached(s,item.id)||(!isConsumable(item.id)&&s.purchased.includes(item.id))||s.coins<item.price)return s;
  if(isConsumable(item.id)&&((s.quantities?.[item.id]??0)>=9999||s.doping>=MAX_DOPING))return s;
- if(isConsumable(item.id))return {...s,coins:s.coins-item.price,purchased:[...new Set([...s.purchased,item.id])],quantities:{...s.quantities,[item.id]:(s.quantities?.[item.id]??0)+1}};
+ if(isConsumable(item.id))return {...s,coins:s.coins-item.price,purchased:[...new Set([...s.purchased,item.id])],quantities:{...s.quantities,[item.id]:(s.quantities?.[item.id]??0)+1},...(item.id==='T03'?{purchaseCounts:{...s.purchaseCounts,T03:dopantPurchaseCount(s)+1}}:{})};
  return {...s,coins:s.coins-item.price,purchased:[...s.purchased,item.id]};
 }
 
