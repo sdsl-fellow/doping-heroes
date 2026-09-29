@@ -67,3 +67,30 @@ test('book completion awards two percent once and persists across reload',()=>{
  const restored=JSON.parse(JSON.stringify(after));assert.equal(grantBookReward(restored,0),restored);
  const capped=grantBookReward({...s,doping:1e21},0);assert.equal(capped.doping,1e21);assert.deepEqual(capped.readBooks,[0]);
 });
+
+
+test('each ampoule can be purchased once per character, including after use and reload',()=>{
+ for(const id of ['T04','T05']){
+  const item={id,price:60},before={...start(),coins:300,type:'n'};
+  const bought=purchase(before,item);
+  assert.equal(bought.coins,240);assert.equal(bought.quantities[id],1);
+  assert.equal(purchase(bought,item),bought);
+  const used=useConsumable(bought,id,()=>0),restored=JSON.parse(JSON.stringify(used));
+  assert.equal(restored.quantities[id],0);assert.equal(purchase(restored,item),restored);
+  const other=purchase(restored,{id:id==='T04'?'T05':'T04',price:60});
+  assert.equal(other.coins,180);
+  assert.equal(purchase({...start(),coins:60},item).quantities[id],1);
+ }
+});
+test('existing ampoule purchases or stock block repurchase without deleting stock',()=>{
+ for(const id of ['T04','T05']){
+  for(const s of [{...start(),coins:300,purchased:[id],quantities:{[id]:0}},{...start(),coins:300,quantities:{[id]:3}}]){
+   assert.equal(purchase(s,{id,price:60}),s);
+  }
+ }
+});
+test('ordinary dopant packs remain repeatable purchases',()=>{
+ const item={id:'T03',price:30};let s={...start(),coins:90};
+ s=purchase(s,item);s=purchase(s,item);
+ assert.equal(s.coins,30);assert.equal(s.quantities.T03,2);
+});
