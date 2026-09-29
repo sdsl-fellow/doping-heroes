@@ -16,7 +16,7 @@ export function Rank({token}:{token:string}){
    .finally(()=>{if(active)setBusy(false);});return()=>{active=false;};
  },[token,attempt]);
  return <section className="rank-panel" aria-busy={busy}>
-  <div className="rank-intro"><span className="rank-preview">관리자 미리보기</span><h3>캐릭터 성장 순위 · TOP 10</h3><p>도핑 농도 순으로 집계하며, 같은 농도는 공동 순위입니다.</p></div>
+  <div className="rank-intro"><h3>캐릭터 성장 순위 · TOP 10</h3><p>도핑 농도 순으로 집계하며, 같은 농도는 공동 순위입니다.</p></div>
   {busy&&<p role="status">순위를 불러오는 중…</p>}
   {error&&<div role="alert"><p>{error}</p><button onClick={()=>setAttempt(n=>n+1)} disabled={busy}>다시 시도</button></div>}
   {data&&!busy&&!error&&<>
@@ -44,7 +44,7 @@ function RankRow({entry}:{entry:RankEntry}){
  const character=useMemo(()=>validCharacter(entry.character),[entry.character]);
  return <article className={'rank-row'+(entry.isMe?' rank-me':'')}>
   <div className="rank-place"><RankMedal rank={entry.rank}/><strong>{entry.rank}<small>위</small></strong></div>
-  <Avatar character={character} size={56}/>
+  <Avatar character={character} size={72.8}/>
   <div className="rank-person"><strong>{entry.name}{entry.isMe&&<small>나</small>}</strong><span>Lv. {sigmaLabel(conductivity(entry.doping,entry.type))} S/cm</span><span className="rank-dose">{entry.type}형 · {doseLabel(entry.doping)} cm⁻³</span></div>
  </article>;
 }

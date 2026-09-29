@@ -33,10 +33,31 @@ test('public payload is limited to top ten and contains no student IDs, PIN fiel
  for(const secret of ['studentId','pinHash','pinSalt','salt-secret','hash-secret','translation_solved','saveJson','nested-secret'])assert.ok(!payload.includes(secret),secret);
 });
 
-test('student requests are denied before reading even a warmed cache',()=>{
+test('authenticated students can read shared cache and get their own rank',()=>{
  const f=fixture();f.context.rankAction_({});f.setRole('student');
- assert.throws(()=>f.context.rankAction_({}),e=>e.code==='FORBIDDEN');
+ const response=f.context.rankAction_({token:'student-token'});
+ assert.equal(response.rank.myRank.rank,1);
+ assert.equal(response.rank.myRank.isMe,true);
+ assert.equal(response.rank.excluded,false);
+ assert.equal(response.rank.entries.filter(e=>e.isMe).length,1);
+ for(const secret of ['studentId','pinHash','pinSalt','saveJson','nested-secret'])assert.ok(!JSON.stringify(response).includes(secret));
  assert.equal(f.reads(),1);
+});
+
+test('invalid or expired tokens cannot read even a warmed rank cache',()=>{
+ const f=fixture();f.context.rankAction_({});
+ f.context.verifyToken_=()=>{throw Object.assign(new Error('로그인이 필요합니다.'),{code:'UNAUTHORIZED'});};
+ assert.throws(()=>f.context.rankAction_({}),e=>e.code==='UNAUTHORIZED');
+ assert.equal(f.reads(),1);
+});
+
+test('students below top ten can see their own rank without exposing other lower rows',()=>{
+ const f=fixture();f.context.verifyToken_=()=>({role:'student',studentId:'12'});
+ const response=f.context.rankAction_({});
+ assert.equal(response.rank.entries.length,10);
+ assert.equal(response.rank.myRank.rank,12);
+ assert.equal(response.rank.myRank.isMe,true);
+ assert.ok(response.rank.entries.every(e=>!e.isMe));
 });
 
 test('repeat opens reuse cache and refresh an expired snapshot',()=>{
