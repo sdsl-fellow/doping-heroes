@@ -24,7 +24,7 @@ test('ampoules persist quantities, consume one dose, and root follows the same X
  const bought=purchase(s,shopCatalog.find(i=>i.id==='T05'));
  assert.equal(bought.coins,40);assert.equal(bought.doping,s.doping);
  const used=useConsumable(JSON.parse(JSON.stringify(bought)),'T05');
- assert.equal(used.type,'p');assert.equal(used.doping,2.8e13);assert.equal(used.quantities['T05'],0);
+ assert.equal(used.type,'p');assert.equal(used.doping,5.5e13);assert.equal(used.quantities['T05'],0);
  assert.equal(useConsumable(used,'T05'),used);
  const root=useConsumable({...s,name:'공수교대',studentId:'099746'},'T05');assert.equal(root.doping,used.doping);assert.deepEqual(root.purchased,[]);
 });

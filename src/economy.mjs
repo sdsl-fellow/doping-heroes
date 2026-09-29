@@ -21,7 +21,7 @@ export function purchase(s,item,alreadyOwned=false,random=Math.random){
 
 export function useConsumable(s,id,random=Math.random){
  if(!isConsumable(id)||!catalogItem(id)||s.doping>=MAX_DOPING||(!isRootAccount(s)&&(s.quantities?.[id]??0)<1))return s;
- const xp=progress(s.doping),fraction=id==='T03'?.1:.2;
+ const xp=progress(s.doping),fraction=id==='T03'?.1:id==='T05'?.5:.2;
  return awardLevelLoot(s,{...s,type:id==='T04'?'n':id==='T05'?'p':s.type,doping:addDopants(s.doping,(xp.high-xp.low)*fraction),quantities:{...s.quantities,[id]:Math.max(0,(s.quantities?.[id]??0)-1)}},random);
 }
 
