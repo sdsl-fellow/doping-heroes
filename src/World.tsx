@@ -10,6 +10,7 @@ import Phaser from 'phaser';
 import {Character,characterSheet,defaultCharacter} from './character';
 import {doctorSprite} from './doctor-sprite';
 import {merchantSprite} from './merchant-sprite';
+import {crystalGuideSprite} from './crystal-guide-sprite';
 import {weeklyQuests} from './adventure';
 import {mapInfo,stageIndex,stageDefinitions,gatewayLocations,arrivalPoint,stageUnlocked} from './maps.mjs';
 import type {Save} from './save';
@@ -48,7 +49,7 @@ export function World({rootAccount,releasedStages,stage2TranslationReady,charact
     });return;
    }
    if(area==='village'&&i===0)doctorSprite().then(canvas=>{if(disposed)return;this.textures.addCanvas('dr-silicon',canvas);this.add.image(p.x,p.y,'dr-silicon').setOrigin(.5,.95).setScale(1.7).setDepth(p.y);}).catch(e=>live.current.onError(e.message));
-   else{const c={...defaultCharacter,...(stage?stageNpcCostumes[index]:{gender:i===2?'female':'male',body:i===1?'sturdy':'agile',hair:i===0?'bangs':i===1?'bedhead':'bob',hairColor:i===0?'#dae0e5':i===1?'#77452f':'#b298d1',outfitColor:i===0?'#e6e9e5':i===1?'#438674':'#695c98'})} as Character;this.sprite(c,'npc-'+i,p.x,p.y,area==='village'&&i===1?merchantSprite():undefined).catch(e=>live.current.onError(e.message));}
+   else{const c={...defaultCharacter,...(stage?stageNpcCostumes[index]:{gender:i===2?'female':'male',body:i===1?'sturdy':'agile',hair:i===0?'bangs':i===1?'bedhead':'bob',hairColor:i===0?'#dae0e5':i===1?'#77452f':'#b298d1',outfitColor:i===0?'#e6e9e5':i===1?'#438674':'#695c98'})} as Character;this.sprite(c,'npc-'+i,p.x,p.y,area==='village'?(i===1?merchantSprite():i===2?crystalGuideSprite():undefined):undefined).catch(e=>live.current.onError(e.message));}
    this.markers.push(this.add.text(p.x,p.y-109,'!',{fontFamily:'sans-serif',fontStyle:'bold',fontSize:'32px',color:'#ffe895',stroke:'#263145',strokeThickness:6}).setOrigin(.5).setDepth(1500).setVisible(!(area==='village'&&i===2)));this.add.text(p.x,p.y+5,names[i],{fontSize:'16px',color:'#fff8dd',backgroundColor:'#152c36cc',padding:{x:8,y:4}}).setOrigin(.5,0).setDepth(1500);if(area==='village'&&i===2)return;this.add.zone(p.x,p.y-40,100,120).setInteractive({useHandCursor:true}).setDepth(1600).on('pointerdown',()=>{if(live.current.active)this.go(p.x,p.y+20,i);});});
    if(area==='village')for(const t of [{x:230,y:420,text:'도너 상점'},{x:1330,y:485,text:'실리콘 결정 동굴'}])this.add.text(t.x,t.y,t.text,{fontSize:'20px',color:'#fff4d4',stroke:'#1a3547',strokeThickness:6}).setOrigin(.5).setDepth(1500);
    this.add.text(info.exit.x,area==='village'?725:135,area==='village'?'↓ 나무 관문 · 터치해서 열기':stage?'↑ 모험 대륙으로 돌아가기':'↑ 세미 마을로 돌아가기',{fontSize:'18px',color:'#fff4d4',backgroundColor:'#193d43dd',padding:{x:12,y:10}}).setOrigin(.5).setDepth(1500).setInteractive().on('pointerdown',()=>{if(live.current.active)this.go(info.exit.x,area==='village'?795:info.exit.y,null);});
