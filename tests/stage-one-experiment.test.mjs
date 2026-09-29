@@ -6,7 +6,7 @@ import {missingStageExperiments} from '../src/stage-experiments.mjs';
 import {clusterSites,cubeEdges,latticeAtoms,latticeBonds,missingAtoms,projectAtom,siliconBondLengthNm,siliconBondAngleDeg,siliconLatticeConstantNm} from '../src/diamond-lattice.mjs';
 import {mapInfo,stageDefinitions} from '../src/maps.mjs';
 
-test('Stage 1 experiment is reachable down the center path and gates only Stage 1',()=>{
+test('Stage 1 experiment is reachable down the center path and gates Stage 1',()=>{
  const target=STAGE_ONE_EXPERIMENT_POINT;
  assert.equal(target.y,837);
  assert.equal(walkable(target.x,target.y,'stage-1'),true);
@@ -16,7 +16,7 @@ test('Stage 1 experiment is reachable down the center path and gates only Stage 
  assert.deepEqual(missingStageExperiments({puzzle_completed:[]},0),[0]);
  assert.deepEqual(missingStageExperiments({puzzle_completed:[0]},0),[]);
  assert.deepEqual(missingStageExperiments({puzzle_completed:[]},6),[6]);
- assert.deepEqual(missingStageExperiments({puzzle_completed:[]},1),[]);
+ assert.deepEqual(missingStageExperiments({puzzle_completed:[]},1),[1]);
 });
 
 test('diamond cube has tetrahedral nearest-neighbor bonds and a five-site vacancy',()=>{
