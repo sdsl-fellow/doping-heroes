@@ -41,8 +41,8 @@ const adventureCorridors=[...hubRoads.flatMap(points=>points.slice(1).map((end,i
 export const stageRoadHeights=stageDefinitions.map(s=>s.road);
 export const stageBookPoint=area=>stageProps[stageIndex(area)]?.book??{x:250,y:stageRoadHeights[stageIndex(area)]};
 function corridorsForStage(area){
- const i=stageIndex(area),y=stageRoadHeights[i],end=i===6?710:i===0||i===5?920:820;
- return [[768,64,768,end,i>=7?48:40],[i===0?250:stageBookPoint(area).x,y,i===0||i===5?1100:1030,y,i>=7?42:35]];
+ const i=stageIndex(area),y=stageRoadHeights[i],end=i===6?710:i<=1||i===5?920:820;
+ return [[768,64,768,end,i>=7?48:40],[i===0?250:stageBookPoint(area).x,y,i<=1||i===5?1100:1030,y,i>=7?42:35]];
 }
 const adventureCells=[],cellsForStage=new Map(Array.from({length:12},(_,i)=>[`stage-${i+1}`,[]]));
 for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
