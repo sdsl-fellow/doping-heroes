@@ -73,22 +73,7 @@ export function World({rootAccount,releasedStages,stage2TranslationReady,charact
    if(area==='stage-1'){
     // Place the terminal on the right-hand floor; approach from the existing walkable path.
     const p={x:1140,y:480};
-    this.add.ellipse(p.x,p.y+4,70,20,0x8cdee4,.22).setDepth(p.y-1);
-    this.add.image(p.x,p.y+8,'translation-pc').setOrigin(.5,1).setDisplaySize(104,104).setDepth(p.y);
-    const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    // Fixed, interleaved anchors: each glyph only bobs gently in place.
-    const letters=[
-     {text:'A',x:-30,y:-128},{text:'가',x:-18,y:-106},
-     {text:'B',x:6,y:-108},{text:'나',x:-6,y:-130},
-     {text:'C',x:18,y:-129},{text:'다',x:30,y:-106}
-    ];
-    letters.forEach((letter,i)=>{
-     const glyph=this.add.text(p.x+letter.x,p.y+letter.y,letter.text,{fontSize:'18px',fontStyle:'bold',color:i%2===0?'#aaf7ff':'#ffe6a3',stroke:'#183247',strokeThickness:3}).setOrigin(.5).setDepth(p.y+1);
-     if(!reducedMotion){
-      this.tweens.add({targets:glyph,y:glyph.y-(i%3+4),duration:1600+i*170,delay:i*230,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
-     }
-    });
-    this.add.text(p.x,p.y-160,'원서 번역 퀴즈',{fontSize:'16px',color:'#f8edbb',backgroundColor:'#183e49ee',align:'center',padding:{x:10,y:7}}).setOrigin(.5).setDepth(1500);
+    this.translationPc(p.x,p.y,'원서 번역 퀴즈');
     this.add.zone(p.x,p.y-42,120,112).setInteractive({useHandCursor:true}).setDepth(1601).on('pointerdown',()=>{if(live.current.active&&!this.busy){
      if(!this.player)return;
      if(Math.hypot(this.player.x-1080,this.player.y-485)<42){this.path=[];this.pending=null;this.destination?.setVisible(false);live.current.onTranslation();}
@@ -101,9 +86,12 @@ export function World({rootAccount,releasedStages,stage2TranslationReady,charact
    }
    if(stage&&area!=='stage-1'){
     const {pc,experiment}=stageProps[index];
+    if(index===1)this.translationLabel=this.translationPc(pc.x,pc.y,live.current.stage2TranslationReady?'원서 번역 퀴즈':'원서 번역 퀴즈 · 준비 중');
+    else{
     this.add.ellipse(pc.x,pc.y+4,70,20,0x8cdee4,.22).setDepth(pc.y-1);
     this.add.image(pc.x,pc.y+8,'translation-pc').setOrigin(.5,1).setDisplaySize(104,104).setDepth(pc.y);
     this.translationLabel=this.add.text(pc.x,pc.y-142,index===1&&live.current.stage2TranslationReady?'원서 번역 퀴즈':'원서 번역 퀴즈 · 준비 중',{fontSize:'16px',color:'#f8edbb',backgroundColor:'#183e49ee',align:'center',padding:{x:10,y:7}}).setOrigin(.5).setDepth(1500);
+    }
     this.add.zone(pc.x,pc.y-42,120,112).setInteractive({useHandCursor:true}).setDepth(1601).on('pointerdown',()=>{if(!live.current.active||this.busy)return;
      if(index!==1||!live.current.stage2TranslationReady){live.current.onError('이 스테이지의 원서 번역 퀴즈는 준비 중입니다.');return;}
      if(!this.player)return;
@@ -126,6 +114,25 @@ export function World({rootAccount,releasedStages,stage2TranslationReady,charact
    this.input.on('pointerup',()=>this.finishRelockHold());
    this.game.events.on('talk',()=>{if(!this.player||!live.current.active)return;if(area==='adventure'){live.current.onError('입장하려면 관문을 직접 터치하세요.');return;}if(area==='stage-1'&&Math.hypot(this.player.x-STAGE_ONE_EXPERIMENT_POINT.x,this.player.y-STAGE_ONE_EXPERIMENT_POINT.y)<90){live.current.onExperiment();return;}if(area==='stage-2'&&Math.hypot(this.player.x-stageProps[1].experiment.x,this.player.y-stageProps[1].experiment.y)<90){live.current.onExperiment();return;}if(area==='stage-1'&&Math.hypot(this.player.x-1080,this.player.y-485)<42){live.current.onError('번역 퀴즈는 PC를 직접 터치해 시작하세요.');return;}if(area==='stage-6'&&Math.hypot(this.player.x-FET_GAME_POINT.x,this.player.y-FET_GAME_POINT.y)<90){live.current.onMiniGame();return;}if(stage){const b=stageBookPoint(area);if(Math.hypot(this.player.x-b.x,this.player.y-b.y)<90){this.readBook();return;}}if(area==='village'&&this.player.y>745){this.openGate();return;}const i=places.findIndex(p=>Math.hypot(this.player!.x-p.x,this.player!.y-p.y)<110);if(i>=0)interact(i);else live.current.onError('NPC를 터치하면 길을 따라 다가갑니다.');});
    this.game.events.on('navigate',(id:number)=>{const local=area==='adventure'?stageDefinitions.findIndex(s=>s.questId===id):stage?0:id;const p=places[local];if(p&&live.current.active)this.go(p.x,p.y+(area==='adventure'?0:20),area==='adventure'?null:local);});this.game.events.on('direction',(v:{x:number;y:number})=>{this.touch=v;});this.game.events.on('map-target',(p:{x:number;y:number})=>{if(live.current.active)this.go(p.x,p.y,null);});
+  }
+  translationPc(x:number,y:number,label:string){
+   const p={x,y};
+    this.add.ellipse(p.x,p.y+4,70,20,0x8cdee4,.22).setDepth(p.y-1);
+    this.add.image(p.x,p.y+8,'translation-pc').setOrigin(.5,1).setDisplaySize(104,104).setDepth(p.y);
+    const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Fixed, interleaved anchors: each glyph only bobs gently in place.
+    const letters=[
+     {text:'A',x:-30,y:-128},{text:'가',x:-18,y:-106},
+     {text:'B',x:6,y:-108},{text:'나',x:-6,y:-130},
+     {text:'C',x:18,y:-129},{text:'다',x:30,y:-106}
+    ];
+    letters.forEach((letter,i)=>{
+     const glyph=this.add.text(p.x+letter.x,p.y+letter.y,letter.text,{fontSize:'18px',fontStyle:'bold',color:i%2===0?'#aaf7ff':'#ffe6a3',stroke:'#183247',strokeThickness:3}).setOrigin(.5).setDepth(p.y+1);
+     if(!reducedMotion){
+      this.tweens.add({targets:glyph,y:glyph.y-(i%3+4),duration:1600+i*170,delay:i*230,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
+     }
+    });
+    return this.add.text(p.x,p.y-160,label,{fontSize:'16px',color:'#f8edbb',backgroundColor:'#183e49ee',align:'center',padding:{x:10,y:7}}).setOrigin(.5).setDepth(1500);
   }
   experimentTable(x:number,y:number){
    // The same transparent pixel-art bench is used for every stage experiment.
