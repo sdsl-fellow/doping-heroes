@@ -4,3 +4,20 @@
 .absorption-bench svg{display:block;width:100%;height:auto;overflow:visible}.absorption-bench svg text{font:13px sans-serif;fill:#e4f4fa}.absorption-bench svg text[fill="#152a39"]{fill:#152a39}.absorption-readout{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:14px 0 8px;color:#ffe2a0;font-size:14px}.absorption-readout span{color:#b9d2d5;font-size:12px}.light-theory{padding:14px;border:1px solid #49798c;border-radius:12px;background:#133343;display:grid;gap:10px}.light-theory h3{margin:0}.light-controls label[for="light-thickness"]{margin-top:18px}.light-beam-panel{min-width:0}@media(max-width:420px){.light-beam-panel{padding:9px}.absorption-bench svg text{font-size:14px}}
 
 .light-visuals{grid-template-columns:1fr}.absorption-bench svg:first-child{max-width:720px;margin:auto}.absorption-bench svg:last-child{max-width:580px;margin:auto}
+
+/* Paired carrier creation: photon arrival, excitation, then a visible electron/hole pair.
+   This is an energy schematic; cycle timing does not represent carrier lifetime. */
+.band-animation-caption{display:flex;justify-content:space-between;gap:6px 16px;flex-wrap:wrap;color:#bcd5dd;font-size:12px;margin:4px 0 10px;line-height:1.6}
+.carrier-legend{color:#91ecff;white-space:nowrap}.carrier-legend span{color:#ffdda3;margin-left:12px}
+.band-photon,.band-created-hole,.band-absorption-flash{opacity:0}
+.is-excited .band-moving-electron{animation:band-electron-lift 4s ease-in-out infinite}
+.is-excited .band-created-hole{animation:band-hole-create 4s linear infinite}
+.is-excited .band-photon{animation:band-photon-arrive 4s linear infinite}
+.is-excited .band-absorption-flash{animation:band-photon-flash 4s linear infinite}
+.band-transition-path{opacity:.35}
+@keyframes band-electron-lift{0%,22%{transform:translateY(0);opacity:1}44%{transform:translateY(-79px);opacity:1}56%,87%{transform:translateY(-68px);opacity:1}94%{transform:translateY(-68px);opacity:0}95%,100%{transform:translateY(0);opacity:0}}
+@keyframes band-hole-create{0%,22%{opacity:0}28%,87%{opacity:1}94%,100%{opacity:0}}
+@keyframes band-photon-arrive{0%{transform:translate(0,0);opacity:0}5%{transform:translate(0,0);opacity:1}22%{transform:translate(55px,21px);opacity:1}25%,100%{transform:translate(55px,21px);opacity:0}}
+@keyframes band-photon-flash{0%,20%{opacity:0}24%{opacity:1}34%,100%{opacity:0}}
+@media(prefers-reduced-motion:reduce){.is-excited .band-moving-electron{animation:none;transform:translateY(-68px)}.is-excited .band-created-hole{animation:none;opacity:1}.is-excited .band-photon,.is-excited .band-absorption-flash{animation:none;opacity:0}}
+.absorption-bench svg .bench-band-diagram text{font-size:16px}

@@ -11,12 +11,31 @@ export function OpticalAbsorptionBench({material,frequency,thickness}:{material:
  return <div className="absorption-bench">
   <svg viewBox="0 0 540 278" role="img" aria-label={`단색광원에서 ${material.id} 시편으로 빛이 입사하고 오른쪽 검출기가 투과광을 측정합니다. 시편 두께 ${thickness} 마이크로미터.`}>
    <defs><linearGradient id={`${uid}-sample`}><stop stopColor="#edf3f5"/><stop offset=".35" stopColor={color}/><stop offset="1" stopColor="#465064"/></linearGradient><marker id={`${uid}-arrow`} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 10 5 0 10" fill="#86ddff"/></marker></defs>
-   <circle cx="275" cy="83" r="68" fill="#183646" stroke="#7babbc"/>
-   <rect x={275-width/2} y="43" width={width} height="79" fill={`url(#${uid}-sample)`} stroke="#d2e2ec"/>
-   <path d={`M${275-width/2} 33 H${275+width/2}`} stroke="#86ddff" markerStart={`url(#${uid}-arrow)`} markerEnd={`url(#${uid}-arrow)`}/>
-   <text x="275" y="12" textAnchor="middle">시편 확대 · l = {thickness} µm</text>
-   <path d="M234 133 H316" stroke="#86ddff" markerEnd={`url(#${uid}-arrow)`}/><text x="324" y="138">x</text>
-   <path d="M275 153 V171" stroke="#7babbc" strokeDasharray="3 3"/>
+   <circle cx="156" cy="83" r="68" fill="#183646" stroke="#7babbc"/>
+   <rect x={156-width/2} y="43" width={width} height="79" fill={`url(#${uid}-sample)`} stroke="#d2e2ec"/>
+   <path d={`M${156-width/2} 33 H${156+width/2}`} stroke="#86ddff" markerStart={`url(#${uid}-arrow)`} markerEnd={`url(#${uid}-arrow)`}/>
+   <text x="156" y="12" textAnchor="middle">시편 확대 · l = {thickness} µm</text>
+   <path d="M115 133 H197" stroke="#86ddff" markerEnd={`url(#${uid}-arrow)`}/><text x="204" y="138">x</text>
+   <path d="M198 139 L267 176" stroke="#7babbc" strokeDasharray="3 3"/>
+   <g className="bench-band-diagram" aria-label={r.excited?'광자 흡수 후 전자가 전도대로 여기되고 가전자대에 정공이 남습니다.':'광자 에너지 부족: 전자는 가전자대에 머무릅니다.'}>
+    <rect x="280" y="7" width="250" height="145" rx="10" fill="#102737" stroke="#527c90"/>
+    <text x="294" y="26">에너지 ↑</text>
+    <rect x="310" y="37" width="205" height="30" rx="5" fill="#357c96"/>
+    <text x="320" y="57">전도대</text>
+    <rect x="310" y="112" width="205" height="30" rx="5" fill="#c49156"/>
+    <text x="320" y="133" fill="#152a39">가전자대</text>
+    <path d="M300 67 V112 M296 67 H304 M296 112 H304" stroke="#bdd5df"/>
+    <text x="313" y="95">E<tspan baselineShift="sub" fontSize="9">g</tspan></text>
+    <g key={`${material.id}-${r.excited}`} className={r.excited?'carrier-cycle is-excited':'carrier-cycle'}>
+     {r.excited&&<>
+      <path className="band-transition-path" d="M450 115 V65" stroke="#93e7ff" strokeDasharray="3 4" markerEnd={`url(#${uid}-arrow)`}/>
+      <g className="band-photon"><path d="M366 106 l7 -5 7 5 7 -5 7 5" fill="none" stroke="#ffdf86" strokeWidth="2.5"/><text x="366" y="94">hν</text></g>
+      <circle className="band-absorption-flash" cx="450" cy="127" r="15" fill="none" stroke="#ffe3a4" strokeWidth="2"/>
+      <g className="band-created-hole"><circle cx="450" cy="127" r="9" fill="#573f30" stroke="#ffdda3" strokeWidth="2"/><text x="450" y="131" textAnchor="middle">+</text></g>
+     </>}
+     <g className="band-moving-electron"><circle cx="450" cy="127" r="8" fill="#91ecff" stroke="#e5fcff" strokeWidth="1.5"/><text x="450" y="131" textAnchor="middle" fill="#152a39">−</text></g>
+    </g>
+   </g>
    <text x="77" y="172" textAnchor="middle">단색광원</text>
    <rect x="12" y="181" width="125" height="65" rx="5" fill="#c4d2d9" stroke="#8099ae" strokeWidth="3"/>
    <circle cx="43" cy="213" r="18" fill="#435d70"/><path d="M43 213 L52 200" stroke="#ffe3a4" strokeWidth="3"/>
@@ -32,6 +51,7 @@ export function OpticalAbsorptionBench({material,frequency,thickness}:{material:
    <text x="477" y="218" textAnchor="middle">{r.transmitted.toExponential(2)}</text>
    <text x="477" y="172" textAnchor="middle">검출기</text>
   </svg>
+  <div className="band-animation-caption"><span className="carrier-legend">● 전자 <span>⊕ 정공</span></span><span>{r.excited?'광자 흡수 → 전자 여기 · 정공 생성':'밴드 간 여기 없음 · 전자는 가전자대에 유지'}</span></div>
   <div className="absorption-readout">α ≈ {r.alpha.toFixed(1)} cm⁻¹ <span>교육용 모형 값</span></div>
   <svg viewBox="0 0 440 224" role="img" aria-label="시편 내부 깊이에 따른 상대 광자 플럭스의 지수 감쇠 곡선">
    <text x="48" y="22">상대 광자 플럭스 I(x)/I₀</text>

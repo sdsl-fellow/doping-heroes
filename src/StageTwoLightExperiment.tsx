@@ -55,12 +55,7 @@ export function StageTwoLightExperiment({completed,onComplete}:{completed:boolea
     <OpticalAbsorptionBench material={material} frequency={frequency} thickness={thickness}/>
     <div className="light-meters"><div>투과 <strong>{percent(result.transmitted*100)}</strong><span className="light-meter"><i style={{width:`${transmission}%`}}/></span></div><div>흡수 <strong>{percent(result.absorbed*100)}</strong><span className="light-meter"><i style={{width:`${absorption}%`}}/></span></div></div>
    </div>
-   <div className="light-bands" aria-label={`${material.id} 에너지 밴드 모형: ${result.excited?'전자 여기 가능':'밴드 간 전자 여기 없음'}`}>
-    <span className="light-band-label">에너지 ↑</span>
-    <div className="light-band conduction">전도대 {result.excited&&<span className="light-electron" style={{opacity:Math.max(.25,result.absorbed)}}>e⁻</span>}</div>
-    <div className="light-gap">밴드갭 E<sub>g</sub>{result.excited?<span className="light-transition">↑ 광자 흡수</span>:<span>전자 여기 없음</span>}</div>
-    <div className="light-band valence">가전자대 {result.excited&&<span className="light-hole">h⁺</span>}</div>
-   </div>
+
   </div>
   <p className="light-result" role="status">{result.excited?`${material.name}: 광자 에너지가 밴드갭을 넘어 전자–정공 쌍이 생성됩니다. 주파수를 더 높이면 모형의 흡수율이 증가합니다.`:`${material.name}: 광자 에너지가 밴드갭보다 낮아 이 모형에서는 밴드 간 흡수 없이 빛이 통과합니다.`}</p>
   <div className="light-theory">
