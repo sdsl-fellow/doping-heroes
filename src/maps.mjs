@@ -5,14 +5,14 @@ export const stageDefinitions=[
  {name:'캐리어 습지',questId:5,art:4,road:470},
  {name:'드리프트 협곡',questId:7,art:6,road:500},
  {name:'확산 사막',questId:8,art:7,road:500},
- {name:'BJT 오션',questId:13,art:10,road:470},
- {name:'FET 정글',questId:10,art:11,road:490},
+ {name:'FET 정글',questId:13,art:11,road:490,gateway:7},
+ {name:'BJT 오션',questId:10,art:10,road:470,gateway:6},
  {name:'광전자 협곡',questId:11,art:0,road:500},
  {name:'게이트 혁신 도시',questId:6,art:0,road:500},
  {name:'기억의 영속성',questId:9,art:0,road:500},
  {name:'전력 반도체 요새',questId:14,art:0,road:500},
  {name:'첨단 패키징 공장',questId:12,art:0,road:500}
-].map((s,i)=>({...s,index:i,gatewayImage:`./gateways-v4/stage-${i+1}.webp`,title:`Stage ${i+1}. ${s.name}`,area:`stage-${i+1}`}));
+].map((s,i)=>({...s,index:i,gatewayImage:`./gateways-v4/stage-${s.gateway??i+1}.webp`,title:`Stage ${i+1}. ${s.name}`,area:`stage-${i+1}`}));
 export const stageIndex=area=>stageDefinitions.findIndex(s=>s.area===area);
 export const stageForQuest=id=>stageDefinitions.find(s=>s.questId===id);
 export const gatewayLocations=stageDefinitions.map((s,i)=>({x:[246,584,946,1289][i%4],y:[352,558,760][Math.floor(i/4)],index:i}));

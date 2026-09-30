@@ -21,6 +21,6 @@ export const weeklyQuests=[
  {name:'바다의 바이',region:'BJT 오션',week:11,title:'세 개의 단자',question:'BJT의 세 단자 이름은?',options:['게이트·소스·드레인','애노드·캐소드·기판','이미터·베이스·컬렉터'],answer:2,explanation:'BJT는 이미터, 베이스, 컬렉터로 이루어집니다. 전자와 정공 두 종류 캐리어가 동작에 관여합니다.'},
  {name:'요새의 파워',region:'Power 반도체 동굴',week:12,title:'전력을 다루는 결정',question:'전력 반도체 설계에서 함께 고려하는 대표 성능은?',options:['차단 전압과 도통·스위칭 손실','화면 해상도와 음량','원자의 색과 냄새'],answer:0,explanation:'전력 소자는 높은 차단 전압, 낮은 도통 손실과 스위칭 손실 등 여러 특성의 균형을 고려합니다.'}
 
-].map((q,i)=>({...q,...topicUpdates[i+3],region:stageForQuest(i+3)!.name,week:stageForQuest(i+3)!.index+1,id:i+3,dose:stageDose(stageForQuest(i+3)!.index),coins:30,options:topicUpdates[i+3]?.options??q.options,dopant:i%2?'B':'P'}));
+].map((q,i)=>({...q,...topicUpdates[i+3],name:i+3===13?'정글의 모스':i+3===10?'바다의 바이':(topicUpdates[i+3]?.name??q.name),region:stageForQuest(i+3)!.name,week:stageForQuest(i+3)!.index+1,id:i+3,dose:stageDose(stageForQuest(i+3)!.index),coins:30,options:topicUpdates[i+3]?.options??q.options,dopant:i%2?'B':'P'}));
 
 export const shopItems=shopCatalog;
