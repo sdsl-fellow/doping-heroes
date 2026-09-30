@@ -41,12 +41,22 @@ export function CloudAccess({save,studentId,onConnected}:{save?:Save;studentId?:
   }catch(problem){setError(problem instanceof Error?problem.message:'클라우드 연결에 실패했습니다.');}
   finally{setBusy(false);}
  }
- if(changeToken)return <form className="cloud-access" onSubmit={async e=>{e.preventDefault();if(busy)return;const form=new FormData(e.currentTarget),a=String(form.get('newPin')??''),b=String(form.get('confirmPin')??'');if(!/^[0-9]{4,8}$/.test(a)||a!==b||a===accountId){setError('학번과 다른 숫자 4~8자리를 두 칸에 동일하게 입력하세요.');return;}setBusy(true);setError('');try{await changeCloudPin(changeToken,a,b);setChangeToken('');setChanged(true);setPin('');}catch(e){setError(e instanceof Error?e.message:'변경 실패');}finally{setBusy(false);}}}>
-  <h2>새 PIN 설정 필수</h2><p>학번 {accountId} · 새 PIN을 설정한 후 게임을 시작할 수 있습니다.</p>
+ if(changeToken)return <form className="cloud-access pin-setup" onSubmit={async e=>{e.preventDefault();if(busy)return;const form=new FormData(e.currentTarget),a=String(form.get('newPin')??''),b=String(form.get('confirmPin')??'');if(!/^[0-9]{4,8}$/.test(a)||a!==b||a===accountId){setError('학번과 다른 숫자 4~8자리를 두 칸에 동일하게 입력하세요.');return;}setBusy(true);setError('');try{await changeCloudPin(changeToken,a,b);setChangeToken('');setChanged(true);setPin('');}catch(e){setError(e instanceof Error?e.message:'변경 실패');}finally{setBusy(false);}}}>
+  <header className="pin-setup-heading">
+   <span className="pin-setup-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg></span>
+   <div><small>계정 보호</small><h2>새 PIN 설정</h2></div>
+  </header>
+  <p className="pin-setup-intro">앞으로 로그인할 때 사용할 PIN을 정해 주세요.</p>
+  <div className="pin-setup-account"><span>연결할 학번</span><strong>{accountId}</strong></div>
   <input type="hidden" name="username" autoComplete="username" value={accountId}/>
-  <label>새 PIN<input name="newPin" id="new-pin" type="password" autoComplete="new-password" inputMode="numeric" pattern="[0-9]{4,8}" required placeholder="숫자 4~8자리"/></label>
-  <label>새 PIN 재입력<input name="confirmPin" id="confirm-pin" type="password" autoComplete="new-password" inputMode="numeric" pattern="[0-9]{4,8}" required/></label>
-  {error&&<p role="alert">{error}</p>}<button className="primary" disabled={busy}>{busy?'변경 중…':'새 PIN 저장'}</button>
+  <div className="pin-setup-fields">
+  <label htmlFor="new-pin">새 PIN<input aria-describedby="pin-setup-hint" name="newPin" id="new-pin" type="password" autoComplete="new-password" inputMode="numeric" pattern="[0-9]{4,8}" required placeholder="숫자 4~8자리"/></label>
+  <label htmlFor="confirm-pin">새 PIN 확인<input placeholder="한 번 더 입력해 주세요" name="confirmPin" id="confirm-pin" type="password" autoComplete="new-password" inputMode="numeric" pattern="[0-9]{4,8}" required/></label>
+  </div>
+  <p id="pin-setup-hint" className="pin-setup-hint">학번과 다른 숫자 4~8자리로 설정해 주세요.</p>
+  {error&&<p className="pin-setup-error" role="alert">{error}</p>}
+  <button className="primary" disabled={busy}>{busy?'저장 중…':'새 PIN 저장하기'}</button>
+  <small className="pin-setup-note">저장 후 새 PIN으로 다시 로그인합니다.</small>
  </form>;
  return <form className="cloud-access" onSubmit={connect}>
   <div className="dialog-heading"><div><small>CLOUD SAVE</small><h2>{root?'관리자 연결':'진행 기록 연결'}</h2></div></div>
