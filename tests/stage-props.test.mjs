@@ -12,6 +12,10 @@ test('all twelve stages have equally distant, reachable books, terminals and tas
  const outfits=new Set();
  for(const stage of stageDefinitions){
   const {book,pc,pcApproach,experiment,experimentSign}=stageProps[stage.index];
+  for(const key of ['book','pc','pcApproach','experiment','experimentSign']){
+   assert.equal(stageProps[stage.index][key].x,stageProps[0][key].x);
+   assert.equal(stageProps[stage.index][key].y-stage.road,stageProps[0][key].y-stageDefinitions[0].road);
+  }
   const distance=point=>Math.hypot(point.x-768,point.y-stage.road);
   assert.deepEqual(stageBookPoint(stage.area),book);
   assert.ok(Math.abs(distance(book)-distance(experiment))<1,`${stage.area} book distance`);
@@ -29,7 +33,7 @@ test('all twelve stages have equally distant, reachable books, terminals and tas
  }
  assert.ok(outfits.size>=7);
  assert.deepEqual(stageProps[0].experiment,{x:768,y:837});
- assert.deepEqual(stageProps[5].experiment,{x:768,y:865});
+ assert.deepEqual(stageProps[5].experiment,{x:768,y:862});
  const stageOne=stageDefinitions[0],guide={x:768,y:stageOne.road},book=stageBookPoint(stageOne.area),pc=stageProps[0].pc;
  const distance=p=>Math.hypot(p.x-guide.x,p.y-guide.y);
  assert.ok(Math.abs(distance(book)-distance(stageProps[0].experiment))<1);

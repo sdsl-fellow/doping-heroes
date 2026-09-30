@@ -28,6 +28,20 @@ export function World({rootAccount,releasedStages,stage2TranslationReady,charact
   async sprite(c:Character,key:string,x:number,y:number,customSheet?:Promise<HTMLCanvasElement>){const sheet=await (customSheet??characterSheet(c));if(disposed)return;const texture=this.textures.addCanvas(key,sheet)!;for(let row=0;row<4;row++)for(let col=0;col<9;col++)texture.add(row*9+col,0,col*64,row*64,64,64);return this.add.sprite(x,y,key,18).setOrigin(.5,.95).setScale(1.7).setDepth(y);}
   create(){
    this.add.image(0,0,'campus').setOrigin(0).setDisplaySize(info.width,info.height);this.cameras.main.setBounds(0,0,info.width,info.height);this.cameras.main.setScroll(0,150);this.cameras.main.roundPixels=true;
+   if(area==='stage-7'){
+    // Extend the island's south path with a wooden pier beneath the relocated bench.
+    const pier=this.add.graphics().setDepth(1);
+    pier.fillStyle(0x173e48,.4).fillRect(708,708,132,218);
+    pier.fillStyle(0x62422c,1).fillRect(700,700,136,220);
+    for(let y=704;y<916;y+=12){
+     pier.fillStyle(y%24===8?0xb68b51:0xa57945,1).fillRect(706,y,124,10);
+     pier.lineStyle(1,0xd4ad6c,.7).lineBetween(707,y,829,y);
+    }
+    for(const x of [700,830]){
+     pier.fillStyle(0x755032,1).fillRect(x,700,6,220);
+     for(const y of [704,764,824,904])pier.fillStyle(0xd0a268,1).fillRect(x-2,y,10,10);
+    }
+   }
    const resize=()=>{const w=this.scale.width,h=this.scale.height;this.cameras.main.setZoom(w<700?1.15:Math.max(w/info.width,h/info.height));};resize();this.scale.on('resize',resize);
    this.destination=this.add.ellipse(768,550,24,12,0xffedb0,.35).setStrokeStyle(2,0xffedb0).setVisible(false).setDepth(900);
    this.keys=this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,E,SPACE',false) as Record<string,Phaser.Input.Keyboard.Key>;
