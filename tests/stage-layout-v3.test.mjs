@@ -5,7 +5,7 @@ import vm from 'node:vm';
 import {stageDefinitions} from '../src/maps.mjs';
 import {fromStoredSave,toStoredSave} from '../src/completion-save.mjs';
 test('current stage indices never convert based on an older layout marker',()=>{
- assert.deepEqual(stageDefinitions.map(s=>s.name),['결정 동굴','에너지 밴드 계곡','캐리어 습지','드리프트 협곡','확산 사막','BJT 오션','FET 정글','광전자 협곡','게이트 혁신 도시','기억의 영속성','전력 반도체 요새','첨단 패키징 공장']);
+ assert.deepEqual(stageDefinitions.map(s=>s.name),['결정 동굴','에너지 밴드 계곡','캐리어 습지','드리프트 협곡','확산 사막','FET 정글','BJT 오션','광전자 협곡','게이트 혁신 도시','기억의 영속성','전력 반도체 요새','첨단 패키징 공장']);
  for(let i=0;i<12;i++)for(const layout of [undefined,2,3]){
   const stored=toStoredSave({stage_layout:layout,tutorial_completed:[0],stage_completed:[i],readBooks:[i],puzzle_completed:[i],area:`stage-${i+1}`});
   assert.deepEqual(stored.stage_completed,[i]);assert.deepEqual(stored.readBooks,[i]);assert.deepEqual(stored.puzzle_completed,[i]);assert.equal(stored.area,`stage-${i+1}`);
@@ -47,4 +47,8 @@ test('reset returns every stage and adventure account to the village spawn',()=>
   const {ctx}=fixture([row]);ctx.resetAllLearningProgress();
   assert.equal(JSON.parse(row[6]).area,'village');
  }
+});
+
+test('Stage 6 and 7 themes move while existing quiz IDs stay at their stage',()=>{
+ assert.deepEqual(stageDefinitions.slice(5,7).map(s=>[s.questId,s.art,s.gatewayImage]),[[13,11,'./gateways-v4/stage-7.webp'],[10,10,'./gateways-v4/stage-6.webp']]);
 });

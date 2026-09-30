@@ -15,7 +15,7 @@ test('Stage 1 experiment is reachable down the center path and gates Stage 1',()
  assert.ok(Math.hypot(path.at(-1).x-target.x,path.at(-1).y-target.y)<20);
  assert.deepEqual(missingStageExperiments({puzzle_completed:[]},0),[0]);
  assert.deepEqual(missingStageExperiments({puzzle_completed:[0]},0),[]);
- assert.deepEqual(missingStageExperiments({puzzle_completed:[]},6),[6]);
+ assert.deepEqual(missingStageExperiments({puzzle_completed:[]},5),[5]);
  assert.deepEqual(missingStageExperiments({puzzle_completed:[]},1),[1]);
 });
 

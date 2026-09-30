@@ -90,3 +90,13 @@ test('v21 a single active stage question completes after one correct answer',()=
  const result=f.c.learningContentAction_({action:'learningAnswer',sessionId:batch.content.questions[0].sessionId,optionId:'B'});
  assert.equal(result.content.stageComplete,true);
 });
+
+test('current FET experiment runs in Stage 6 using the unchanged private source',()=>{
+ const f=fixture(fs.readFileSync('google-apps-script/Code_v25_Stage2.gs','utf8'));f.setArea('stage-6');const ids=['substrate','oxide','gate','implant','anneal','contacts'];const rows=ids.map((id,i)=>({experimentId:'experiment',title:'Test',type:'sequence',stepId:id,stepTitle:id,detail:'detail',hint:'hint',correctOrder:i+1,active:true}));
+ f.add('Experiment_07',Array.from(vm.runInContext('EXPERIMENT_CONTENT_HEADERS',f.c)),rows);
+ assert.throws(()=>f.c.learningExperiment_(7),/준비된 실험/);
+ const r=f.c.learningContentAction_({action:'learningStart',stage:6,kind:'experiment'});assert.equal(r.content.steps.length,6);assert.ok(!JSON.stringify(r).includes('correctOrder'));
+ assert.equal(f.c.learningContentAction_({action:'learningAnswer',sessionId:r.content.sessionId,order:ids}).content.correct,true);
+ assert.equal(f.c.learningContentAction_({action:'learningAnswer',sessionId:r.content.sessionId,order:[...ids].reverse()}).content.correct,false);
+ assert.throws(()=>f.c.learningContentAction_({action:'learningAnswer',sessionId:r.content.sessionId,order:ids.slice(1)}),/6개/);
+});

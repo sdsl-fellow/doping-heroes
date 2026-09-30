@@ -29,7 +29,7 @@ test('all twelve stages have equally distant, reachable books, terminals and tas
  }
  assert.ok(outfits.size>=7);
  assert.deepEqual(stageProps[0].experiment,{x:768,y:837});
- assert.deepEqual(stageProps[6].experiment,{x:768,y:865});
+ assert.deepEqual(stageProps[5].experiment,{x:768,y:865});
  const stageOne=stageDefinitions[0],guide={x:768,y:stageOne.road},book=stageBookPoint(stageOne.area),pc=stageProps[0].pc;
  const distance=p=>Math.hypot(p.x-guide.x,p.y-guide.y);
  assert.ok(Math.abs(distance(book)-distance(stageProps[0].experiment))<1);

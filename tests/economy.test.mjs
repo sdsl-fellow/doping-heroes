@@ -27,16 +27,16 @@ test('stages unlock strictly in visible order and reward once',()=>{
   assert.equal(stageUnlocked(s.completed,i),true);
   if(i<11){assert.equal(stageUnlocked(s.completed,i+1),false);assert.equal(grantReward(s,{id:stageDefinitions[i+1].questId,dose:stageDose(i+1),coins:30}),s);}
   const q={id:stageDefinitions[i].questId,dose:stageDose(i),coins:30};
-  if(i===0||i===1||i===6){assert.equal(grantReward(s,q,()=>.3),s);s={...s,puzzle_completed:[...(s.puzzle_completed??[]),i]};}
+  if(i===0||i===1||i===5){assert.equal(grantReward(s,q,()=>.3),s);s={...s,puzzle_completed:[...(s.puzzle_completed??[]),i]};}
   s=grantReward(s,q,()=>.3);assert.equal(grantReward(s,q),s);
  }
  assert.ok(Math.abs(s.doping-9.5e20)<1e7);assert.equal(new Set(s.purchased).size,s.purchased.length);
 });
 test('an experiment stage grants no completion or reward until its experiment is saved',()=>{
- const index=6,q={id:stageDefinitions[index].questId,dose:stageDose(index),coins:30};
+ const index=5,q={id:stageDefinitions[index].questId,dose:stageDose(index),coins:30};
  const before={...start(),completed:[0,1,2,...stageDefinitions.slice(0,index).map(s=>s.questId)],puzzle_completed:[],doping:1e14};
  assert.equal(grantReward(before,q),before);
- const after={...before,puzzle_completed:[6]};
+ const after={...before,puzzle_completed:[5]};
  const complete=grantReward(after,q,()=>.3);
  assert.ok(complete.completed.includes(q.id));assert.equal(complete.coins,30);
  assert.equal(grantReward(complete,q),complete);
