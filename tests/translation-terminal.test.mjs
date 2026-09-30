@@ -3,9 +3,13 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {route,walkable} from '../src/navigation.mjs';
 
-test('PC approach is reachable; only Stage 1 right path extends',()=>{
+test('Stage 1 and Stage 2 PC approaches are reachable on extended paths',()=>{
  assert.equal(walkable(1080,485,'stage-1'),true);
- assert.equal(walkable(1100,495,'stage-2'),false);
+ assert.equal(walkable(1100,495,'stage-2'),true);
+ const stageTwoPath=route(768,495,1080,515,'stage-2');
+ assert.deepEqual(stageTwoPath.at(-1),{x:1080,y:515});
+ assert.ok(stageTwoPath.every(p=>walkable(p.x,p.y,'stage-2')));
+ assert.equal(walkable(1100,470,'stage-3'),false);
  const path=route(768,465,1080,485,'stage-1');
  assert.deepEqual(path.at(-1),{x:1080,y:485});
  assert.ok(path.every(p=>walkable(p.x,p.y,'stage-1')));
