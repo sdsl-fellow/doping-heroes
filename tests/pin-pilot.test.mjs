@@ -69,3 +69,33 @@ test('registration ticket expiration and tampering do not create an account',()=
  assert.throws(()=>c.registerStudent_({...request,registrationToken:expired+'.'+c.sign_(expired)}),e=>e.code==='REGISTRATION_REQUIRED');
  assert.equal(db.length,1);
 });
+
+import {grantReward} from '../src/economy.mjs';
+import {stageDefinitions} from '../src/maps.mjs';
+import {fromStoredSave,toStoredSave} from '../src/completion-save.mjs';
+test('quiz and experiment survive separate sessions in either order and award once',()=>{
+ for(const experimentFirst of [false,true]){
+  const db=[[]],c=runtime(db),id='20260010';
+  const ticket=c.beginStudentRegistration_({studentId:id,pin:id}).registrationToken;
+  const registered=c.registerStudent_({studentId:id,pin:id,registrationToken:ticket,name:'Synthetic',save:{name:'Synthetic',completed:[0,1,2],puzzle_completed:experimentFirst?[0]:[],coins:60,doping:1e14,purchased:[],area:'stage-1'}});
+  c.changeStudentPin_({token:registered.token,newPin:'0123',confirmPin:'0123'});
+  const login=c.loginStudent_({studentId:id,pin:'0123'}),auth=c.verifyToken_(login.token),cacheMap=new Map();
+  const batch={studentId:id,stage:1,entries:{Q1:'session'},answered:[],rewardDose:1e12,rewardCoins:37};
+  cacheMap.set('learning-stage-batch:batch',JSON.stringify(batch));
+  const cache={get:k=>cacheMap.get(k),put:(k,v)=>cacheMap.set(k,v)};
+  const session={studentId:id,stage:1,batchId:'batch',question:{questionId:'Q1',options:[{id:'A'}],correctOption:'A',explanation:'ok'}};
+  const answer=c.stageQuizAnswer_(auth,session,{token:login.token,sessionId:'session',optionId:'A'},cache);
+  assert.equal(answer.content.stageComplete,true);assert.ok(answer.student);
+  let reloaded=runtime(db).loadStudent_({token:login.token}).student;
+  assert.deepEqual(Array.from(reloaded.save.stage_quiz_completed),[0]);assert.equal(reloaded.save.stage_quiz_rewards[0].coins,37);
+  assert.equal(reloaded.save.coins,60);
+  const repeated=c.stageQuizAnswer_(auth,session,{token:login.token,sessionId:'session',optionId:'A'},cache);assert.equal(repeated.student.revision,reloaded.revision);
+  let progress=fromStoredSave(JSON.parse(JSON.stringify(reloaded.save)));
+  const quest={id:stageDefinitions[0].questId,...progress.stage_quiz_rewards[0]};
+  if(!experimentFirst){assert.equal(grantReward(progress,quest),progress);progress={...progress,puzzle_completed:[0]};}
+  const awarded=grantReward(progress,quest,()=>1);assert.equal(awarded.coins,97);assert.ok(awarded.completed.includes(quest.id));
+  c.saveStudent_({token:login.token,baseRevision:reloaded.revision,save:toStoredSave(awarded)});
+  const final=fromStoredSave(JSON.parse(JSON.stringify(runtime(db).loadStudent_({token:login.token}).student.save)));
+  assert.equal(grantReward(final,quest),final);assert.equal(final.coins,97);assert.deepEqual(final.puzzle_completed,[0]);
+ }
+});

@@ -21,3 +21,5 @@
 @keyframes band-photon-flash{0%,20%{opacity:0}24%{opacity:1}34%,100%{opacity:0}}
 @media(prefers-reduced-motion:reduce){.is-excited .band-moving-electron{animation:none;transform:translateY(-68px)}.is-excited .band-created-hole{animation:none;opacity:1}.is-excited .band-photon,.is-excited .band-absorption-flash{animation:none;opacity:0}}
 .absorption-bench svg .bench-band-diagram text{font-size:16px}
+
+.is-excited .band-moving-electron,.is-excited .band-created-hole,.is-excited .band-photon,.is-excited .band-absorption-flash{animation-delay:var(--pair-delay,0s)}

@@ -1,4 +1,4 @@
-import {useId} from 'react';
+import {useId,type CSSProperties} from 'react';
 import {lightResult} from './stage-two-light.mjs';
 
 type Material={id:string;name:string;gap:number;type:string};
@@ -17,7 +17,7 @@ export function OpticalAbsorptionBench({material,frequency,thickness}:{material:
    <text x="156" y="12" textAnchor="middle">시편 확대 · l = {thickness} µm</text>
    <path d="M115 133 H197" stroke="#86ddff" markerEnd={`url(#${uid}-arrow)`}/><text x="204" y="138">x</text>
    <path d="M198 139 L267 176" stroke="#7babbc" strokeDasharray="3 3"/>
-   <g className="bench-band-diagram" aria-label={r.excited?'광자 흡수 후 전자가 전도대로 여기되고 가전자대에 정공이 남습니다.':'광자 에너지 부족: 전자는 가전자대에 머무릅니다.'}>
+   <g className="bench-band-diagram" aria-label={r.excited?'광자 흡수 후 전자 3개가 전도대로 여기되고 가전자대에 정공 3개가 남습니다.':'광자 에너지 부족: 전자는 가전자대에 머무릅니다.'}>
     <rect x="280" y="7" width="250" height="145" rx="10" fill="#102737" stroke="#527c90"/>
     <text x="294" y="26">에너지 ↑</text>
     <rect x="310" y="37" width="205" height="30" rx="5" fill="#357c96"/>
@@ -26,15 +26,15 @@ export function OpticalAbsorptionBench({material,frequency,thickness}:{material:
     <text x="320" y="133" fill="#152a39">가전자대</text>
     <path d="M300 67 V112 M296 67 H304 M296 112 H304" stroke="#bdd5df"/>
     <text x="313" y="95">E<tspan baselineShift="sub" fontSize="9">g</tspan></text>
-    <g key={`${material.id}-${r.excited}`} className={r.excited?'carrier-cycle is-excited':'carrier-cycle'}>
+    {[0,1,2].map(i=><g key={`${material.id}-${r.excited}-${i}`} transform={`translate(${(i-1)*38},0)`} style={{'--pair-delay':`${i*.32}s`} as CSSProperties}><g className={r.excited?'carrier-cycle is-excited':'carrier-cycle'}>
      {r.excited&&<>
       <path className="band-transition-path" d="M450 115 V65" stroke="#93e7ff" strokeDasharray="3 4" markerEnd={`url(#${uid}-arrow)`}/>
-      <g className="band-photon"><path d="M366 106 l7 -5 7 5 7 -5 7 5" fill="none" stroke="#ffdf86" strokeWidth="2.5"/><text x="366" y="94">hν</text></g>
+      <g className="band-photon"><path d="M366 106 l7 -5 7 5 7 -5 7 5" fill="none" stroke="#ffdf86" strokeWidth="2.5"/>{i===1&&<text x="366" y="94">hν</text>}</g>
       <circle className="band-absorption-flash" cx="450" cy="127" r="15" fill="none" stroke="#ffe3a4" strokeWidth="2"/>
       <g className="band-created-hole"><circle cx="450" cy="127" r="9" fill="#573f30" stroke="#ffdda3" strokeWidth="2"/><text x="450" y="131" textAnchor="middle">+</text></g>
      </>}
      <g className="band-moving-electron"><circle cx="450" cy="127" r="8" fill="#91ecff" stroke="#e5fcff" strokeWidth="1.5"/><text x="450" y="131" textAnchor="middle" fill="#152a39">−</text></g>
-    </g>
+    </g></g>)}
    </g>
    <text x="77" y="172" textAnchor="middle">단색광원</text>
    <rect x="12" y="181" width="125" height="65" rx="5" fill="#c4d2d9" stroke="#8099ae" strokeWidth="3"/>
