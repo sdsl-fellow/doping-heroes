@@ -3,12 +3,12 @@ import type {Save} from './save';
 import {normalizeItemSave,toCloudItemSave} from './item-save.mjs';
 import {fromStoredSave,toStoredSave} from './completion-save.mjs';
 
-export const CLOUD_API_URL='https://script.google.com/macros/s/AKfycbxR3rgdFevencoYRloPsNdx8pjyoJdfkxoGNxRB0rSGfALTp3mZbaRdcjGHQDolQt5E/exec';
+export const CLOUD_API_URL='https://script.google.com/macros/s/AKfycbyO2kl7Ks9dTya05-O7jHLiWVm5o99kg-Y-8kLlQrfPccqIssmE54CF9F15LpKzJA0O/exec';
 const CLOUD_AUTH_KEY='doping-heroes:cloud-auth:v1';
 
 export type CloudSession={studentId:string;token:string;revision:number};
 export type CloudStudent={studentId:string;name:string;save:Save;revision:number};
-export type CloudResponse={ok:boolean;rank?:import('./Rank').RankData;qa?:import('./Questions').QuestionData;apiVersion?:number;release?:string;content?:import('./LearningContent').ContentData;quiz?:TranslationRound;stage_layout?:number;item_schema?:number;token?:string;student?:CloudStudent;stages?:boolean[];allowed?:boolean;registered?:boolean;serverTime?:string;error?:{code:string;message:string}};
+export type CloudResponse={ok:boolean;mustChangePin?:boolean;pinChanged?:boolean;rank?:import('./Rank').RankData;qa?:import('./Questions').QuestionData;apiVersion?:number;release?:string;content?:import('./LearningContent').ContentData;quiz?:TranslationRound;stage_layout?:number;item_schema?:number;token?:string;student?:CloudStudent;stages?:boolean[];allowed?:boolean;registered?:boolean;serverTime?:string;error?:{code:string;message:string}};
 
 export class CloudError extends Error{
  code:string;response?:CloudResponse;
@@ -75,3 +75,5 @@ export const learningCloud=(action:'learningStart'|'learningAnswer',token:string
 export const questionsCloud=(action:'qaCreate'|'qaList',token:string,args:Record<string,unknown>)=>request({...args,action,token});
 
 export const fetchCloudRank=(token:string)=>request({action:'rank',token});
+
+export const changeCloudPin=(token:string,newPin:string,confirmPin:string)=>request({action:'changePin',token,newPin,confirmPin});

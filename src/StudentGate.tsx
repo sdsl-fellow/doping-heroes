@@ -1,12 +1,12 @@
 import {FormEvent,useState} from 'react';
 import {checkCloudStudent} from './cloud';
 
-export function StudentGate({onAllowed}:{onAllowed:(studentId:string)=>void}){
+export function StudentGate({onAllowed}:{onAllowed:(studentId:string,registered:boolean)=>void}){
  const [studentId,setStudentId]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const valid=/^[A-Z0-9_-]{1,20}$/.test(studentId);
  async function check(e:FormEvent){
   e.preventDefault();if(!valid||busy)return;setBusy(true);setError('');
-  try{const response=await checkCloudStudent(studentId);if(!response.allowed){setError('등록된 수강생 학번이 아닙니다. 담당자에게 문의해 주세요.');return;}onAllowed(studentId);}
+  try{const response=await checkCloudStudent(studentId);if(!response.allowed){setError('등록된 수강생 학번이 아닙니다. 담당자에게 문의해 주세요.');return;}onAllowed(studentId,!!response.registered);}
   catch(problem){setError(problem instanceof Error?problem.message:'수강생 명단을 확인할 수 없습니다.');}
   finally{setBusy(false);}
  }
