@@ -27,7 +27,7 @@ test('stages unlock strictly in visible order and reward once',()=>{
   assert.equal(stageUnlocked(s.completed,i),true);
   if(i<11){assert.equal(stageUnlocked(s.completed,i+1),false);assert.equal(grantReward(s,{id:stageDefinitions[i+1].questId,dose:stageDose(i+1),coins:30}),s);}
   const q={id:stageDefinitions[i].questId,dose:stageDose(i),coins:30};
-  if(i===0||i===1||i===5){assert.equal(grantReward(s,q,()=>.3),s);s={...s,puzzle_completed:[...(s.puzzle_completed??[]),i]};}
+  if(i===0||i===1||i===2||i===5){assert.equal(grantReward(s,q,()=>.3),s);s={...s,puzzle_completed:[...(s.puzzle_completed??[]),i]};}
   s=grantReward(s,q,()=>.3);assert.equal(grantReward(s,q),s);
  }
  assert.ok(Math.abs(s.doping-9.5e20)<1e7);assert.equal(new Set(s.purchased).size,s.purchased.length);
