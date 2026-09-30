@@ -37,3 +37,16 @@ test('frequency changes energy and model absorption according to material bandga
  }
  assert.equal(correctBandGap(materials[0],'1,12'),true);
 });
+
+test('Beer-Lambert attenuation uses cm units and composes across two equal layers',()=>{
+ for(const material of materials){
+  const thin=lightResult(material,480,100),thick=lightResult(material,480,200),zero=lightResult(material,480,0);
+  assert.equal(thin.alpha,thick.alpha);
+  assert.ok(Math.abs(thin.opticalDepth-thin.alpha*.01)<1e-12);
+  assert.ok(Math.abs(thick.transmitted-thin.transmitted**2)<1e-12);
+  assert.ok(thick.absorbed>thin.absorbed);
+  assert.equal(zero.transmitted,1);assert.equal(zero.absorbed,0);
+  const below=lightResult(material,120,500);
+  assert.equal(below.alpha,0);assert.equal(below.transmitted,1);
+ }
+});
