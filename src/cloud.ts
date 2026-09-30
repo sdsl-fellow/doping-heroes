@@ -3,12 +3,12 @@ import type {Save} from './save';
 import {normalizeItemSave,toCloudItemSave} from './item-save.mjs';
 import {fromStoredSave,toStoredSave} from './completion-save.mjs';
 
-export const CLOUD_API_URL='https://script.google.com/macros/s/AKfycbyO2kl7Ks9dTya05-O7jHLiWVm5o99kg-Y-8kLlQrfPccqIssmE54CF9F15LpKzJA0O/exec';
+export const CLOUD_API_URL='https://script.google.com/macros/s/AKfycbzA3uuzNVsXp9zSUltcAA_K3N5M81P-C7eA9WKY3DUOEWB37wpXJCrthI1xqtZ--4dL/exec';
 const CLOUD_AUTH_KEY='doping-heroes:cloud-auth:v1';
 
 export type CloudSession={studentId:string;token:string;revision:number};
 export type CloudStudent={studentId:string;name:string;save:Save;revision:number};
-export type CloudResponse={ok:boolean;mustChangePin?:boolean;pinChanged?:boolean;rank?:import('./Rank').RankData;qa?:import('./Questions').QuestionData;apiVersion?:number;release?:string;content?:import('./LearningContent').ContentData;quiz?:TranslationRound;stage_layout?:number;item_schema?:number;token?:string;student?:CloudStudent;stages?:boolean[];allowed?:boolean;registered?:boolean;serverTime?:string;error?:{code:string;message:string}};
+export type CloudResponse={ok:boolean;registrationToken?:string;mustChangePin?:boolean;pinChanged?:boolean;rank?:import('./Rank').RankData;qa?:import('./Questions').QuestionData;apiVersion?:number;release?:string;content?:import('./LearningContent').ContentData;quiz?:TranslationRound;stage_layout?:number;item_schema?:number;token?:string;student?:CloudStudent;stages?:boolean[];allowed?:boolean;registered?:boolean;serverTime?:string;error?:{code:string;message:string}};
 
 export class CloudError extends Error{
  code:string;response?:CloudResponse;
@@ -53,7 +53,8 @@ export const fetchCloudStages=()=>{
  return stageRequest;
 };
 export const checkCloudStudent=(studentId:string)=>request({action:'checkStudent',studentId});
-export const registerCloud=(save:Save,pin:string)=>request({action:'register',studentId:save.studentId,name:save.name,pin,save});
+export const beginCloudRegistration=(studentId:string,pin:string)=>request({action:'beginRegistration',studentId,pin});
+export const registerCloud=(save:Save,pin:string,registrationToken?:string)=>request({action:'register',studentId:save.studentId,name:save.name,pin,save,registrationToken});
 export const loginCloud=(studentId:string,pin:string)=>request({action:'login',studentId,pin});
 export const loginRootCloud=(pin:string)=>request({action:'rootLogin',pin});
 export const loadCloud=(token:string)=>request({action:'load',token});
