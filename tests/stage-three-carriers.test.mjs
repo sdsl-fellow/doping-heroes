@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {carrierMeasurement,DONOR_DENSITY,CHARGE,THICKNESS_CM,PROBE_CURRENT_A,carrierEquipment,carrierLabReady,targetTemperatures,canCompleteCarrierLab,carrierQuestions} from '../src/stage-three-carriers.mjs';
+import {carrierMeasurement,DONOR_DENSITY,CHARGE,THICKNESS_CM,PROBE_CURRENT_A,SHEET_CORRECTION_FACTOR,FOUR_PROBE_FACTOR,carrierEquipment,carrierLabReady,targetTemperatures,canCompleteCarrierLab,carrierQuestions} from '../src/stage-three-carriers.mjs';
 import {missingStageExperiments} from '../src/stage-experiments.mjs';
 import {grantReward} from '../src/economy.mjs';
 import {recordStageQuiz,stageQuizDone} from '../src/stage-activity.mjs';
@@ -20,21 +20,31 @@ test('Stage 3 requires all four owned AND prepared items, without accessory-slot
  assert.equal(JSON.stringify(s),before);
 });
 test('carrier model obeys charge neutrality, mass action, and conductivity throughout temperature sweep',()=>{
+ assert.equal(DONOR_DENSITY,1e18);
+ assert.ok(Math.abs(THICKNESS_CM-100*1e-7)<1e-20);
+ assert.equal(SHEET_CORRECTION_FACTOR,1);
  for(let T=40;T<=800;T+=10){
   const r=carrierMeasurement(T);
-  for(const k of ['n','p','ni','muN','muP','sigma','rho','voltage','gap'])assert.ok(Number.isFinite(r[k])&&r[k]>0,k+' at '+T);
+  for(const k of ['n','p','ni','muN','muP','sigma','rho','sheetResistance','voltage','gap'])assert.ok(Number.isFinite(r[k])&&r[k]>0,k+' at '+T);
   assert.ok(Math.abs(r.n-r.p-r.ionized)/Math.max(r.n,DONOR_DENSITY)<1e-12);
   assert.ok(Math.abs(r.n*r.p/r.ni**2-1)<1e-12);
   assert.ok(r.ionized<=DONOR_DENSITY);
   assert.equal(r.sigma,CHARGE*(r.n*r.muN+r.p*r.muP));
   const inferredRho=Math.PI/Math.log(2)*THICKNESS_CM*r.voltage/PROBE_CURRENT_A;
   assert.ok(Math.abs(inferredRho/r.rho-1)<1e-12);
+  const inferredSheet=FOUR_PROBE_FACTOR*r.voltage/PROBE_CURRENT_A*SHEET_CORRECTION_FACTOR;
+  assert.ok(Math.abs(inferredSheet/r.sheetResistance-1)<1e-12);
+  assert.ok(Math.abs(r.sheetResistance*THICKNESS_CM*r.sigma-1)<1e-12);
+  assert.ok(r.sigma>=1&&r.sigma<=100,'within displayed log-axis at '+T);
  }
  const cold=carrierMeasurement(60),middle=carrierMeasurement(150),room=carrierMeasurement(300),warm=carrierMeasurement(500),hot=carrierMeasurement(800);
- assert.equal(cold.regime,'freeze');assert.equal(room.regime,'extrinsic');assert.equal(hot.regime,'intrinsic');
+ assert.equal(cold.regime,'partial');assert.equal(room.regime,'partial');assert.equal(hot.regime,'extrinsic');
  assert.ok(cold.n<middle.n&&cold.sigma<middle.sigma);
- assert.ok(Math.abs(middle.n/room.n-1)<.01&&middle.muN>room.muN&&middle.sigma>room.sigma);
- assert.ok(hot.p>warm.p&&hot.sigma>warm.sigma);
+ assert.ok(warm.n>room.n&&warm.muN<room.muN&&warm.sigma<room.sigma);
+ assert.ok(hot.ni<DONOR_DENSITY&&hot.p>warm.p&&hot.sigma<warm.sigma&&hot.sheetResistance>warm.sheetResistance);
+ // Published Arora Si parameters give ~301 cm²/(V·s) at this layer's
+ // 300 K ionized-donor density, rather than the low-doping ~1200 value.
+ assert.ok(room.muN>290&&room.muN<310);
  assert.equal(carrierMeasurement(NaN).temperature,300);
 });
 test('completion requires prepared equipment, probe contact, five distinct measurements and correct interpretation',()=>{
