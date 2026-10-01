@@ -20,7 +20,7 @@ test('Stage 3 requires all four owned AND prepared items, without accessory-slot
  assert.equal(JSON.stringify(s),before);
 });
 test('carrier model obeys charge neutrality, mass action, and conductivity throughout temperature sweep',()=>{
- assert.equal(DONOR_DENSITY,1e18);
+ assert.equal(DONOR_DENSITY,1e16);
  assert.ok(Math.abs(THICKNESS_CM-100*1e-7)<1e-20);
  assert.equal(SHEET_CORRECTION_FACTOR,1);
  for(let T=40;T<=800;T+=10){
@@ -35,16 +35,16 @@ test('carrier model obeys charge neutrality, mass action, and conductivity throu
   const inferredSheet=FOUR_PROBE_FACTOR*r.voltage/PROBE_CURRENT_A*SHEET_CORRECTION_FACTOR;
   assert.ok(Math.abs(inferredSheet/r.sheetResistance-1)<1e-12);
   assert.ok(Math.abs(r.sheetResistance*THICKNESS_CM*r.sigma-1)<1e-12);
-  assert.ok(r.sigma>=1&&r.sigma<=100,'within displayed log-axis at '+T);
+  assert.ok(r.sigma>=.1&&r.sigma<=100,'within displayed log-axis at '+T);
  }
  const cold=carrierMeasurement(60),middle=carrierMeasurement(150),room=carrierMeasurement(300),warm=carrierMeasurement(500),hot=carrierMeasurement(800);
- assert.equal(cold.regime,'partial');assert.equal(room.regime,'partial');assert.equal(hot.regime,'extrinsic');
- assert.ok(cold.n<middle.n&&cold.sigma<middle.sigma);
- assert.ok(warm.n>room.n&&warm.muN<room.muN&&warm.sigma<room.sigma);
- assert.ok(hot.ni<DONOR_DENSITY&&hot.p>warm.p&&hot.sigma<warm.sigma&&hot.sheetResistance>warm.sheetResistance);
- // Published Arora Si parameters give ~301 cm²/(V·s) at this layer's
- // 300 K ionized-donor density, rather than the low-doping ~1200 value.
- assert.ok(room.muN>290&&room.muN<310);
+ assert.equal(cold.regime,'partial');assert.equal(room.regime,'extrinsic');assert.equal(hot.regime,'intrinsic');
+ assert.ok(cold.n<middle.n);
+ assert.ok(Math.abs(warm.n/room.n-1)<.01&&warm.muN<room.muN&&warm.sigma<room.sigma);
+ assert.ok(hot.ni>DONOR_DENSITY&&hot.n>warm.n&&hot.p>warm.p&&hot.sigma>warm.sigma&&hot.sheetResistance<warm.sheetResistance);
+ assert.ok(hot.sigma/warm.sigma>4);
+ // At 10¹⁶ cm⁻³ the 300 K mobility is near the low-doping Si value.
+ assert.ok(room.muN>1200&&room.muN<1250);
  assert.equal(carrierMeasurement(NaN).temperature,300);
 });
 test('completion requires prepared equipment, probe contact, five distinct measurements and correct interpretation',()=>{

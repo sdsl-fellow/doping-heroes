@@ -9,7 +9,7 @@ export const carrierEquipment=[
 export const targetTemperatures=[60,150,300,500,800];
 // Uniform, electrically active n-type surface sheet on a p-type Si substrate.
 // Only the surface sheet conducts in this educational approximation.
-export const DONOR_DENSITY=1e18;
+export const DONOR_DENSITY=1e16;
 export const CHARGE=1.602176634e-19;
 export const THICKNESS_CM=1e-5; // 100 nm; not the substrate thickness.
 export const PROBE_CURRENT_A=1e-5;
@@ -60,8 +60,8 @@ export function measurementsComplete(records){
 }
 export const carrierQuestions=[
  {id:'cold',question:'60 K → 150 K에서 전자 농도가 증가하는 주된 이유는?',options:[{id:'lattice',text:'실리콘 원자 수가 증가하기 때문'},{id:'ionization',text:'도너가 이온화되어 전자를 공급하기 때문'},{id:'holes',text:'정공이 전자로 바뀌기 때문'}],answer:'ionization',explanation:'저온에서는 도너에 묶여 있던 전자가 열에너지로 전도대에 공급됩니다.'},
- {id:'middle',question:'300 K → 500 K에서 전자 농도가 증가해도 전도도가 감소하는 이유는?',options:[{id:'mobility',text:'이동도 감소 효과가 전자 농도 증가 효과보다 크기 때문'},{id:'donors',text:'도너 원자가 시편에서 사라지기 때문'},{id:'charge',text:'전자 한 개의 전하량이 작아지기 때문'}],answer:'mobility',explanation:'이 조건에서는 온도가 높아지며 전자 공급이 늘어도 이동도가 감소합니다. 전도도는 농도와 이동도의 곱으로 결정됩니다.'},
- {id:'hot',question:'이 조건에서 800 K의 전도도가 500 K보다 작은 이유는?',options:[{id:'mass',text:'n-type 층 두께가 자동으로 두 배가 되기 때문'},{id:'metal',text:'실리콘이 금속으로 변하기 때문'},{id:'mobility',text:'정공 농도 증가에도 전자 이동도 감소가 더 크게 작용하기 때문'}],answer:'mobility',explanation:'도너 농도 10¹⁸ cm⁻³에서는 이 모형의 800 K 진성 캐리어 농도가 도너 농도보다 작습니다. 정공은 늘지만 도너가 지배하는 전도가 유지되며, 이동도 감소로 전도도가 줄고 면저항은 증가합니다.'}
+ {id:'middle',question:'300 K → 500 K에서 전자 농도는 거의 일정한데 전도도가 감소하는 이유는?',options:[{id:'mobility',text:'격자 산란 증가로 전자 이동도가 감소하기 때문'},{id:'donors',text:'도너 원자가 시편에서 사라지기 때문'},{id:'charge',text:'전자 한 개의 전하량이 작아지기 때문'}],answer:'mobility',explanation:'300–500 K에서는 도너가 거의 모두 이온화되어 전자 농도가 도너 농도에 가깝게 유지됩니다. 격자 산란으로 이동도가 감소하여 전도도가 줄고 면저항은 증가합니다.'},
+ {id:'hot',question:'800 K에서 전도도가 500 K보다 다시 커지는 주된 이유는?',options:[{id:'mass',text:'n-type 층 두께가 자동으로 두 배가 되기 때문'},{id:'metal',text:'실리콘이 금속으로 변하기 때문'},{id:'pairs',text:'열적으로 생성되는 전자·정공 농도가 크게 증가하기 때문'}],answer:'pairs',explanation:'800 K의 진성 캐리어 농도는 약 7.1×10¹⁶ cm⁻³로 도너 농도 10¹⁶ cm⁻³보다 큽니다. 전자와 정공의 농도 증가가 이동도 감소를 넘어서 전도도가 다시 커지고 면저항은 감소합니다.'}
 ];
 export function interpretationCorrect(answers){return carrierQuestions.every(q=>answers[q.id]===q.answer);}
 export function canCompleteCarrierLab(save,prepared,contacted,records,answers){
