@@ -19,7 +19,7 @@ test('v25 is verified before any account request and all calls use only the new 
   await api.loadCloud('token');
   assert.deepEqual(calls.map(c=>c.method),['GET','POST','POST']);
   assert.ok(calls.every(c=>c.url===api.CLOUD_API_URL));
-  assert.match(api.CLOUD_API_URL,/AKfycbx7dUM9og5ZrCSxkqhVR8FOnlFEYKzGewbPuuWH393hOeOlcKYnJh5A4-U9Xqh2PJWm/);
+  assert.match(api.CLOUD_API_URL,/AKfycbw0dGuQRziXvqbstWSO9akdAj208hBKArX9JIT-i8QTnZgp4fN2A_uOONc0kgxYLZUZ/);
  }finally{globalThis.fetch=previousFetch;globalThis.window=previousWindow;}
 });
 
