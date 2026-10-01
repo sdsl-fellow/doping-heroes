@@ -2,6 +2,7 @@ import {useEffect,useRef,useState} from 'react';
 import type {Save} from './save';
 import {catalogItem} from './catalog.mjs';
 import {ItemIcon} from './ItemIcon';
+import {CarrierEquipmentPreview} from './CarrierEquipmentPreview';
 import {carrierEquipment,carrierLabReady,equipmentOwned,carrierMeasurement,targetTemperatures,measurementsComplete,carrierQuestions,canCompleteCarrierLab} from './stage-three-carriers.mjs';
 import './stage-three-carriers.css';
 
@@ -50,12 +51,13 @@ export function CarrierGraph({records}:{records:Reading[]}){
 
 export function StageThreeCarrierExperiment({save,completed,onComplete,onBusy}:{save:Save;completed:boolean;onComplete:()=>void;onBusy:(busy:boolean)=>void}){
  const [prepared,setPrepared]=useState<string[]>([]),[contacted,setContacted]=useState(false);
+ const [equipping,setEquipping]=useState<string|null>(null);
  const [temperature,setTemperature]=useState(300),[records,setRecords]=useState<Reading[]>([]),[reading,setReading]=useState<Reading|null>(null);
  const [answers,setAnswers]=useState<Record<string,string>>({}),[feedback,setFeedback]=useState(''),[busy,setBusy]=useState(false),[finished,setFinished]=useState(false);
  const timer=useRef<ReturnType<typeof setTimeout>|null>(null),awarded=useRef(false);
  useEffect(()=>()=>{if(timer.current)clearTimeout(timer.current);onBusy(false);},[onBusy]);
  const owned=equipmentOwned(save),ready=carrierLabReady(save,prepared),observed=measurementsComplete(records);
- const prepare=(id:string)=>{if(!owned.includes(id)||busy)return;setPrepared(ids=>[...new Set([...ids,id])]);};
+ const prepare=(id:string)=>{if(!owned.includes(id)||prepared.includes(id)||busy)return;setPrepared(ids=>[...ids,id]);setEquipping(id);};
  const measure=()=>{
   if(!ready||!contacted||timer.current)return;
   const result=carrierMeasurement(temperature);setBusy(true);onBusy(true);setFeedback('');
@@ -70,8 +72,17 @@ export function StageThreeCarrierExperiment({save,completed,onComplete,onBusy}:{
   <div className="carrier-intro"><span>PROBE STATION / 03</span><h3>온도를 바꾸면 전류는 어떻게 달라질까?</h3><p>장비를 준비하고 다섯 온도에서 전도도를 측정하세요. 캐리어 농도와 이동도가 함께 만드는 변화를 찾아봅시다.</p></div>
   {(completed||finished)&&<p className="carrier-success">실험 과제 완료 ✓ · 장비를 다시 준비해 보상 없이 복습할 수 있습니다.</p>}
   <h3>1. 실험 장비 준비</h3>
-  <p className="carrier-note">캐릭터의 액세서리 슬롯과 별개로, 이 실험 안에서 팔찌와 고글을 함께 착용합니다. 네 아이템은 소모되지 않습니다.</p>
-  <div className="carrier-equipment">{carrierEquipment.map(item=>{const have=owned.includes(item.id),done=prepared.includes(item.id),needsTools=item.id==='T06'&&!['A03','A04','T09'].every(id=>prepared.includes(id));return <div key={item.id} className={done?'prepared':!have?'missing':''}><ItemIcon id={item.id}/><strong>{catalogItem(item.id)?.name}</strong><small>{item.purpose}</small><button disabled={!have||done||busy||needsTools} onClick={()=>prepare(item.id)}>{!have?'미보유':done?'준비 완료 ✓':item.action}</button>{needsTools&&have&&<small>보호 장비와 트위져를 먼저 준비하세요.</small>}</div>;})}</div>
+  <div className={`carrier-equip-stage${ready?' ready':''}`}>
+   <div className="carrier-avatar-holder">
+    <CarrierEquipmentPreview character={save.character} prepared={prepared} name={save.name}/>
+    <div className="carrier-avatar-platform" aria-hidden="true"/>
+    {equipping&&<div key={equipping} className="carrier-equip-burst" aria-hidden="true"><i className="carrier-equip-ring"/><i className="carrier-equip-ring second"/>{Array.from({length:8},(_,i)=><i key={i} className="carrier-equip-spark" style={{transform:`rotate(${i*45}deg)`}}><b>✦</b></i>)}</div>}
+   </div>
+   <strong className="carrier-avatar-name">{save.name}</strong>
+   <p className="carrier-equip-status" role="status">{ready?'장비 착용 완료 · 실험 준비 완료!':equipping?`${catalogItem(equipping)?.name} 착용 완료 · ${prepared.length}/4`:'아래 장비를 눌러 실험을 준비하세요 · 0/4'}</p>
+  </div>
+  <div className="carrier-equipment">{carrierEquipment.map(item=>{const have=owned.includes(item.id),done=prepared.includes(item.id);return <div key={item.id} className={done?'prepared':!have?'missing':''}><ItemIcon id={item.id}/><strong>{catalogItem(item.id)?.name}</strong><button disabled={!have||done||busy} aria-label={`${catalogItem(item.id)?.name} 착용`} aria-pressed={done} onClick={()=>prepare(item.id)}>착용</button><small>{done?'착용 완료 ✓':!have?'미보유':item.purpose}</small></div>;})}</div>
+  <p className="carrier-note">팔찌와 고글을 함께 착용하고, 트위져와 웨이퍼 조각은 양손에 준비합니다. 네 아이템은 소모되지 않습니다.</p>
   {!carrierEquipment.every(item=>owned.includes(item.id))&&<p role="status" className="carrier-warning">미보유 장비는 세미 마을의 도너 상점에서 준비하세요. 네 가지를 모두 보유해야 실험할 수 있습니다.</p>}
   <h3>2. 프로브 접촉 · 온도별 측정</h3>
   <ProbeStation loaded={prepared.includes('T06')} contacted={ready&&contacted} temperature={temperature} reading={reading} busy={busy}/>
