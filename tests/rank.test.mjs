@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
+import {execFileSync} from 'node:child_process';
+import {conductivity,sigmaLabel} from '../src/progression.mjs';
 
 const source=fs.readFileSync(new URL('../google-apps-script/Code_v25_Stage2.gs',import.meta.url),'utf8');
 const headers=['studentId','name','doping','type','coins','items','saveJson','revision','updatedAt','createdAt','pinSalt','pinHash','rankExcluded'];
@@ -17,12 +19,64 @@ function fixture(){
  return {context,data,cache,reads:()=>reads,setRole:v=>{role=v;}};
 }
 
-test('ranking excludes root and flagged rows, sorts by doping, and assigns shared ranks',()=>{
+test('ranking excludes root and flagged rows, sorts by Lv., and assigns shared ranks',()=>{
  const f=fixture(),snapshot=f.context.rankSnapshot_(headers,f.data,'099746');
  assert.equal(snapshot.entries.length,12);
  assert.deepEqual(Array.from(snapshot.entries.slice(0,3),e=>e.rank),[1,1,3]);
  assert.ok(snapshot.entries.every(e=>!['099746','test1','test2','test3'].includes(e.studentId)));
  assert.throws(()=>f.context.rankSnapshot_(headers.slice(0,-1),f.data,'099746'),/Students/);
+});
+
+test('server Lv. matches the HUD across both curves, endpoints and interpolated concentrations',()=>{
+ const f=fixture();
+ for(const type of ['n','p'])for(let i=0;i<=800;i++){
+  const doping=10**(13+i/100),level=f.context.rankLevel_(doping,type);
+  assert.equal(level,Number(conductivity(doping,type).toPrecision(3)));
+  assert.equal(sigmaLabel(level),sigmaLabel(conductivity(doping,type)));
+ }
+ execFileSync(process.execPath,['scripts/sync-apps-script-rank.mjs','--check'],{cwd:new URL('..',import.meta.url)});
+});
+
+test('lower-dose n-type outranks higher-dose p-type before TOP 10 is selected',()=>{
+ const f=fixture();
+ f.data[4][2]=1e16;f.data[4][3]='p';
+ f.data[5][2]=9.9e15;f.data[5][3]='n';
+ const before=JSON.stringify(f.data),snapshot=f.context.rankSnapshot_(headers,f.data,'099746');
+ assert.ok(snapshot.entries.findIndex(e=>e.studentId==='2')<snapshot.entries.findIndex(e=>e.studentId==='1'));
+ const response=f.context.rankAction_({});
+ assert.equal(response.rank.metric,'level');
+ assert.ok(response.rank.entries.some(e=>e.doping===9.9e15&&e.type==='n'));
+ assert.ok(!response.rank.entries.some(e=>e.doping===1e16&&e.type==='p'));
+ assert.equal(JSON.stringify(f.data),before);
+});
+
+test('different raw conductivities with the same displayed Lv. share rank',()=>{
+ const f=fixture();f.data[4][2]=1e16;f.data[5][2]=1.00001e16;
+ assert.notEqual(conductivity(f.data[4][2]),conductivity(f.data[5][2]));
+ const snapshot=f.context.rankSnapshot_(headers,f.data,'099746');
+ assert.deepEqual(Array.from(snapshot.entries.slice(0,3),e=>e.rank),[1,1,3]);
+ assert.equal(snapshot.entries[0].level,snapshot.entries[1].level);
+ // A secondary dose sort must not break ties or move a higher-dose row first.
+ assert.equal(snapshot.entries[0].studentId,'1');
+});
+
+test('matching displayed Lv. across n/p types shares rank',()=>{
+ const f=fixture(),target=conductivity(1e16,'n');
+ let low=13,high=21;
+ for(let i=0;i<60;i++){const mid=(low+high)/2;if(conductivity(10**mid,'p')<target)low=mid;else high=mid;}
+ f.data[4][2]=1e16;f.data[5][2]=10**((low+high)/2);f.data[5][3]='p';
+ const snapshot=f.context.rankSnapshot_(headers,f.data,'099746');
+ assert.deepEqual(Array.from(snapshot.entries.slice(0,3),e=>e.rank),[1,1,3]);
+ assert.equal(snapshot.entries[0].level,snapshot.entries[1].level);
+});
+
+test('a warmed dose-ranking cache cannot be used by Lv. ranking',()=>{
+ const f=fixture();
+ f.cache.set('rank-students-v1:sheet:099746',JSON.stringify({entries:[],excludedIds:[],createdAt:Date.now()}));
+ const response=f.context.rankAction_({});
+ assert.equal(response.rank.total,12);assert.equal(response.rank.metric,'level');
+ assert.ok(response.rank.entries.every(e=>Number.isFinite(e.level)));
+ assert.equal(f.reads(),1);
 });
 
 test('public payload is limited to top ten and contains no student IDs, PIN fields or saves',()=>{

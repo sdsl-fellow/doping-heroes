@@ -5,8 +5,8 @@ import {CloudError,fetchCloudRank} from './cloud';
 import {conductivity,sigmaLabel} from './progression.mjs';
 import './rank.css';
 
-export type RankEntry={rank:number;name:string;doping:number;type:'n'|'p';character:Partial<Character>;isMe:boolean};
-export type RankData={entries:RankEntry[];myRank:RankEntry|null;excluded:boolean;total:number;updatedAt:string};
+export type RankEntry={rank:number;name:string;level?:number;doping:number;type:'n'|'p';character:Partial<Character>;isMe:boolean};
+export type RankData={metric?:'level';entries:RankEntry[];myRank:RankEntry|null;excluded:boolean;total:number;updatedAt:string};
 const doseLabel=(n:number)=>n.toExponential(3).replace('e+','e');
 export function Rank({token}:{token:string}){
  const [data,setData]=useState<RankData|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(true),[attempt,setAttempt]=useState(0);
@@ -16,7 +16,7 @@ export function Rank({token}:{token:string}){
    .finally(()=>{if(active)setBusy(false);});return()=>{active=false;};
  },[token,attempt]);
  return <section className="rank-panel" aria-busy={busy}>
-  <div className="rank-intro"><h3>캐릭터 성장 순위 · TOP 10</h3><p>도핑 농도 순으로 집계하며, 같은 농도는 공동 순위입니다.</p></div>
+  <div className="rank-intro"><h3>캐릭터 성장 순위 · TOP 10</h3><p>{data?.metric==='level'?'Lv. 순으로 집계하며, 같은 Lv.는 공동 순위입니다.':data?'도핑 농도 순으로 집계하며, 같은 농도는 공동 순위입니다.':'순위 기준을 확인하는 중…'}</p></div>
   {busy&&<p role="status">순위를 불러오는 중…</p>}
   {error&&<div role="alert"><p>{error}</p><button onClick={()=>setAttempt(n=>n+1)} disabled={busy}>다시 시도</button></div>}
   {data&&!busy&&!error&&<>
@@ -45,6 +45,6 @@ function RankRow({entry}:{entry:RankEntry}){
  return <article className={'rank-row'+(entry.isMe?' rank-me':'')}>
   <div className="rank-place"><RankMedal rank={entry.rank}/><strong>{entry.rank}<small>위</small></strong></div>
   <Avatar character={character} size={72.8}/>
-  <div className="rank-person"><strong>{entry.name}{entry.isMe&&<small>나</small>}</strong><span>Lv. {sigmaLabel(conductivity(entry.doping,entry.type))} S/cm</span><span className="rank-dose">{entry.type}형 · {doseLabel(entry.doping)} cm⁻³</span></div>
+  <div className="rank-person"><strong>{entry.name}{entry.isMe&&<small>나</small>}</strong><span>Lv. {sigmaLabel(entry.level??conductivity(entry.doping,entry.type))} S/cm</span><span className="rank-dose">{entry.type}형 · {doseLabel(entry.doping)} cm⁻³</span></div>
  </article>;
 }

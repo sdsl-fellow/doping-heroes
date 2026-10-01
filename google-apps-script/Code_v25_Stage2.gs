@@ -6,7 +6,7 @@
  */
 
 const API_VERSION = 25;
-const RELEASE_LABEL = 'v25-stage-progress-20260930';
+const RELEASE_LABEL = 'v25-rank-level-20261001';
 const ROOT_STUDENT_ID = typeof PropertiesService==='undefined'?'':(PropertiesService.getScriptProperties().getProperty('ROOT_STUDENT_ID')||'');
 const ROOT_NAME = typeof PropertiesService==='undefined'?'관리자':(PropertiesService.getScriptProperties().getProperty('ROOT_NAME')||'관리자');
 const ROSTER_SHEET = 'Roster';
@@ -1587,7 +1587,7 @@ function questionsEditedV19(e){
 function rankAction_(request) {
  const auth=verifyToken_(request.token);
  const props=PropertiesService.getScriptProperties();
- const key='rank-students-v1:'+props.getProperty('SPREADSHEET_ID')+':'+ROOT_STUDENT_ID;
+ const key='rank-level-v1:'+props.getProperty('SPREADSHEET_ID')+':'+ROOT_STUDENT_ID;
  const cache=CacheService.getScriptCache();
  let snapshot;
  try{const raw=cache.get(key);if(raw)snapshot=JSON.parse(raw);}catch(_){}
@@ -1600,9 +1600,9 @@ function rankAction_(request) {
   // CacheService entries have a 100 KB limit; skip caching oversized cohorts.
   try{if(Utilities.newBlob(serialized).getBytes().length<95000)cache.put(key,serialized,60);}catch(_){}
  }
- const publicEntry=entry=>({rank:entry.rank,name:rankMaskedName_(entry.name),doping:entry.doping,type:entry.type,character:entry.character,isMe:entry.studentId===auth.studentId});
+ const publicEntry=entry=>({rank:entry.rank,name:rankMaskedName_(entry.name),level:entry.level,doping:entry.doping,type:entry.type,character:entry.character,isMe:entry.studentId===auth.studentId});
  const mine=snapshot.entries.find(entry=>entry.studentId===auth.studentId);
- return {ok:true,rank:{entries:snapshot.entries.slice(0,10).map(publicEntry),myRank:mine?publicEntry(mine):null,excluded:auth.studentId===ROOT_STUDENT_ID||snapshot.excludedIds.includes(auth.studentId),total:snapshot.entries.length,updatedAt:new Date(snapshot.createdAt).toISOString()}};
+ return {ok:true,rank:{metric:'level',entries:snapshot.entries.slice(0,10).map(publicEntry),myRank:mine?publicEntry(mine):null,excluded:auth.studentId===ROOT_STUDENT_ID||snapshot.excludedIds.includes(auth.studentId),total:snapshot.entries.length,updatedAt:new Date(snapshot.createdAt).toISOString()}};
 }
 
 function rankSnapshot_(headers,rows,rootId) {
@@ -1626,10 +1626,12 @@ function rankSnapshot_(headers,rows,rootId) {
   if(!name)return;
   const character={};
   characterKeys.forEach(key=>{const value=save.character[key];if(typeof value==='string'&&value.length<=40)character[key]=value;});
-  entries.push({studentId,name,doping,type:row[at('type')]==='p'?'p':'n',character});
+  const type=row[at('type')]==='p'?'p':'n';
+  entries.push({studentId,name,doping,type,level:rankLevel_(doping,type),character});
  });
- entries.sort((a,b)=>b.doping-a.doping||a.studentId.localeCompare(b.studentId));
- entries.forEach((entry,index)=>{entry.rank=index&&entries[index-1].doping===entry.doping?entries[index-1].rank:index+1;});
+ // Rank the displayed three-significant-digit Lv.; IDs only stabilize tied rows.
+ entries.sort((a,b)=>b.level-a.level||a.studentId.localeCompare(b.studentId));
+ entries.forEach((entry,index)=>{entry.rank=index&&entries[index-1].level===entry.level?entries[index-1].rank:index+1;});
  return {entries,excludedIds,createdAt:Date.now()};
 }
 
@@ -1690,3 +1692,19 @@ function changeStudentPin_(request) {
   return {ok:true,pinChanged:true};
  }finally{lock.releaseLock();}
 }
+
+// BEGIN GENERATED RANK LEVEL
+// Generated from src/progression.mjs. Run node scripts/sync-apps-script-rank.mjs.
+function rankLevel_(doping,type) {
+ const MIN_DOPING=10000000000000,MAX_DOPING=1e+21;
+ const curves={"n":[[13,2.63784],[13.1,2.52973],[13.2,2.44324],[13.3,2.33514],[13.4,2.24865],[13.5,2.14054],[13.6,2.05405],[13.7,1.94595],[13.8,1.83784],[13.9,1.72973],[14,1.64324],[14.1,1.53514],[14.2,1.44865],[14.3,1.34054],[14.4,1.25405],[14.5,1.14595],[14.6,1.05946],[14.7,0.95135],[14.8,0.86486],[14.9,0.75676],[15,0.67027],[15.1,0.56216],[15.2,0.47568],[15.3,0.36757],[15.4,0.28108],[15.5,0.17297],[15.6,0.08649],[15.7,0],[15.8,-0.08649],[15.9,-0.19459],[16,-0.28108],[16.1,-0.36757],[16.2,-0.45405],[16.3,-0.54054],[16.4,-0.60541],[16.5,-0.69189],[16.6,-0.77838],[16.7,-0.86486],[16.8,-0.92973],[16.9,-0.99459],[17,-1.05946],[17.1,-1.14595],[17.2,-1.21081],[17.3,-1.27568],[17.4,-1.31892],[17.5,-1.36216],[17.6,-1.42703],[17.7,-1.47027],[17.8,-1.53514],[17.9,-1.6],[18,-1.68649],[18.1,-1.75135],[18.2,-1.79459],[18.3,-1.85946],[18.4,-1.9027],[18.5,-1.96757],[18.6,-2.03243],[18.7,-2.0973],[18.8,-2.14054],[18.9,-2.22703],[19,-2.29189],[19.1,-2.35676],[19.2,-2.42162],[19.3,-2.50811],[19.4,-2.57297],[19.5,-2.65946],[19.6,-2.72432],[19.7,-2.81081],[19.8,-2.8973],[19.9,-2.98378],[20,-3.07027],[20.1,-3.15676],[20.2,-3.24324],[20.3,-3.35135],[20.4,-3.43784],[20.5,-3.52432],[20.6,-3.61081],[20.7,-3.71892],[20.8,-3.80541],[20.9,-3.91351],[21,-3.97838]],"p":[[13,3.11351],[13.1,3.00541],[13.2,2.91892],[13.3,2.81081],[13.4,2.72432],[13.5,2.61622],[13.6,2.52973],[13.7,2.42162],[13.8,2.33514],[13.9,2.22703],[14,2.11892],[14.1,2.01081],[14.2,1.92432],[14.3,1.81622],[14.4,1.72973],[14.5,1.62162],[14.6,1.53514],[14.7,1.42703],[14.8,1.34054],[14.9,1.23243],[15,1.12432],[15.1,1.01622],[15.2,0.92973],[15.3,0.82162],[15.4,0.73514],[15.5,0.62703],[15.6,0.54054],[15.7,0.43243],[15.8,0.34595],[15.9,0.25946],[16,0.17297],[16.1,0.06486],[16.2,-0.02162],[16.3,-0.10811],[16.4,-0.19459],[16.5,-0.28108],[16.6,-0.36757],[16.7,-0.45405],[16.8,-0.54054],[16.9,-0.62703],[17,-0.71351],[17.1,-0.8],[17.2,-0.86486],[17.3,-0.95135],[17.4,-1.01622],[17.5,-1.08108],[17.6,-1.14595],[17.7,-1.21081],[17.8,-1.27568],[17.9,-1.34054],[18,-1.42703],[18.1,-1.49189],[18.2,-1.55676],[18.3,-1.62162],[18.4,-1.68649],[18.5,-1.75135],[18.6,-1.81622],[18.7,-1.88108],[18.8,-1.94595],[18.9,-2.03243],[19,-2.0973],[19.1,-2.16216],[19.2,-2.22703],[19.3,-2.31351],[19.4,-2.37838],[19.5,-2.46486],[19.6,-2.55135],[19.7,-2.63784],[19.8,-2.7027],[19.9,-2.78919],[20,-2.87568],[20.1,-2.96216],[20.2,-3.04865],[20.3,-3.15676],[20.4,-3.24324],[20.5,-3.32973],[20.6,-3.41622],[20.7,-3.52432],[20.8,-3.61081],[20.9,-3.71892],[21,-3.80541]]};
+function clampDoping(n){return Math.max(MIN_DOPING,Math.min(MAX_DOPING,Number.isFinite(n)?n:MIN_DOPING));}
+function resistivity(concentration,type='n'){
+ const exponent=Math.log10(clampDoping(concentration));const points=curves[type==='p'?'p':'n'];
+ const i=Math.min(points.length-2,Math.max(0,Math.floor((exponent-13)*10)));
+ const [x0,y0]=points[i],[x1,y1]=points[i+1];return 10**(y0+(y1-y0)*(exponent-x0)/(x1-x0));
+}
+const conductivity=(n,type='n')=>1/resistivity(n,type);
+ return Number(conductivity(doping,type).toPrecision(3));
+}
+// END GENERATED RANK LEVEL
