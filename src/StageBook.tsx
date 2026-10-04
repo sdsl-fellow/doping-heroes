@@ -5,16 +5,17 @@ import {useState} from 'react';
 import {stageDefinitions} from './maps.mjs';
 import {stage1ReadingPages, stage1ReadingSources, type ReadingPage} from './stage1-reading';
 import {stage2ReadingPages} from './stage2-reading';
+import {stage3ReadingPages,stage3ReadingSources} from './stage3-reading';
 
 // Stages without lecture materials retain their placeholders.
-export const lecturePages:ReadingPage[][]=stageDefinitions.map((stage,index)=>index===0?stage1ReadingPages:index===1?stage2ReadingPages:[
+export const lecturePages:ReadingPage[][]=stageDefinitions.map((stage,index)=>index===0?stage1ReadingPages:index===1?stage2ReadingPages:index===2?stage3ReadingPages:[
  {title:'핵심 개념',text:`${stage.name} 강의의 핵심 개념이 이 페이지에 들어갈 예정입니다.`,note:'예시 내용 · 실제 강의자료는 추후 추가됩니다.'},
  {title:'주요 식과 그림',text:'중요한 관계식, 기호의 의미, 소자 구조와 설명 그림을 정리할 예정입니다.',note:'지금은 책 열기와 페이지 넘기기를 체험할 수 있습니다.'},
  {title:'생각해 볼 질문',text:'강의를 읽고 스스로 확인할 질문과 핵심 요약을 추가할 예정입니다.',note:'책을 닫으면 탐험하던 자리로 돌아갑니다.'}
 ]);
 export function StageBook({stage,save,rewardsReady,onComplete}:{stage:number;save:{readBooks:number[];readBookSources?:string[]};rewardsReady:boolean;onComplete:(sourceId:string)=>void}){
  const [page,setPage]=useState(0),[sourceId,setSourceId]=useState<string|null>(null);
- const sources=stage===0?stage1ReadingSources:[];
+ const sources:{id:string;label:string;pages:unknown[]}[]=stage===0?stage1ReadingSources:stage===2?stage3ReadingSources:[];
  const selected=sources.find(source=>source.id===sourceId);
  const read=bookSources(save),activeSource=selected?.id??firstBookSource(stage),completed=read.includes(activeSource);
  const offset=selected?sources.slice(0,sources.indexOf(selected)).reduce((sum,source)=>sum+source.pages.length,0):0;

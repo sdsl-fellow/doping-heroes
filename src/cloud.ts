@@ -8,7 +8,7 @@ const CLOUD_AUTH_KEY='doping-heroes:cloud-auth:v1';
 
 export type CloudSession={studentId:string;token:string;revision:number};
 export type CloudStudent={studentId:string;name:string;save:Save;revision:number};
-export type CloudResponse={ok:boolean;registrationToken?:string;mustChangePin?:boolean;pinChanged?:boolean;rank?:import('./Rank').RankData;qa?:import('./Questions').QuestionData;apiVersion?:number;release?:string;content?:import('./LearningContent').ContentData;quiz?:TranslationRound;stage_layout?:number;item_schema?:number;token?:string;student?:CloudStudent;stages?:boolean[];allowed?:boolean;registered?:boolean;serverTime?:string;error?:{code:string;message:string}};
+export type CloudResponse={ok:boolean;registrationToken?:string;mustChangePin?:boolean;pinChanged?:boolean;rank?:import('./Rank').RankData;qa?:import('./Questions').QuestionData;apiVersion?:number;release?:string;translationStages?:number[];content?:import('./LearningContent').ContentData;quiz?:TranslationRound;stage_layout?:number;item_schema?:number;token?:string;student?:CloudStudent;stages?:boolean[];allowed?:boolean;registered?:boolean;serverTime?:string;error?:{code:string;message:string}};
 
 export class CloudError extends Error{
  code:string;response?:CloudResponse;

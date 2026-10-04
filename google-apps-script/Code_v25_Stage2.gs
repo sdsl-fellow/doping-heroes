@@ -6,7 +6,7 @@
  */
 
 const API_VERSION = 25;
-const RELEASE_LABEL = 'v25-rank-level-20261001';
+const RELEASE_LABEL = 'v25-stage3-reading-20261004';
 const ROOT_STUDENT_ID = typeof PropertiesService==='undefined'?'':(PropertiesService.getScriptProperties().getProperty('ROOT_STUDENT_ID')||'');
 const ROOT_NAME = typeof PropertiesService==='undefined'?'관리자':(PropertiesService.getScriptProperties().getProperty('ROOT_NAME')||'관리자');
 const ROSTER_SHEET = 'Roster';
@@ -78,6 +78,7 @@ function doGet() {
       release: RELEASE_LABEL,
       item_schema: ITEM_SCHEMA,
       stage_layout: 3,
+      translationStages: [1,2,3],
       stages: readStages_(),
       serverTime: koreaTimestamp_()
     });
@@ -1002,7 +1003,7 @@ function resetAllLearningProgress() {
   } finally { lock.releaseLock(); }
 }
 
-/** Stage 1 and Stage 2 translation quizzes. */
+/** Stage 1–3 translation quizzes from private learning-content sheets. */
 const TRANSLATION_HEADERS = ['questionId','stage','kind','english','optionA','optionB','optionC','optionD','correctOption','explanation','sourceId','sourceTitle','sourcePage','active','rewardDose','rewardCoins'];
 
 // Run from the editor after replacing Code.gs. Existing IDs/edits are never overwritten.
@@ -1015,6 +1016,13 @@ function setupStage2Translation(){
   if(!bank.length)throw apiError_('TRANSLATION_EMPTY','Translation_02에 활성 문항을 먼저 등록하세요.');
   clearTranslationQuestionCache();
   return '학습 콘텐츠 Translation_02 '+bank.length+'개 문항 확인 완료. 기존 문제와 학생 기록은 변경하지 않았습니다.';
+}
+function setupStage3Learning(){
+  clearLearningContentCache();
+  const quiz=learningQuizBank_(3),translation=translationReadBank_(3);
+  if(!quiz.length)throw apiError_('CONTENT_EMPTY','Quiz_03에 활성 문항을 먼저 등록하세요.');
+  if(!translation.length)throw apiError_('TRANSLATION_EMPTY','Translation_03에 활성 문항을 먼저 등록하세요.');
+  return 'Stage 3 일반 '+quiz.length+'개·번역 '+translation.length+'개 문항 확인 완료. 기존 학생·PIN·진행 기록은 변경하지 않았습니다. 기존 웹 앱을 새 버전으로 배포하세요.';
 }
 function translationHeaderCheck_(sheet){
   if(JSON.stringify(sheet.getRange(1,1,1,TRANSLATION_HEADERS.length).getValues()[0])!==JSON.stringify(TRANSLATION_HEADERS))throw apiError_('TRANSLATION_SCHEMA','TranslationQuestions의 열 이름과 순서를 확인하세요.');
@@ -1030,10 +1038,10 @@ function translationBank_(stage=1){
 function clearTranslationQuestionCache(){
  const prefix='translation-bank-v16:'+PropertiesService.getScriptProperties().getProperty('CONTENT_SPREADSHEET_ID');
  CacheService.getScriptCache().remove(prefix);
- for(let stage=1;stage<=2;stage++)CacheService.getScriptCache().remove(prefix+':'+stage);
+ for(let stage=1;stage<=3;stage++)CacheService.getScriptCache().remove(prefix+':'+stage);
 }
 function translationReadBank_(stage=1){
-  if(stage!==1&&stage!==2)throw apiError_('TRANSLATION_STAGE','번역 퀴즈를 지원하지 않는 스테이지입니다.');
+  if(![1,2,3].includes(stage))throw apiError_('TRANSLATION_STAGE','번역 퀴즈를 지원하지 않는 스테이지입니다.');
   const tab='Translation_'+String(stage).padStart(2,'0');
   const rows=learningRows_(tab,TRANSLATION_HEADERS).map(q=>TRANSLATION_HEADERS.map(h=>q[h]));
   const seen=new Set();
@@ -1088,8 +1096,8 @@ function translationAction_(request){
   if(!row)throw apiError_('ACCOUNT_NOT_FOUND','계정을 찾지 못했습니다.');
   const v=sheet.getRange(row,1,1,STUDENT_HEADERS.length).getValues()[0];
   const save=parseStoredSave_(v[STUDENT_HEADERS.indexOf('saveJson')],auth.studentId,String(v[1]));
-  const stage=save.area==='stage-1'?1:save.area==='stage-2'?2:0;
-  if(!stage)throw apiError_('TRANSLATION_STAGE','Stage 1 또는 Stage 2 내부에서 번역 퀴즈를 시작하세요.');
+  const stage=save.area==='stage-1'?1:save.area==='stage-2'?2:save.area==='stage-3'?3:0;
+  if(!stage)throw apiError_('TRANSLATION_STAGE','Stage 1·2·3 내부에서 번역 퀴즈를 시작하세요.');
   const bank=translationBank_(stage),unsolved=bank.filter(q=>!save.translation_solved.includes(q.questionId));
   if(!bank.length)throw apiError_('TRANSLATION_EMPTY','활성 번역 문제가 없습니다.');
   const q=translationShuffle_(unsolved.length?unsolved:bank)[0];
@@ -1101,8 +1109,8 @@ function translationAction_(request){
   if(!row)throw apiError_('ACCOUNT_NOT_FOUND','계정을 찾지 못했습니다.');
   const v=sheet.getRange(row,1,1,STUDENT_HEADERS.length).getValues()[0],at=h=>STUDENT_HEADERS.indexOf(h);
   const save=parseStoredSave_(v[at('saveJson')],auth.studentId,String(v[1])),revision=Number(v[at('revision')])||1;
-  const stage=save.area==='stage-1'?1:save.area==='stage-2'?2:0;
-  if(!stage)throw apiError_('TRANSLATION_STAGE','Stage 1 또는 Stage 2 내부에서 번역 퀴즈를 시작하세요.');
+  const stage=save.area==='stage-1'?1:save.area==='stage-2'?2:save.area==='stage-3'?3:0;
+  if(!stage)throw apiError_('TRANSLATION_STAGE','Stage 1·2·3 내부에서 번역 퀴즈를 시작하세요.');
   const issued=translationVerifyQuestionToken_(request.questionToken,auth.studentId);
   if(issued.stage&&issued.stage!==stage)throw apiError_('TRANSLATION_STAGE','문제가 다른 스테이지에서 발급됐습니다. 새 문제를 불러오세요.');
   const q=translationBank_(stage).find(item=>item.questionId===issued.qid);
