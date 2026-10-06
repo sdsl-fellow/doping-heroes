@@ -13,9 +13,8 @@ const waferFragmentImage=`./item-icons/${catalogItem('T06')!.assetCode}.png?v=3`
 
 export function ProbeStation({loaded,contacted,temperature,reading,busy}:{loaded:boolean;contacted:boolean;temperature:number;reading:Reading|null;busy:boolean}){
  const hot=temperature>=500;
- return <svg className={`carrier-station${busy?' measuring':''}`} viewBox="0 0 600 310" role="img" aria-label={`4점 프로브 스테이션. ${loaded?'시편 배치 완료':'시편 없음'}. ${contacted?'프로브 접촉 완료':'프로브 올림'}. ${temperature} K.`}>
+ return <svg className={`carrier-station${busy?' measuring':''}`} viewBox="0 0 600 290" role="img" aria-label={`4점 프로브 스테이션. ${loaded?'시편 배치 완료':'시편 없음'}. ${contacted?'프로브 접촉 완료':'프로브 올림'}. ${temperature} K.`}>
   <defs><linearGradient id="carrier-metal" x2="0" y2="1"><stop stopColor="#ecf4ed"/><stop offset=".55" stopColor="#beced0"/><stop offset="1" stopColor="#81979e"/></linearGradient><linearGradient id="carrier-probe-metal" x1="0" y1="0" x2="1" y2="0"><stop stopColor="#737d88"/><stop offset=".4" stopColor="#e6ebef"/><stop offset=".65" stopColor="#a8b1ba"/><stop offset="1" stopColor="#606b76"/></linearGradient></defs>
-  <rect x="2" y="2" width="596" height="306" rx="18" fill="#132f3d" stroke="#4f7886"/>
   <path d="M22 270H578" stroke="#5c7f87" strokeWidth="3"/>
   <path d="M162 244L410 244 445 270 127 270Z" fill="#759096"/><rect x="146" y="269" width="278" height="12" rx="4" fill="#4e646e"/>
   <rect x="205" y="75" width="18" height="163" fill="url(#carrier-metal)"/><rect x="215" y="75" width="140" height="18" rx="3" fill="url(#carrier-metal)"/>
@@ -32,11 +31,10 @@ export function ProbeStation({loaded,contacted,temperature,reading,busy}:{loaded
   <g><rect x="431" y="43" width="149" height="83" rx="8" fill="url(#carrier-metal)"/><rect x="441" y="66" width="129" height="39" rx="4" fill="#0b2432"/><text x="505" y="59" textAnchor="middle" fontSize="12" fill="#233c48">전압계 · VOLTAGE</text><text x="505" y="90" textAnchor="middle" fontSize="16" fill="#9aebf1">{busy?'READ…':reading?sci(reading.voltage*1000)+' mV':'— mV'}</text></g>
   <g><rect x="430" y="183" width="150" height="65" rx="7" fill="#e2e7de"/><text x="505" y="201" textAnchor="middle" fontSize="12" fill="#243e49">온도 제어 척(chuck)</text><rect x="441" y="209" width="129" height="29" rx="3" fill="#203747"/><text x="505" y="230" textAnchor="middle" fontSize="20" fill={hot?'#ffd19b':'#a7eaf3'}>{temperature} K</text><path d="M430 230H392" stroke="#ebbc76" strokeWidth="3"/></g>
   <circle className="carrier-status-light" cx="31" cy="20" r="5" fill={contacted?'#8ee1ac':'#8b9fa8'}/><text x="44" y="25" fontSize="13" fill="#c9e1e6">{busy?'측정 중':contacted?'접촉 완료 · 측정 준비':loaded?'프로브를 내려 접촉하세요':'트위져로 시편을 배치하세요'}</text>
-  <text x="287" y="298" textAnchor="middle" fontSize="13" fill="#bad6da">p-Si 기판 · 표면 n-Si(P): 10¹⁶ cm⁻³ · 100 nm</text>
  </svg>;
 }
 
-export function CarrierGraph({records}:{records:Reading[]}){
+export function CarrierGraph({records,lastReading}:{records:Reading[];lastReading:Reading|null}){
  const sorted=[...records].sort((a,b)=>a.temperature-b.temperature);
  const x=(T:number)=>65+(T-40)/760*475,y=(sigma:number)=>220-(Math.log10(sigma)+1)/3*180;
  return <svg className="carrier-graph" viewBox="0 0 600 275" role="img" aria-label="측정 온도에 따른 전도도 그래프. 세로축은 로그 눈금입니다.">
@@ -47,12 +45,19 @@ export function CarrierGraph({records}:{records:Reading[]}){
   {sorted.length>1&&<polyline points={sorted.map(r=>`${x(r.temperature)},${y(r.sigma)}`).join(' ')} fill="none" stroke="#ecc780" strokeWidth="2"/>}
   {sorted.map(r=><circle key={r.temperature} cx={x(r.temperature)} cy={y(r.sigma)} r="5" fill="#8de9e1" stroke="#183645" strokeWidth="2"><title>{`${r.temperature} K · ${sci(r.sigma)} S/cm`}</title></circle>)}
   {!sorted.length&&<text x="300" y="126" textAnchor="middle" fill="#8eafb9" fontSize="15">측정하면 그래프에 점이 기록됩니다</text>}
+  {lastReading&&<g className="carrier-graph-reading" aria-live="polite">
+   <rect x="250" y="46" width="280" height="57" rx="6" fill="#173440"/>
+   <text x="262" y="61" fontSize="12" fill="#c2d8dc">최근 측정 · {lastReading.temperature} K</text>
+   <text x="262" y="79" fontSize="15" fill="#a4eee4">면저항 Rₛ = {sci(lastReading.sheetResistance)} Ω/□</text>
+   <text x="262" y="97" fontSize="15" fill="#a4eee4">전도도 σ = {sci(lastReading.sigma)} S/cm</text>
+  </g>}
   <text x="305" y="268" textAnchor="middle" fontSize="14" fill="#c2d8dc">온도 T (K)</text>
  </svg>;
 }
 
 export function StageThreeCarrierExperiment({save,completed,onComplete,onBusy}:{save:Save;completed:boolean;onComplete:()=>void;onBusy:(busy:boolean)=>void}){
  const [prepared,setPrepared]=useState<string[]>([]),[contacted,setContacted]=useState(false);
+ const [lastReading,setLastReading]=useState<Reading|null>(null);
  const [equipping,setEquipping]=useState<string|null>(null);
  const [temperature,setTemperature]=useState(300),[records,setRecords]=useState<Reading[]>([]),[reading,setReading]=useState<Reading|null>(null);
  const [answers,setAnswers]=useState<Record<string,string>>({}),[feedback,setFeedback]=useState(''),[busy,setBusy]=useState(false),[finished,setFinished]=useState(false);
@@ -63,7 +68,7 @@ export function StageThreeCarrierExperiment({save,completed,onComplete,onBusy}:{
  const measure=()=>{
   if(!ready||!contacted||timer.current)return;
   const result=carrierMeasurement(temperature);setBusy(true);onBusy(true);setFeedback('');
-  timer.current=setTimeout(()=>{setReading(result);setRecords(old=>[...old.filter(r=>r.temperature!==result.temperature),result].sort((a,b)=>a.temperature-b.temperature));setBusy(false);onBusy(false);timer.current=null;},650);
+  timer.current=setTimeout(()=>{setReading(result);setLastReading(result);setRecords(old=>[...old.filter(r=>r.temperature!==result.temperature),result].sort((a,b)=>a.temperature-b.temperature));setBusy(false);onBusy(false);timer.current=null;},650);
  };
  const check=()=>{
   if(!canCompleteCarrierLab(save,prepared,contacted,records,answers)){setFeedback('여섯 온도의 측정을 완료하고, 전자 농도와 이동도를 비교해 답을 다시 선택하세요.');return;}
@@ -87,8 +92,10 @@ export function StageThreeCarrierExperiment({save,completed,onComplete,onBusy}:{
   <p className="carrier-note">팔찌와 고글을 함께 착용하고, 트위져와 웨이퍼 조각은 양손에 준비합니다. 네 아이템은 소모되지 않습니다.</p>
   {!carrierEquipment.every(item=>owned.includes(item.id))&&<p role="status" className="carrier-warning">미보유 장비는 세미 마을의 도너 상점에서 준비하세요. 네 가지를 모두 보유해야 실험할 수 있습니다.</p>}
   <h3>2. 프로브 접촉 및 온도별 측정</h3>
+  <div className="carrier-station-box">
   <ProbeStation loaded={prepared.includes('T06')} contacted={ready&&contacted} temperature={temperature} reading={reading} busy={busy}/>
-  <p className="carrier-note">p-type Si 웨이퍼 조각의 표면에 P 도핑 농도 10¹⁶ cm⁻³, 두께 100 nm의 균일한 n-type 층이 형성되어 있다고 가정합니다. 바깥쪽 두 프로브로 표면층에 전류를 흘리고 안쪽 두 프로브로 전압을 읽어 면저항을 구합니다.</p>
+  <p className="carrier-sample-note">p-type Si 웨이퍼 조각의 표면에 P 도핑 농도 10¹⁶ cm⁻³, 두께 100 nm의 균일한 n-type 층이 형성되어 있다고 가정합니다. 바깥쪽 두 프로브로 표면층에 전류를 흘리고 안쪽 두 프로브로 전압을 읽어 면저항을 구합니다.</p>
+  </div>
   <button className="primary" disabled={!ready||contacted||busy} onClick={()=>setContacted(true)}>{contacted?'4점 프로브 접촉 완료 ✓':'프로브 내리기 · 시편에 접촉'}</button>
   <fieldset className="carrier-controls" disabled={!ready||!contacted||busy}>
    <label htmlFor="carrier-temperature">시편 온도 <strong>{temperature} K <small>({(temperature-273.15).toFixed(1)} °C)</small></strong></label>
@@ -96,9 +103,8 @@ export function StageThreeCarrierExperiment({save,completed,onComplete,onBusy}:{
    <div className="carrier-presets" aria-label="필수 측정 온도">{targetTemperatures.map(T=><button key={T} aria-pressed={temperature===T} aria-label={`${T} K${records.some(r=>r.temperature===T)?' · 측정 완료':''}`} onClick={()=>{setTemperature(T);setReading(null);}}>{T} K{records.some(r=>r.temperature===T)&&<span className="carrier-temperature-check" aria-hidden="true">✓</span>}</button>)}</div>
    <button className="primary" onClick={measure}>{busy?'온도 안정화 · 측정 중…':'현재 온도에서 측정·기록'}</button>
   </fieldset>
-  <div className="carrier-readings" aria-live="polite"><div className="carrier-sheet-reading"><small>면저항 Rₛ</small><strong>{reading?sci(reading.sheetResistance):'—'} <small>Ω/□</small></strong></div><div><small>전도도 σ</small><strong>{reading?sci(reading.sigma):'—'} <small>S/cm</small></strong></div><div><small>전자 농도 n</small><strong>{reading?sci(reading.n):'—'} <small>cm⁻³</small></strong></div><div><small>전자 이동도 μₙ</small><strong>{reading?reading.muN.toFixed(1):'—'} <small>cm²/(V·s)</small></strong></div><div><small>정공 농도 p</small><strong>{reading?sci(reading.p):'—'} <small>cm⁻³</small></strong></div></div>
   {reading&&<p className="carrier-region" role="status">{regionNames[reading.regime as keyof typeof regionNames]} · 도너 이온화율 {(reading.ionized/DONOR_DENSITY*100).toFixed(1)}%</p>}
-  <CarrierGraph records={records}/>
+  <CarrierGraph records={records} lastReading={lastReading}/>
   <p className="carrier-note">필수 온도 {targetTemperatures.filter(T=>records.some(r=>r.temperature===T)).length}/{targetTemperatures.length} 완료</p>
   {records.length>0&&<div className="carrier-table-wrap"><table><caption>온도별 측정 기록</caption><thead><tr><th scope="col">T (K)</th><th scope="col">Rₛ (Ω/□)</th><th scope="col">n (cm⁻³)</th><th scope="col">μₙ (cm²/V·s)</th><th scope="col">σ (S/cm)</th></tr></thead><tbody>{records.map(r=><tr key={r.temperature}><th scope="row">{r.temperature}</th><td>{sci(r.sheetResistance)}</td><td>{sci(r.n)}</td><td>{r.muN.toFixed(1)}</td><td>{sci(r.sigma)}</td></tr>)}</tbody></table></div>}
   <div className="carrier-theory"><strong>Rₛ = 1/(σt), σ = q(nμₙ + pμₚ)</strong><p>표면층의 전도도가 커지면 면저항은 작아집니다. 도너 농도 10¹⁶ cm⁻³와 표면층 두께 100 nm는 이 실험의 고정 조건이며, 캐릭터의 도핑 농도와는 별개입니다. n, p와 이동도는 모형에서 계산한 값이며, 전압 측정만으로 각각을 독립적으로 구할 수는 없습니다.</p></div>
