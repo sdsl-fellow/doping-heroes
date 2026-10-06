@@ -7,6 +7,16 @@ import {stage1ReadingPages, stage1ReadingSources, type ReadingPage} from './stag
 import {stage2ReadingPages} from './stage2-reading';
 import {stage3ReadingPages,stage3ReadingSources} from './stage3-reading';
 
+// Render scientific indices as semantic subscripts, including adjacent factors
+// such as NcNv, qDn and derivatives such as dFn/dx. Never interpret source HTML.
+function carrierNotation(text:string){
+ const symbols:Record<string,[string,string]>={EF:['E','F'],Ec:['E','c'],Ev:['E','v'],Ei:['E','i'],Eg:['E','g'],Nc:['N','c'],Nv:['N','v'],Nd:['N','d'],Na:['N','a'],gop:['g','op'],Dn:['D','n'],Dp:['D','p'],Fn:['F','n'],Fp:['F','p'],Gn:['G','n'],Gp:['G','p'],Rn:['R','n'],Rp:['R','p'],Rs:['R','s']};
+ return text.split(/(EF|Ec|Ev|Ei|Eg|Nc|Nv|Nd|Na|gop|Dn|Dp|Fn|Fp|Gn|Gp|Rn|Rp|Rs)/g).map((part,index)=>{
+  const symbol=symbols[part];
+  return symbol?<span key={index}>{symbol[0]}<sub>{symbol[1]}</sub></span>:part;
+ });
+}
+
 // Stages without lecture materials retain their placeholders.
 export const lecturePages:ReadingPage[][]=stageDefinitions.map((stage,index)=>index===0?stage1ReadingPages:index===1?stage2ReadingPages:index===2?stage3ReadingPages:[
  {title:'핵심 개념',text:`${stage.name} 강의의 핵심 개념이 이 페이지에 들어갈 예정입니다.`,note:'예시 내용 · 실제 강의자료는 추후 추가됩니다.'},
@@ -21,6 +31,7 @@ export function StageBook({stage,save,rewardsReady,onComplete}:{stage:number;sav
  const offset=selected?sources.slice(0,sources.indexOf(selected)).reduce((sum,source)=>sum+source.pages.length,0):0;
  const pages=selected?lecturePages[stage].slice(offset,offset+selected.pages.length):lecturePages[stage];
  const entry=pages[page];
+ const format=(text:string)=>stage===2?carrierNotation(text):text;
  if(sources.length&&!selected)return <section className="lecture-book" aria-label="낡은 책 자료 목차">
   <p className="book-stage">{stageDefinitions[stage].title}</p>
   <h3>자료 목차</h3><p>읽고 싶은 자료를 선택하세요.</p>
@@ -33,7 +44,7 @@ export function StageBook({stage,save,rewardsReady,onComplete}:{stage:number;sav
  return <section className="lecture-book" aria-label="강의 핵심 내용">
   <p className="book-stage">{stageDefinitions[stage].title}</p>
   {selected&&<button onClick={()=>{setSourceId(null);setPage(0);}}>← 자료 목차</button>}
-  <article key={page} className="book-page"><small>{entry.label??'강의 노트 · 임시 내용'}</small><h3>{entry.title}</h3>{entry.text.split('\n\n').map((paragraph,index)=><p key={index}>{paragraph}</p>)}<p style={{whiteSpace:'pre-line',overflowWrap:'anywhere'}}>{entry.note}</p></article>
+  <article key={page} className="book-page"><small>{entry.label??'강의 노트 · 임시 내용'}</small><h3>{format(entry.title)}</h3>{entry.text.split('\n\n').map((paragraph,index)=><p key={index}>{format(paragraph)}</p>)}<p style={{whiteSpace:'pre-line',overflowWrap:'anywhere'}}>{format(entry.note)}</p></article>
   <nav aria-label="책 페이지"><button disabled={page===0} onClick={()=>setPage(p=>p-1)}>이전 장</button><span aria-live="polite">{page+1} / {pages.length}</span><button disabled={page===pages.length-1} onClick={()=>setPage(p=>p+1)}>다음 장</button></nav>
   {!rewardsReady&&!completed&&<p role="status">자료별 완독 보상 저장을 준비 중입니다. 관리자에게 서버 업데이트를 요청해주세요.</p>}
   {completed?<p className="book-complete" role="status">✓ 완독 완료 · 이 책의 경험치를 받았습니다.</p>:page===pages.length-1?<button className="primary" disabled={!rewardsReady} onClick={()=>onComplete(activeSource)}>완독하기 · 도핑 경험치 +{scientific(bookDose(stage))} cm⁻³</button>:<p className="book-reward">한 장씩 끝까지 읽으면 도핑 경험치를 받습니다. (책마다 최초 1회)</p>}
