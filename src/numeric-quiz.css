@@ -3,3 +3,8 @@
 .numeric-quiz-answer>span:first-child{width:100%;font-size:14px;color:#d6e3dd}
 .numeric-quiz-answer input{width:110px;min-height:44px;padding:8px 10px;border:1px solid #8bafa9;border-radius:7px;background:#102e39;color:#fdf4d9;font-size:18px}
 .numeric-quiz-answer>span:last-child{white-space:nowrap;font-size:15px}
+
+.choices.stage-three-quiz-tabs{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px}
+.choices.stage-three-quiz-tabs>button{min-width:0;width:100%;min-height:44px;padding:8px 4px;white-space:nowrap;font-size:14px}
+@media(max-width:700px){.choices.stage-three-quiz-tabs>button{padding:8px 2px;font-size:13px}}
+@media(max-width:360px){.choices.stage-three-quiz-tabs{gap:3px}.choices.stage-three-quiz-tabs>button{padding:8px 0;font-size:11.5px;letter-spacing:-.2px}}
