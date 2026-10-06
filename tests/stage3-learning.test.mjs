@@ -11,6 +11,29 @@ import {bank} from './fixtures/translation-bank.mjs';
 const plain=v=>JSON.parse(JSON.stringify(v));
 const server=fs.readFileSync('google-apps-script/Code_v25_Stage2.gs','utf8');
 const initial=()=>({completed:[0,1,2,3,4],readBooks:[],doping:1e15,coins:20,purchased:[]});
+test('translation panel mounts the quiz for released Stage 3 and keeps unavailable stages hidden',()=>{
+ const source=fs.readFileSync('src/main.tsx','utf8');
+ const tree=ts.createSourceFile('main.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+ let expression;
+ function visit(node){
+  if(ts.isJsxExpression(node)&&node.expression?.getText(tree).startsWith("panel==='translation'&&"))expression=node.expression.getText(tree);
+  ts.forEachChild(node,visit);
+ }
+ visit(tree);assert.ok(expression,'translation panel render expression exists');
+ const code=ts.transpileModule('result = ('+expression+');',{compilerOptions:{jsx:ts.JsxEmit.React}}).outputText;
+ const mounted=(area,ready=true,panel='translation')=>{
+  const quiz=()=>{};
+  const context={area,panel,stage2TranslationReady:ready,stage3TranslationReady:ready,TranslationQuiz:quiz,requestTranslation(){},setTranslationBusy(){},React:{createElement:type=>({type})}};
+  vm.runInNewContext(code,context);return context.result?.type===quiz;
+ };
+ assert.equal(mounted('stage-3'),true);
+ assert.equal(mounted('stage-3',false),false);
+ assert.equal(mounted('stage-1',false),true);
+ assert.equal(mounted('stage-2'),true);
+ assert.equal(mounted('stage-2',false),false);
+ assert.equal(mounted('stage-4'),false);
+ assert.equal(mounted('stage-3',true,'book'),false);
+});
 test('Stage 3 materials have independent persistent rewards and preserve legacy reading',()=>{
  let save={...initial(),readBooks:[2]};
  assert.deepEqual(bookSources(save),['STAGE-3-BOOK-1']);
