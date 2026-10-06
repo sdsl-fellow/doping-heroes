@@ -9,6 +9,7 @@ import './stage-three-carriers.css';
 type Reading=ReturnType<typeof carrierMeasurement>;
 const sci=(n:number)=>n===0?'0':n.toExponential(2).replace('e+','e');
 const regionNames={partial:'도너 부분 이온화 영역',extrinsic:'외인성 영역',intrinsic:'진성 영역'};
+const equipmentAction=(id:string)=>id==='T09'||id==='T06'?'지참':'착용';
 const waferFragmentImage=`./item-icons/${catalogItem('T06')!.assetCode}.png?v=3`;
 
 export function ProbeStation({loaded,contacted,temperature,reading,busy}:{loaded:boolean;contacted:boolean;temperature:number;reading:Reading|null;busy:boolean}){
@@ -86,9 +87,9 @@ export function StageThreeCarrierExperiment({save,completed,onComplete,onBusy}:{
     {equipping&&<div key={equipping} className="carrier-equip-burst" aria-hidden="true"><i className="carrier-equip-ring"/><i className="carrier-equip-ring second"/>{Array.from({length:8},(_,i)=><i key={i} className="carrier-equip-spark" style={{transform:`rotate(${i*45}deg)`}}><b>✦</b></i>)}</div>}
    </div>
    <strong className="carrier-avatar-name">{save.name}</strong>
-   <p className="carrier-equip-status" role="status">{ready?'장비 착용 완료 · 실험 준비 완료!':equipping?`${catalogItem(equipping)?.name} 착용 완료 · ${prepared.length}/4`:'아래 장비를 눌러 실험을 준비하세요 · 0/4'}</p>
+   <p className="carrier-equip-status" role="status">{ready?'장비 준비 완료 · 실험 준비 완료!':equipping?`${catalogItem(equipping)?.name} ${equipmentAction(equipping)} 완료 · ${prepared.length}/4`:'아래 장비를 눌러 실험을 준비하세요 · 0/4'}</p>
   </div>
-  <div className="carrier-equipment">{carrierEquipment.map(item=>{const have=owned.includes(item.id),done=prepared.includes(item.id);return <div key={item.id} className={done?'prepared':!have?'missing':''}><ItemIcon id={item.id}/><strong>{catalogItem(item.id)?.name}</strong><button disabled={!have||done||busy} aria-label={`${catalogItem(item.id)?.name} 착용`} aria-pressed={done} onClick={()=>prepare(item.id)}>착용</button><small>{done?'착용 완료 ✓':!have?'미보유':item.purpose}</small></div>;})}</div>
+  <div className="carrier-equipment">{carrierEquipment.map(item=>{const have=owned.includes(item.id),done=prepared.includes(item.id);return <div key={item.id} className={done?'prepared':!have?'missing':''}><ItemIcon id={item.id}/><strong>{catalogItem(item.id)?.name}</strong><button disabled={!have||done||busy} aria-label={`${catalogItem(item.id)?.name} ${equipmentAction(item.id)}`} aria-pressed={done} onClick={()=>prepare(item.id)}>{equipmentAction(item.id)}</button><small>{done?`${equipmentAction(item.id)} 완료 ✓`:!have?'미보유':item.purpose}</small></div>;})}</div>
   <p className="carrier-note">팔찌와 고글을 함께 착용하고, 트위져와 웨이퍼 조각은 양손에 준비합니다. 네 아이템은 소모되지 않습니다.</p>
   {!carrierEquipment.every(item=>owned.includes(item.id))&&<p role="status" className="carrier-warning">미보유 장비는 세미 마을의 도너 상점에서 준비하세요. 네 가지를 모두 보유해야 실험할 수 있습니다.</p>}
   <h3>2. 프로브 접촉 및 온도별 측정</h3>

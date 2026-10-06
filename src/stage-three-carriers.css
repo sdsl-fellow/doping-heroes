@@ -14,3 +14,5 @@
 .carrier-station-box{width:100%;max-width:760px;margin:auto;box-sizing:border-box;border:1px solid #4f7886;border-radius:18px;background:#132f3d;overflow:hidden}
 .carrier-lab .carrier-sample-note{padding:0 16px 14px;font-size:12px;color:#b1ccd0;line-height:1.65}
 .carrier-graph-reading{font-variant-numeric:tabular-nums}
+
+@media(max-width:700px){.modal[aria-label="stage3-carrier-experiment"]>.dialog-heading{container-type:inline-size;gap:8px}.modal[aria-label="stage3-carrier-experiment"]>.dialog-heading>div{min-width:0}.modal[aria-label="stage3-carrier-experiment"]>.dialog-heading h2{font-size:clamp(9px,3.6cqw,18px);white-space:nowrap;letter-spacing:-.3px}.modal[aria-label="stage3-carrier-experiment"]>.dialog-heading>button{padding-inline:8px;font-size:12px}}

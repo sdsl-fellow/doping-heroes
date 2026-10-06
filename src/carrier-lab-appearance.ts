@@ -89,12 +89,13 @@ export function paintLabEquipment(ctx:CanvasRenderingContext2D,c:Character,prepa
  const {left,right,wrist,skin,scale}=hands(c);
  ctx.save();ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
  if(prepared.includes('T09'))tweezers(ctx,left,skin,scale);
+ // Draw the wrist band before the carried fragment; fingers remain above the fragment.
+ if(prepared.includes('A03'))bracelet(ctx,wrist,scale);
  if(prepared.includes('T06')&&wafer){
   ctx.save();ctx.translate(right[0]+3*scale,right[1]-1.5*scale);ctx.rotate(-.18);
   ctx.drawImage(wafer,-3.5*scale,-3.8*scale,8*scale,7*scale);ctx.restore();
   fingers(ctx,right,skin,scale,true);
  }
- if(prepared.includes('A03'))bracelet(ctx,wrist,scale);
  if(prepared.includes('A04'))goggles(ctx,c);
  ctx.restore();
 }
