@@ -16,6 +16,7 @@ import {mapInfo,stageIndex,stageDefinitions,gatewayLocations,arrivalPoint,stageU
 import type {Save} from './save';
 import {npcLocations,adventureLocations,route,walkable,routeToGateway,stageBookPoint} from './navigation.mjs';
 import {stage1ReadingSources} from './stage1-reading';
+import {stage3ReadingSources} from './stage3-reading';
 export function World({rootAccount,releasedStages,stage2TranslationReady,stage3TranslationReady,character,name,completed,area,arrival,destination,active,onTalk,onBook,onTranslation,onExperiment,onMiniGame,onBusy,onTravel,onReleaseStage,onRequestRelock,onEnterStage,onPosition,onError}:{rootAccount:boolean;releasedStages:boolean[];stage2TranslationReady:boolean;stage3TranslationReady:boolean;character:Character;name:string;completed:number[];area:Save['area'];arrival:number|null;destination:number|null;active:boolean;onBook:()=>void;onTranslation:()=>void;onExperiment:()=>void;onMiniGame:()=>void;onBusy:(busy:boolean)=>void;onTravel:()=>void;onReleaseStage:(index:number)=>void;onRequestRelock:(index:number)=>void;onEnterStage:(index:number)=>void;onTalk:(i:number)=>void;onPosition:(x:number,y:number)=>void;onError:(text:string)=>void}){
  const root=useRef<HTMLDivElement>(null),live=useRef({rootAccount,releasedStages,stage2TranslationReady,stage3TranslationReady,character,name,completed,area,arrival,destination,active,onTalk,onBook,onTranslation,onExperiment,onMiniGame,onBusy,onTravel,onReleaseStage,onRequestRelock,onEnterStage,onPosition,onError});live.current={rootAccount,releasedStages,stage2TranslationReady,stage3TranslationReady,character,name,completed,area,arrival,destination,active,onTalk,onBook,onTranslation,onExperiment,onMiniGame,onBusy,onTravel,onReleaseStage,onRequestRelock,onEnterStage,onPosition,onError};
  useEffect(()=>{
@@ -79,8 +80,20 @@ export function World({rootAccount,releasedStages,stage2TranslationReady,stage3T
     sign(645,point.y-24,'← 책 읽기');
     sign(895,point.y-24,'번역 퀴즈 →');
     sign(stageProps[index].experimentSign.x,stageProps[index].experimentSign.y,'실험 과제\n↓');
-    const books=index===0?stage1ReadingSources.length:1;
+    const books=index===0?stage1ReadingSources.length:index===2?stage3ReadingSources.length:1;
     this.book=this.add.image(point.x,point.y+8,books>1?'book-table-two':'book-table-one').setOrigin(.5,1).setDisplaySize(124,114).setDepth(point.y-1);
+    if(books===3){
+     // A third volume sits in front of the two existing spines, inside the bookends.
+     const volume=this.add.graphics().setPosition(point.x-62,point.y+8-114).setScale(124/320,114/300).setDepth(point.y-.5);
+     const poly=(points:number[],color:number)=>{volume.fillStyle(color,1);volume.fillPoints(points.reduce<Phaser.Geom.Point[]>((out,_,i)=>i%2?out:[...out,new Phaser.Geom.Point(points[i],points[i+1])],[]),true);};
+     poly([121,42,139,33,165,48,166,107,153,119,124,104],0x171f23);
+     poly([125,43,139,37,159,49,147,55],0xe7d5a8);
+     poly([125,48,145,59,147,112,127,101],0x713e49);
+     poly([148,59,161,52,162,105,150,114],0xa75e57);
+     volume.lineStyle(2,0xe7bc70,1);
+     volume.lineBetween(149,66,161,60);volume.lineBetween(150,99,161,94);
+     volume.fillStyle(0xe7bc70,1);volume.fillRect(153,77,5,7);
+    }
     this.add.text(point.x,point.y-130,'낡은 책 · 읽기',{fontSize:'16px',color:'#ffe6a3',backgroundColor:'#263c36dd',padding:{x:8,y:6}}).setOrigin(.5).setDepth(1500);
     this.add.zone(point.x,point.y-49,132,126).setInteractive({useHandCursor:true}).setDepth(1601).on('pointerdown',()=>{if(live.current.active&&!this.busy)this.go(point.x,point.y,-2);});
    }
