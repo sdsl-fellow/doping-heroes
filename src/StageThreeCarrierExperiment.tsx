@@ -71,7 +71,7 @@ export function StageThreeCarrierExperiment({save,completed,onComplete,onBusy}:{
   if(!completed&&!awarded.current){awarded.current=true;onComplete();}
  };
  return <section className="carrier-lab" aria-label="Stage 3 온도에 따른 실리콘 전도도 실험">
-  <div className="carrier-intro"><span>PROBE STATION / 03</span><h3>온도를 바꾸면 전류는 어떻게 달라질까?</h3><p>장비를 준비하고 다섯 온도에서 전도도를 측정하세요. 캐리어 농도와 이동도가 함께 만드는 변화를 찾아봅시다.</p></div>
+  <div className="carrier-intro"><span>PROBE STATION / 03</span><h3>온도를 바꾸면 면저항과 전도도는 어떻게 달라질까?</h3><p>장비를 준비하고 다섯 온도에서 전도도를 측정하세요. 캐리어 농도와 이동도가 함께 만드는 변화를 찾아봅시다.</p></div>
   {(completed||finished)&&<p className="carrier-success">실험 과제 완료 ✓ · 장비를 다시 준비해 보상 없이 복습할 수 있습니다.</p>}
   <h3>1. 실험 장비 준비</h3>
   <div className={`carrier-equip-stage${ready?' ready':''}`}>
