@@ -6,7 +6,7 @@ export const carrierEquipment=[
  {id:'T09',action:'황금 트위져 준비',purpose:'시편 취급'},
  {id:'T06',action:'웨이퍼 시편 배치',purpose:'측정할 실리콘'}
 ];
-export const targetTemperatures=[60,150,300,500,800];
+export const targetTemperatures=[40,60,150,300,500,800];
 // Uniform, electrically active n-type surface sheet on a p-type Si substrate.
 // Only the surface sheet conducts in this educational approximation.
 export const DONOR_DENSITY=1e16;

@@ -47,12 +47,13 @@ test('carrier model obeys charge neutrality, mass action, and conductivity throu
  assert.ok(room.muN>1200&&room.muN<1250);
  assert.equal(carrierMeasurement(NaN).temperature,300);
 });
-test('completion requires prepared equipment, probe contact, five distinct measurements and correct interpretation',()=>{
+test('completion requires prepared equipment, probe contact, six distinct measurements including 40 K and correct interpretation',()=>{
+ assert.deepEqual(targetTemperatures,[40,60,150,300,500,800]);
  const records=targetTemperatures.map(carrierMeasurement),answers=Object.fromEntries(carrierQuestions.map(q=>[q.id,q.answer])),s=initial();
  assert.equal(canCompleteCarrierLab(s,ids,true,records,answers),true);
  assert.equal(canCompleteCarrierLab(s,ids,false,records,answers),false);
  assert.equal(canCompleteCarrierLab(s,ids,true,records.slice(1),answers),false);
- assert.equal(canCompleteCarrierLab(s,ids,true,Array(5).fill(records[0]),answers),false);
+ assert.equal(canCompleteCarrierLab(s,ids,true,Array(6).fill(records[0]),answers),false);
  assert.equal(canCompleteCarrierLab(s,ids,true,records,{...answers,hot:'metal'}),false);
  assert.equal(canCompleteCarrierLab({...s,purchased:[]},ids,true,records,answers),false);
 });
