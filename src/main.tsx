@@ -1,3 +1,5 @@
+import {Shop} from './Shop';
+import {createSaleTransaction} from './shop-sale.mjs';
 import {stageQuizDone,recordStageQuiz} from './stage-activity.mjs';
 import {Rank} from './Rank';
 import {AskQuestion,MyQuestions} from './Questions';
@@ -48,6 +50,8 @@ function App(){
  const [dialog,setDialog]=useState<number|null>(null),[choice,setChoice]=useState<number|null>(null),[feedback,setFeedback]=useState(''),[reward,setReward]=useState(false),[implantFrom,setImplantFrom]=useState(MIN_DOPING),[caveExponent,setCaveExponent]=useState(16),[mapArea,setMapArea]=useState<Save['area']>('village');
  const [cinematic,setCinematic]=useState(false),[cloudReady,setCloudReady]=useState(false),[cloudSession,setCloudSession]=useState<CloudSession|null>(readCloudSession),[syncRetry,setSyncRetry]=useState(0),[relockIndex,setRelockIndex]=useState<number|null>(null),[approvedStudentId,setApprovedStudentId]=useState(''),[existingStudentId,setExistingStudentId]=useState(''),[registrationToken,setRegistrationToken]=useState('');
  const [translationBusy,setTranslationBusy]=useState(false);
+ const [salePending,setSalePending]=useState(false);
+ const saleTransaction=useRef(createSaleTransaction());
  const [contentReady,setContentReady]=useState(false);
  const [bookRewardsReady,setBookRewardsReady]=useState(false);
  const [tutorialBatchReady,setTutorialBatchReady]=useState(false);
@@ -70,8 +74,8 @@ function App(){
  useEffect(()=>{if(save)try{localStorage.setItem('doping-heroes:v3',JSON.stringify(toStoredSave(save)));setStorageError(false);}catch{setStorageError(true);}},[save]);
  useEffect(()=>{let stopped=false;const refresh=()=>fetchCloudStages().then(response=>{if(!stopped){setContentReady((response.apiVersion??0)>=16);setBookRewardsReady((response.apiVersion??0)>=18);setTutorialBatchReady((response.apiVersion??0)>=17);setStageQuizReady((response.apiVersion??0)>=21);setStage2TranslationReady((response.apiVersion??0)>=25);setStage3TranslationReady(response.translationStages?.includes(3)===true);if(response.stages)setReleasedStages(normalizeStageFlags(response.stages));}}).catch(()=>{});refresh();const timer=window.setInterval(refresh,15000);const visible=()=>{if(document.visibilityState==='visible')refresh();};document.addEventListener('visibilitychange',visible);return()=>{stopped=true;window.clearInterval(timer);document.removeEventListener('visibilitychange',visible);};},[]);
  useEffect(()=>{const studentId=save?.studentId;if(!studentId){setCloudReady(false);return;}if(!cloudSession||cloudSession.studentId!==studentId){setCloudReady(false);return;}let stopped=false;loadCloud(cloudSession.token).then(response=>{if(stopped||!response.student)return;revisionRef.current=response.student.revision;lastSyncedRef.current=JSON.stringify(response.student.save);setCloudSession(current=>current?{...current,revision:response.student!.revision}:current);writeCloudSession({...cloudSession,revision:response.student.revision});if(response.stages)setReleasedStages(normalizeStageFlags(response.stages));setSave(response.student.save);setCloudReady(true);setStorageError(false);}).catch(error=>{if(stopped)return;if(error instanceof CloudError&&['UNAUTHORIZED','TOKEN_EXPIRED','PIN_CHANGE_REQUIRED'].includes(error.code)){clearCloudSession();setCloudSession(null);setCloudReady(false);setToast('클라우드 로그인이 만료되었습니다. PIN을 다시 입력해 주세요.');}else{lastSyncedRef.current=JSON.stringify(save);revisionRef.current=cloudSession.revision;setCloudReady(true);setStorageError(true);setToast(error instanceof Error?error.message:'클라우드 저장소에 연결할 수 없습니다.');}});return()=>{stopped=true;};},[save?.studentId,cloudSession?.token]);
- useEffect(()=>{if(panel==='inventory'||panel==='translation'||!cloudReady||!save||!cloudSession||cloudSession.studentId!==save.studentId)return;const serialized=JSON.stringify(save);if(serialized===lastSyncedRef.current)return;
- const timer=window.setTimeout(()=>{void enqueue(async()=>{if(JSON.stringify(saveRef.current)!==serialized||lastSyncedRef.current===serialized)return;
+ useEffect(()=>{if(saleTransaction.current.pending||panel==='inventory'||panel==='translation'||!cloudReady||!save||!cloudSession||cloudSession.studentId!==save.studentId)return;const serialized=JSON.stringify(save);if(serialized===lastSyncedRef.current)return;
+ const timer=window.setTimeout(()=>{void enqueue(async()=>{if(saleTransaction.current.pending||JSON.stringify(saveRef.current)!==serialized||lastSyncedRef.current===serialized)return;
  try{const response=await saveCloud(cloudSession.token,save,revisionRef.current);if(!response.student)return;revisionRef.current=response.student.revision;lastSyncedRef.current=serialized;const next={...cloudSession,revision:response.student.revision};writeCloudSession(next);setCloudSession(next);setStorageError(false);}
  catch(error){if(error instanceof CloudError&&error.code==='REVISION_CONFLICT'&&error.response?.student){const remote=error.response.student;revisionRef.current=remote.revision;lastSyncedRef.current=JSON.stringify(remote.save);const next={...cloudSession,revision:remote.revision};writeCloudSession(next);setCloudSession(next);setSave(current=>JSON.stringify(current)===serialized?remote.save:current);setToast('서버의 최신 기록을 확인했습니다.');return;}setStorageError(true);setToast(error instanceof Error?error.message:'클라우드 자동 저장에 실패했습니다.');window.setTimeout(()=>setSyncRetry(value=>value+1),5000);}});},900);return()=>window.clearTimeout(timer);},[save,cloudReady,cloudSession?.token,syncRetry,panel]);
  const saveInventory=(selected:Character)=>enqueue(async()=>{
@@ -86,6 +90,32 @@ function App(){
   }
   throw new Error('저장하지 못했습니다. 다시 시도해 주세요.');
   }finally{setCinematic(false);}
+ });
+
+ const sellShopItem=(id:string):Promise<void>=>enqueue(async()=>{
+  if(!cloudReady||!cloudSession||!saveRef.current)throw new Error('서버 연결 후 판매해 주세요.');
+  setTranslationBusy(true);
+  const transaction=saleTransaction.current;
+  const accept=(response:CloudResponse)=>{
+   if(!response.student)throw new Error('판매 결과를 확인하지 못했습니다. 같은 거래를 다시 확인해 주세요.');
+   const st=response.student;revisionRef.current=st.revision;lastSyncedRef.current=JSON.stringify(st.save);saveRef.current=st.save;setSave(st.save);
+   const session={...cloudSession,revision:st.revision};writeCloudSession(session);setCloudSession(session);setStorageError(false);
+  };
+  try{
+   if(!transaction.pending&&JSON.stringify(saveRef.current)!==lastSyncedRef.current)accept(await saveCloud(cloudSession.token,saveRef.current,revisionRef.current,false));
+   const attempt=transaction.begin(saveRef.current,revisionRef.current,id);setSalePending(true);
+   const response=await saveCloud(cloudSession.token,attempt.candidate,attempt.revision,false);
+   accept(response);transaction.clear();setSalePending(false);
+  }catch(error){
+   if(error instanceof CloudError&&error.code==='REVISION_CONFLICT'&&error.response?.student){
+    accept(error.response);transaction.clear();setSalePending(false);
+    throw new Error('서버의 최신 아이템·코인을 반영했습니다. 이전 판매가 이미 저장됐을 수 있으므로 목록과 잔액을 확인해 주세요. 중복 판매하지 않았습니다.');
+   }
+   if(error instanceof CloudError&&!['TIMEOUT','NETWORK_ERROR','INVALID_RESPONSE'].includes(error.code)){transaction.clear();setSalePending(false);}
+   setStorageError(true);
+   if(transaction.pending)throw new Error('판매 응답을 받지 못했습니다. 서버에는 저장됐을 수 있습니다. 판매 결과 재확인 버튼을 눌러 주세요.');
+   throw error;
+  }finally{setTranslationBusy(!!transaction.pending);}
  });
 
  const requestContent:ContentRequest=(action,args)=>enqueue(async()=>{
@@ -211,7 +241,7 @@ function App(){
  {panel==='map'&&<><div className="choices"><button aria-pressed={mapArea==='village'} onClick={()=>setMapArea('village')}>세미 마을</button><button aria-pressed={mapArea==='adventure'} onClick={()=>setMapArea('adventure')}>12개 Stage 관문</button>{stageIndex(area)>=0&&<button aria-pressed={mapArea===area} onClick={()=>setMapArea(area)}>현재 Stage</button>}</div>{map(mapArea,true)}<div className="topic-destinations"><h3>Stage 목적지</h3><div className="choices">{stageDefinitions.map(s=><button key={s.index} disabled={!unlocked(s.index)} onClick={()=>go(s.questId)}>{s.title}</button>)}</div></div><p>{key?'마을 남쪽 나무 관문 → 배 탑승 → 대륙 북쪽 입구 → Stage 관문 → 주제별 맵. Stage의 위쪽 출구로 돌아오면 방금 들어간 관문 앞입니다.':'Dr. 실리콘의 문제 3개를 풀면 열쇠를 받고 남쪽 나무 관문을 직접 열 수 있습니다.'}</p></>}
  {panel==='quests'&&<><p>시작 마을의 문제 3개를 완료한 뒤, Stage 1부터 순서대로 퀘스트를 완료하세요. 완료한 Stage는 언제든 복습할 수 있습니다.</p><div className="quest-journal weekly-journal">{[...allQuests.slice(0,3),...stageDefinitions.map(s=>allQuests[s.questId])].map(quest=><article key={quest.id}><small>{quest.week?stageForQuest(quest.id)?.title:'튜토리얼 · Dr. 실리콘'}</small><h3>{completed.includes(quest.id)?'✓ ':''}{quest.title}</h3><p>불순물 +{scientific(quest.dose)} cm⁻³ · {quest.coins} 코인</p>{quest.id<3&&<p>장비 · {rewardNames(quest.id)}</p>}<button disabled={quest.id>=3&&!canUseStage(stageForQuest(quest.id)?.index)} onClick={()=>go(quest.id)}>{completed.includes(quest.id)?'다시 만나기':'이동하기'}</button></article>)}</div></>}
  {panel==='samples'&&<><div className="sigma"><small>전도도 레벨 · {xp.stage}/9단계</small><strong>{levelLabel(doping,type)}</strong></div><label>현재 시료 종류<select value={type} onChange={e=>setSave(s=>s?{...s,type:e.target.value==='p'?'p':'n'}:s)}><option value="n">n-Si · 인(P)</option><option value="p">p-Si · 붕소(B)</option></select></label><p>불순물 꾸러미는 인벤토리에서 사용하면 선택한 시료의 도핑 경험치에 반영됩니다. 종류 전환은 같은 농도의 독립 시료 비교이며 보상 도핑을 뜻하지 않습니다.</p><div className="doping-range"><span>{scientific(xp.low)}</span><progress max={1} value={xp.fraction}/><span>{scientific(xp.high)}</span></div><p>현재 농도 {scientific(doping)} cm⁻³ · {xp.max?'최종 구간 완료':'다음 단계까지 '+scientific(xp.high-doping)+' cm⁻³'}</p><p>전도도 표시는 현재 도핑 농도에 따라 갱신됩니다. 현재 농도의 그래프 추정 전도도는 {sigmaLabel(conductivity(doping,type))} S/cm입니다.</p><div className="equation">σ [S/cm] = 1 / ρ [Ω·cm]</div><p>첨부 비저항 그래프를 판독하고 로그 보간한 근삿값입니다. 원자료가 없어 정확한 물성 측정값을 뜻하지 않습니다. 최대 경험치 구간은 1e20 → 1e21 cm⁻³입니다.</p></>}
- {panel==='shop'&&<><p className="shop-balance">보유 코인 ◉ {save?.coins??0}</p><p>소모품은 구입 후 인벤토리에서 사용하세요.</p>{Object.entries(slotNames).map(([slot,label])=><section className="catalog-shop" key={slot}><h3>{label}</h3><div className="shop-grid">{shopItems.filter(item=>item.slot===slot).map(item=>{const owned=!isConsumable(item.id)&&ownedIds.includes(item.id),limited=purchaseLimitReached(save,item.id),price=purchasePrice(save,item);return <article key={item.id}><ItemIcon id={item.id}/><span className="catalog-code"> {item.code}</span><h3>{item.name}</h3><p>{item.description}</p>{isConsumable(item.id)&&<p>{consumablePurchaseCount(save,item.id)+1}회차 · {Number.isFinite(price)?price.toLocaleString():"—"} 코인</p>}<button disabled={owned||limited||!Number.isFinite(price)||(save?.coins??0)<price} onClick={()=>buy(item.id)}>{(owned||limited)?(Number.isFinite(price)?price.toLocaleString():'—')+' 코인 · 보유 중':Number.isFinite(price)?price.toLocaleString()+' 코인 · 구매':'구매 불가'}</button></article>;})}</div></section>)}</>}
+ {panel==='shop'&&save&&<Shop save={save} pending={salePending} onBuy={buy} onSell={sellShopItem}/> }
  {panel==='cave'&&<><h3>결정의 메아리 · n형과 p형 비교</h3><p>슬라이더로 도핑 농도를 바꾸고 두 결정의 비저항과 전도도를 비교해 보세요. 이 실험은 경험치와 불순물을 소모하지 않습니다.</p><label>도핑 농도 {scientific(10**caveExponent)} cm⁻³<input className="cave-slider" type="range" min={13} max={21} step={.1} value={caveExponent} onChange={e=>setCaveExponent(Number(e.target.value))}/></label><div className="crystal-results">{(['n','p'] as const).map(kind=><article key={kind}><h3>{kind==='n'?'n-Si · 인(P)':'p-Si · 붕소(B)'}</h3><p>ρ ≈ {sigmaLabel(resistivity(10**caveExponent,kind))} Ω·cm</p><strong>σ ≈ {sigmaLabel(conductivity(10**caveExponent,kind))} S/cm</strong></article>)}</div><p>σ = 1/ρ. 비저항이 낮을수록 전도도가 커집니다. 같은 농도에서도 n형과 p형은 다른 값을 가집니다.</p><small>첨부 그래프 판독·로그 보간에 의한 학습용 근사입니다.</small></>}
  {panel==='guide'&&<><h3>마을에서 대륙으로</h3><p>Dr. 실리콘의 문제 3개 → 열쇠 획득 → 남쪽 나무 관문 터치 → 배 탑승 → 12개 관문과 각각의 별도 Stage 맵. 각 Stage의 활성 일반 퀴즈를 모두 맞혀야 하며, 실험 과제가 있는 Stage는 실험도 완료해야 합니다. Stage 퀘스트는 순서대로 열리고 보상은 최초 한 번만 지급됩니다.</p><p>맵/NPC 터치로 이동·대화, 방향 패드 또는 WASD로 직접 이동하세요. 도너 상점에서 물품을 구매할 수 있습니다.</p><h3>농도가 경험치, 전도도가 레벨</h3><p>불순물을 얻으면 농도가 증가합니다. 1e14, 1e15 … 1e21 cm⁻³ 경계를 넘으면 전도도 레벨이 갱신됩니다. 최대 농도에 도달해도 남은 퀘스트와 코인 보상은 계속 얻을 수 있습니다.</p><p>현재 12개 Stage는 결정·격자·밴드·캐리어·도핑·드리프트·확산·PN 접합·다이오드·BJT·FET·전력 반도체 주제입니다.</p><h3>저장</h3><p>학번과 PIN으로 클라우드 저장소에 연결됩니다. 같은 학번과 PIN으로 다른 기기에서도 캐릭터, 경험치, 아이템과 퀘스트 기록을 이어서 사용할 수 있습니다. 통신이 잠시 끊기면 현재 브라우저에도 기록을 보관하고 연결이 복구되면 다시 동기화합니다.</p><small className="version">도핑 히어로즈 · Doping Heroes v0.9.0</small></>}
  </Modal>}
